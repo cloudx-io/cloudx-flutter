@@ -1,0 +1,23 @@
+name: cloudx_flutter_host_app
+description: Flutter host app demonstrating CloudX SDK integration
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cloudx_flutter_sdk:
+    path: ../cloudx_flutter_sdk
+  cupertino_icons: ^1.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true 
