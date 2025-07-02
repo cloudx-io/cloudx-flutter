@@ -1,9 +1,7 @@
 library cloudx;
 
 import 'dart:async';
-import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 /// The main CloudX Flutter SDK class.
@@ -640,24 +638,7 @@ class CloudX {
     }
   }
 
-  // Call _ensureInitialized in all public methods
-  static Future<bool> _initializeWithCheck({
-    required String appKey,
-    String? hashedUserID,
-  }) async {
-    _ensureInitialized();
-    return initialize(appKey: appKey, hashedUserID: hashedUserID);
-  }
 
-  static Future<bool> _isInitializedWithCheck() async {
-    _ensureInitialized();
-    return isInitialized();
-  }
-
-  static Future<String> _getVersionWithCheck() async {
-    _ensureInitialized();
-    return getVersion();
-  }
 
   /// Set a banner listener for a specific ad
   /// 
