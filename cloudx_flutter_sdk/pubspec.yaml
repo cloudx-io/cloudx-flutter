@@ -1,6 +1,6 @@
 name: cloudx_flutter_sdk
 description: Flutter SDK wrapper for CloudX Core Objective-C SDK
-version: 1.0.3
+version: 1.0.4
 homepage: https://github.com/cloudx-xenoss/CloudXFlutterSDK
 repository: https://github.com/cloudx-xenoss/CloudXFlutterSDK
 issue_tracker: https://github.com/cloudx-xenoss/CloudXFlutterSDK/issues

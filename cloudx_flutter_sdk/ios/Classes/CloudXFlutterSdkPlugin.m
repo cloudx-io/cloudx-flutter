@@ -3,7 +3,7 @@
 #import <Flutter/Flutter.h>
 #import <objc/runtime.h>
 
-@interface CloudXFlutterSdkPlugin () <CloudXInterstitialDelegate, CloudXRewardedDelegate, CloudXBannerDelegate, CloudXNativeDelegate, FlutterStreamHandler>
+@interface CloudXFlutterSdkPlugin () <CLXInterstitialDelegate, CLXRewardedDelegate, CLXBannerDelegate, CLXNativeDelegate, FlutterStreamHandler>
 @property (nonatomic, strong) FlutterMethodChannel *channel;
 @property (nonatomic, strong) FlutterEventChannel *eventChannel;
 @property (nonatomic, strong) FlutterEventSink eventSink;
@@ -574,7 +574,7 @@
     printf("[Flutter Plugin] createBanner - About to create banner with delegate: %s\n", [[self description] UTF8String]);
     
     // Match the working Objective-C app exactly: createBannerWithPlacement:viewController:delegate:tmax:
-    CloudXBannerAdView *bannerAd = [[CloudXCore shared] createBannerWithPlacement:placement
+    CLXBannerAdView *bannerAd = [[CloudXCore shared] createBannerWithPlacement:placement
                                                                       viewController:viewController
                                                                           delegate:self
                                                                               tmax:nil];
@@ -624,7 +624,7 @@
     NSLog(@"[Flutter Plugin] createInterstitial - About to create interstitial with delegate: %@", self);
     printf("[Flutter Plugin] createInterstitial - About to create interstitial with delegate: %s\n", [[self description] UTF8String]);
     
-    id<CloudXInterstitial> interstitialAd = [[CloudXCore shared] createInterstitialWithPlacement:placement
+    id<CLXInterstitial> interstitialAd = [[CloudXCore shared] createInterstitialWithPlacement:placement
                                                                                         delegate:self];
     
     NSLog(@"[Flutter Plugin] createInterstitial: interstitialAd created: %@", interstitialAd);
@@ -673,7 +673,7 @@
     NSLog(@"[Flutter Plugin] createRewarded - About to create rewarded with delegate: %@", self);
     printf("[Flutter Plugin] createRewarded - About to create rewarded with delegate: %s\n", [[self description] UTF8String]);
     
-    id<CloudXRewardedInterstitial> rewardedAd = [[CloudXCore shared] createRewardedWithPlacement:placement
+    id<CLXRewardedInterstitial> rewardedAd = [[CloudXCore shared] createRewardedWithPlacement:placement
                                                                                         delegate:self];
     
     NSLog(@"[Flutter Plugin] createRewarded: rewardedAd created: %@", rewardedAd);
@@ -726,9 +726,9 @@
     NSLog(@"[Flutter Plugin] createNative - About to create native with delegate: %@", self);
     printf("[Flutter Plugin] createNative - About to create native with delegate: %s\n", [[self description] UTF8String]);
     
-    CloudXNativeAdView *nativeAd = [[CloudXCore shared] createNativeAdWithPlacement:placement
-                                                                    viewController:viewController
-                                                                          delegate:self];
+        CLXNativeAdView *nativeAd = [[CloudXCore shared] createNativeAdWithPlacement:placement
+                                                                        viewController:viewController
+                                                                            delegate:self];
     
     NSLog(@"[Flutter Plugin] createNative: nativeAd created: %@", nativeAd);
     printf("[Flutter Plugin] createNative: nativeAd created: %s\n", [[nativeAd description] UTF8String]);
@@ -781,8 +781,8 @@
     printf("[Flutter Plugin] createMREC - About to create MREC with delegate: %s\n", [[self description] UTF8String]);
     
     // Match the working Objective-C app exactly: createMRECWithPlacement:viewController:delegate:
-    CloudXBannerAdView *mrecAd = [[CloudXCore shared] createMRECWithPlacement:placement
-                                                                viewController:viewController
+        CLXBannerAdView *mrecAd = [[CloudXCore shared] createMRECWithPlacement:placement
+                                                                  viewController:viewController
                                                                       delegate:self];
     
     NSLog(@"[Flutter Plugin] createMREC: mrecAd created: %@", mrecAd);
@@ -834,8 +834,8 @@
     // Store the result to be called when the ad loads
     self.pendingResults[adId] = result;
     
-    if ([adInstance conformsToProtocol:@protocol(CloudXAd)]) {
-        [(id<CloudXAd>)adInstance load];
+    if ([adInstance conformsToProtocol:@protocol(CLXAd)]) {
+        [(id<CLXAd>)adInstance load];
     } else {
         result([FlutterError errorWithCode:@"INVALID_AD_TYPE" 
                                   message:@"Ad instance does not support loading" 
@@ -1024,9 +1024,9 @@
     printf("🔍 [Flutter Plugin] sendEventToFlutter END\n");
 }
 
-#pragma mark - CloudXBannerDelegate
+#pragma mark - CLXBannerDelegate
 
-- (void)didLoadWithAd:(id<CloudXAd>)ad {
+- (void)didLoadWithAd:(id<CLXAd>)ad {
     NSLog(@"[Flutter Plugin] didLoadWithAd called for ad: %@", ad);
     printf("[Flutter Plugin] didLoadWithAd called for ad: %s\n", [[ad description] UTF8String]);
     NSString *adId = [self getAdIdForInstance:ad];
@@ -1059,7 +1059,7 @@
     printf("🔍 [Flutter Plugin] didLoadWithAd END\n");
 }
 
-- (void)failToLoadWithAd:(id<CloudXAd>)ad error:(NSError *)error {
+- (void)failToLoadWithAd:(id<CLXAd>)ad error:(NSError *)error {
     NSLog(@"[Flutter Plugin] failToLoadWithAd called for ad: %@, error: %@", ad, error.localizedDescription);
     printf("[Flutter Plugin] failToLoadWithAd called for ad: %s, error: %s\n", [[ad description] UTF8String], [error.localizedDescription UTF8String]);
     NSString *adId = [self getAdIdForInstance:ad];
@@ -1075,7 +1075,7 @@
     }
 }
 
-- (void)didShowWithAd:(id<CloudXAd>)ad {
+- (void)didShowWithAd:(id<CLXAd>)ad {
     NSString *adId = [self getAdIdForInstance:ad];
     if (adId) {
         NSLog(@"🔴 [Flutter Plugin] didShowWithAd - adId: %@", adId);
@@ -1088,7 +1088,7 @@
     }
 }
 
-- (void)failToShowWithAd:(id<CloudXAd>)ad error:(NSError *)error {
+- (void)failToShowWithAd:(id<CLXAd>)ad error:(NSError *)error {
     NSString *adId = [self getAdIdForInstance:ad];
     if (adId) {
         NSLog(@"🔴 [Flutter Plugin] failToShowWithAd - adId: %@, error: %@", adId, error.localizedDescription);
@@ -1102,7 +1102,7 @@
     }
 }
 
-- (void)didHideWithAd:(id<CloudXAd>)ad {
+- (void)didHideWithAd:(id<CLXAd>)ad {
     NSString *adId = [self getAdIdForInstance:ad];
     if (adId) {
         NSLog(@"🔴 [Flutter Plugin] didHideWithAd - adId: %@", adId);
@@ -1115,7 +1115,7 @@
     }
 }
 
-- (void)didClickWithAd:(id<CloudXAd>)ad {
+- (void)didClickWithAd:(id<CLXAd>)ad {
     NSString *adId = [self getAdIdForInstance:ad];
     if (adId) {
         NSLog(@"🔴 [Flutter Plugin] didClickWithAd - adId: %@", adId);
@@ -1128,7 +1128,7 @@
     }
 }
 
-- (void)impressionOn:(id<CloudXAd>)ad {
+- (void)impressionOn:(id<CLXAd>)ad {
     NSString *adId = [self getAdIdForInstance:ad];
     if (adId) {
         NSLog(@"🔴 [Flutter Plugin] impressionOn - adId: %@", adId);
@@ -1141,7 +1141,7 @@
     }
 }
 
-- (void)closedByUserActionWithAd:(id<CloudXAd>)ad {
+- (void)closedByUserActionWithAd:(id<CLXAd>)ad {
     NSString *adId = [self getAdIdForInstance:ad];
     if (adId) {
         NSLog(@"🔴 [Flutter Plugin] closedByUserActionWithAd - adId: %@", adId);
@@ -1154,13 +1154,13 @@
     }
 }
 
-#pragma mark - CloudXInterstitialDelegate (inherits from BaseAdDelegate, so same methods)
+#pragma mark - CLXInterstitialDelegate (inherits from BaseAdDelegate, so same methods)
 
-#pragma mark - CloudXNativeDelegate (inherits from BaseAdDelegate, so same methods)
+#pragma mark - CLXNativeDelegate (inherits from BaseAdDelegate, so same methods)
 
-#pragma mark - CloudXRewardedDelegate (Rewarded-specific methods)
+#pragma mark - CLXRewardedDelegate (Rewarded-specific methods)
 
-- (void)userRewarded:(id<CloudXAd>)ad {
+- (void)userRewarded:(id<CLXAd>)ad {
     NSString *adId = [self getAdIdForInstance:ad];
     if (adId) {
         NSLog(@"🔴 [Flutter Plugin] userRewarded - adId: %@", adId);
@@ -1173,7 +1173,7 @@
     }
 }
 
-- (void)rewardedVideoStarted:(id<CloudXAd>)ad {
+- (void)rewardedVideoStarted:(id<CLXAd>)ad {
     NSString *adId = [self getAdIdForInstance:ad];
     if (adId) {
         NSLog(@"🔴 [Flutter Plugin] rewardedVideoStarted - adId: %@", adId);
@@ -1186,7 +1186,7 @@
     }
 }
 
-- (void)rewardedVideoCompleted:(id<CloudXAd>)ad {
+- (void)rewardedVideoCompleted:(id<CLXAd>)ad {
     NSString *adId = [self getAdIdForInstance:ad];
     if (adId) {
         NSLog(@"🔴 [Flutter Plugin] rewardedVideoCompleted - adId: %@", adId);

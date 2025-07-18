@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.4
+
+* Updated CloudXCore dependency to version 1.1.34
+* Updated to use new CLX-prefixed protocols and classes from CloudX Core SDK
+* Updated delegate protocols: CloudXInterstitialDelegate → CLXInterstitialDelegate, CloudXRewardedDelegate → CLXRewardedDelegate, CloudXBannerDelegate → CLXBannerDelegate, CloudXNativeDelegate → CLXNativeDelegate
+* Updated ad classes: CloudXBannerAdView → CLXBannerAdView, CloudXNativeAdView → CLXNativeAdView, CloudXInterstitial → CLXInterstitial, CloudXRewardedInterstitial → CLXRewardedInterstitial
+* Updated base ad protocol: CloudXAd → CLXAd
+* Improved compatibility with latest CloudX Core SDK refactoring
+
 ## 1.0.3
 
 * Updated CloudXCore dependency to version 1.1.13
