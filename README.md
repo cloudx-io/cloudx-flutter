@@ -94,12 +94,7 @@ To see the Core SDK logs in your terminal, use this essential command:
 xcrun simctl spawn booted log stream --predicate 'process == "Runner"' --style compact | grep -E "(CloudX|🔴|printf|NSLog)"
 ```
 
-This command filters the iOS simulator logs to show only CloudX-related output, including:
-- Core SDK initialization logs
-- Ad loading and bidding processes
-- Network requests and responses
-- Delegate callback events
-- Error details and debugging information
+This command filters the iOS simulator logs to show only CloudX-related output.
 
 **Note**: Flutter verbose logging should only be enabled during development and debugging. Remove this flag for production builds to avoid performance impact and excessive log output.
 
