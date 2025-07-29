@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.0.7
+
+* Updated CloudXCore dependency to version 1.1.40
+* Added automatic verbose logging support via environment variables
+* Improved debugging capabilities with CLOUDX_FLUTTER_VERBOSE_LOG integration
+* Enhanced logging visibility in Flutter console during development
+* Updated documentation with recommended verbose logging setup
+* Switched to remote CloudXCore dependency for better stability
+
+## 1.0.6
+
+* Updated CloudXCore dependency to version 1.1.34
+* Updated to use new CLX-prefixed protocols and classes from CloudX Core SDK
+* Updated delegate protocols: CloudXInterstitialDelegate → CLXInterstitialDelegate, CloudXRewardedDelegate → CLXRewardedDelegate, CloudXBannerDelegate → CLXBannerDelegate, CloudXNativeDelegate → CLXNativeDelegate
+* Updated ad classes: CloudXBannerAdView → CLXBannerAdView, CloudXNativeAdView → CLXNativeAdView, CloudXInterstitial → CLXInterstitial, CloudXRewardedInterstitial → CLXRewardedInterstitial
+* Updated base ad protocol: CloudXAd → CLXAd
+* Improved compatibility with latest CloudX Core SDK refactoring
+
 ## 1.0.4
 
 * Updated CloudXCore dependency to version 1.1.34

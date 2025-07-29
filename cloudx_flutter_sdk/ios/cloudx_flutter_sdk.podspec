@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'cloudx_flutter_sdk'
-  s.version          = '1.0.6'
+  s.version          = '1.0.7'
   s.summary          = 'Flutter SDK wrapper for CloudX Core Objective-C SDK'
   s.description      = <<-DESC
 A Flutter plugin that provides a wrapper around the CloudX Core Objective-C SDK,
