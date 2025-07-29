@@ -45,7 +45,16 @@ To enable detailed SDK logging for debugging purposes in Flutter apps, you can u
 
 The CloudX Core SDK uses `os_log` for system-level logging, which doesn't appear in Flutter's console output by default. The `CLOUDX_FLUTTER_VERBOSE_LOG` flag ensures that important debugging information (like bid requests/responses) is also logged to `NSLog`, making it visible in Flutter's console during development.
 
-#### Option 1: Add to Info.plist
+#### Option 1: Programmatically in iOS Plugin (Recommended)
+
+The CloudX Flutter SDK automatically sets the environment variables when the plugin is registered. If you need to ensure verbose logging is enabled, you can add this to your iOS plugin code:
+
+```objc
+// In your iOS plugin's registerWithRegistrar method
+setenv("CLOUDX_FLUTTER_VERBOSE_LOG", "1", 1);
+```
+
+#### Option 2: Add to Info.plist
 
 Add the following to your `ios/Runner/Info.plist`:
 
@@ -54,7 +63,7 @@ Add the following to your `ios/Runner/Info.plist`:
 <string>1</string>
 ```
 
-#### Option 2: Set Environment Variable
+#### Option 3: Set Environment Variable
 
 Set the environment variable before running your Flutter app:
 
@@ -63,7 +72,7 @@ export CLOUDX_FLUTTER_VERBOSE_LOG=1
 flutter run
 ```
 
-#### Option 3: Xcode Scheme Environment Variables
+#### Option 4: Xcode Scheme Environment Variables
 
 1. Open your project in Xcode
 2. Go to Product → Scheme → Edit Scheme

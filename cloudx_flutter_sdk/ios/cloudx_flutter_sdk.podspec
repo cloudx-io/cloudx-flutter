@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'cloudx_flutter_sdk'
-  s.version          = '1.0.5'
+  s.version          = '1.0.6'
   s.summary          = 'Flutter SDK wrapper for CloudX Core Objective-C SDK'
   s.description      = <<-DESC
 A Flutter plugin that provides a wrapper around the CloudX Core Objective-C SDK,
@@ -12,7 +12,7 @@ exposing all ad types (banner, interstitial, rewarded, native, MREC) and SDK ini
   s.source           = { :path => '.' }
   s.source_files     = 'Classes/**/*'
   s.dependency 'Flutter'
-  s.dependency 'CloudXCore', '~> 1.1.39'
+  s.dependency 'CloudXCore', '~> 1.1.40'
   s.platform = :ios, '14.0'
 
   # Flutter.framework does not contain a i386 slice.

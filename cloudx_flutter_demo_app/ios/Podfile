@@ -33,7 +33,8 @@ target 'Runner' do
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   
-  # Using published CloudXCore version from CocoaPods
+  # Override CloudXCore to use local development version
+  pod 'CloudXCore', :path => '../../../cloudexchange.sdk.ios.coreObjC'
   
   # Add the test adapter from local development version
   pod 'CloudXTestVastNetworkAdapter', :path => '../../../cloudexchange.sdk.ios.testAdapter'

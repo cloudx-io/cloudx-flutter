@@ -28,51 +28,26 @@ class CloudX {
     print('CloudX Flutter SDK: Starting initialization...');
     print('CloudX Flutter SDK: AppKey: $appKey');
     print('CloudX Flutter SDK: HashedUserID: $hashedUserID');
+
+    final arguments = <String, dynamic>{
+      'appKey': appKey,
+    };
     
-    // Ensure event stream is initialized
-    _ensureInitialized();
-    
-    try {
-      final arguments = {
-        'appKey': appKey,
-        if (hashedUserID != null) 'hashedUserID': hashedUserID,
-      };
-      
-      print('CloudX Flutter SDK: Calling native initSDK with arguments: $arguments');
-      print('CloudX Flutter SDK: Method channel: $_channel');
-      
-      // Check environment variables on Flutter side
-      final envVars = Platform.environment;
-      print('CloudX Flutter SDK: CLOUDX_VERBOSE_LOG = ${envVars['CLOUDX_VERBOSE_LOG']}');
-      print('CloudX Flutter SDK: CLOUDX_FLUTTER_VERBOSE_LOG = ${envVars['CLOUDX_FLUTTER_VERBOSE_LOG']}');
-      print('CloudX Flutter SDK: All environment variables: $envVars');
-      
-      // Test if the method channel is working at all
-      print('CloudX Flutter SDK: Testing method channel...');
-      try {
-        final testResult = await _channel.invokeMethod('testMethod');
-        print('CloudX Flutter SDK: Test method returned: $testResult');
-      } catch (e) {
-        print('CloudX Flutter SDK: Test method failed (expected): $e');
-      }
-      
-      final result = await _channel.invokeMethod('initSDK', arguments);
-      print('CloudX Flutter SDK: Native initSDK returned: $result (type: ${result.runtimeType})');
-      
-      // Add a small delay to see if there are any async callbacks
-      await Future.delayed(Duration(milliseconds: 100));
+    if (hashedUserID != null) {
+      arguments['hashedUserID'] = hashedUserID;
+    }
+
+    print('CloudX Flutter SDK: Calling native initSDK with arguments: $arguments');
+    print('CloudX Flutter SDK: Method channel: $_channel');
+
+    final result = await _channel.invokeMethod('initSDK', arguments);
+    print('CloudX Flutter SDK: Native initSDK returned: $result (type: ${result.runtimeType})');
+
+    if (result == true) {
       print('CloudX Flutter SDK: Initialization completed');
-      
-      return result;
-    } on PlatformException catch (e) {
-      print('CloudX Flutter SDK: PlatformException during initialization:');
-      print('CloudX Flutter SDK: Code: ${e.code}');
-      print('CloudX Flutter SDK: Message: ${e.message}');
-      print('CloudX Flutter SDK: Details: ${e.details}');
-      return false;
-    } catch (e) {
-      print('CloudX Flutter SDK: Unexpected error during initialization: $e');
-      print('CloudX Flutter SDK: Error type: ${e.runtimeType}');
+      return true;
+    } else {
+      print('CloudX Flutter SDK: Initialization failed');
       return false;
     }
   }

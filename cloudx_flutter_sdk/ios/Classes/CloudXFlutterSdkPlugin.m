@@ -333,65 +333,23 @@
 @implementation CloudXFlutterSdkPlugin
 
 + (void)load {
-    NSLog(@"🔴🔴🔴 CloudX Flutter Plugin: +load method called");
-    printf("🔴🔴🔴 CloudX Flutter Plugin: +load method called\n");
-    fprintf(stderr, "🔴🔴🔴 CloudX Flutter Plugin: +load method called (stderr)\n");
-    fflush(stderr);
-    
-    // Force output to console
-    NSLog(@"🔴🔴🔴 CLOUDX PLUGIN LOAD METHOD CALLED - THIS SHOULD BE VISIBLE");
-    printf("🔴🔴🔴 CLOUDX PLUGIN LOAD METHOD CALLED - THIS SHOULD BE VISIBLE\n");
-    fprintf(stderr, "🔴🔴🔴 CLOUDX PLUGIN LOAD METHOD CALLED - THIS SHOULD BE VISIBLE\n");
-    fflush(stdout);
-    fflush(stderr);
-    
-    // Check environment variables for logging control
-    NSDictionary *env = [[NSProcessInfo processInfo] environment];
-    NSString *verboseLog = env[@"CLOUDX_VERBOSE_LOG"];
-    NSString *flutterVerboseLog = env[@"CLOUDX_FLUTTER_VERBOSE_LOG"];
-    
-    NSLog(@"🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_VERBOSE_LOG = %@", verboseLog);
-    printf("🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_VERBOSE_LOG = %s\n", [verboseLog UTF8String]);
-    NSLog(@"🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_FLUTTER_VERBOSE_LOG = %@", flutterVerboseLog);
-    printf("🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_FLUTTER_VERBOSE_LOG = %s\n", [flutterVerboseLog UTF8String]);
-    
-    // For Flutter apps, we should use CLOUDX_FLUTTER_VERBOSE_LOG
-    if ([flutterVerboseLog isEqualToString:@"1"]) {
-        NSLog(@"🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_FLUTTER_VERBOSE_LOG=1 is set - verbose logging should be enabled");
-        printf("🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_FLUTTER_VERBOSE_LOG=1 is set - verbose logging should be enabled\n");
-    } else {
-        NSLog(@"🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_FLUTTER_VERBOSE_LOG is NOT set to 1 - verbose logging may be disabled");
-        printf("🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_FLUTTER_VERBOSE_LOG is NOT set to 1 - verbose logging may be disabled\n");
-    }
-    
-    NSLog(@"🔴🔴🔴 CloudX Flutter Plugin: +load method completed");
-    printf("🔴🔴🔴 CloudX Flutter Plugin: +load method completed\n");
+    // Plugin loaded - no verbose logging setup needed
 }
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
-  NSLog(@"🔴🔴🔴 [Flutter Plugin] registerWithRegistrar called");
-  printf("🔴🔴🔴 [Flutter Plugin] registerWithRegistrar called\n");
-  fprintf(stderr, "🔴🔴🔴 [Flutter Plugin] registerWithRegistrar called (stderr)\n");
-  fflush(stderr);
   
-  // Force output to console
-  NSLog(@"🔴🔴🔴 CLOUDX PLUGIN REGISTER METHOD CALLED - THIS SHOULD BE VISIBLE");
-  printf("🔴🔴🔴 CLOUDX PLUGIN REGISTER METHOD CALLED - THIS SHOULD BE VISIBLE\n");
-  fprintf(stderr, "🔴🔴🔴 CLOUDX PLUGIN REGISTER METHOD CALLED - THIS SHOULD BE VISIBLE\n");
-  fflush(stdout);
-  fflush(stderr);
+  // Set environment variables for verbose logging
+  setenv("CLOUDX_VERBOSE_LOG", "1", 1);
+  setenv("CLOUDX_FLUTTER_VERBOSE_LOG", "1", 1);
+  NSLog(@"[CloudX Flutter Plugin] Environment variables set: CLOUDX_VERBOSE_LOG=1, CLOUDX_FLUTTER_VERBOSE_LOG=1");
   
   FlutterMethodChannel* channel = [FlutterMethodChannel
       methodChannelWithName:@"cloudx_flutter_sdk"
             binaryMessenger:[registrar messenger]];
-  NSLog(@"[Flutter Plugin] Method channel created: %@", channel);
-  printf("[Flutter Plugin] Method channel created\n");
   
   CloudXFlutterSdkPlugin* instance = [[CloudXFlutterSdkPlugin alloc] init];
   instance.channel = channel;
   [registrar addMethodCallDelegate:instance channel:channel];
-  NSLog(@"[Flutter Plugin] Method call delegate added");
-  printf("[Flutter Plugin] Method call delegate added\n");
   
   // Set up event channel
   FlutterEventChannel* eventChannel = [FlutterEventChannel
@@ -399,29 +357,18 @@
                                        binaryMessenger:[registrar messenger]];
   instance.eventChannel = eventChannel;
   [eventChannel setStreamHandler:instance];
-  NSLog(@"[Flutter Plugin] Event channel set up");
-  printf("[Flutter Plugin] Event channel set up\n");
 
   // Register platform view factory for banner
   CloudXBannerPlatformViewFactory *bannerFactory = [[CloudXBannerPlatformViewFactory alloc] initWithPlugin:instance];
   [registrar registerViewFactory:bannerFactory withId:@"cloudx_banner_view"];
-  NSLog(@"[Flutter Plugin] Banner platform view factory registered");
-  printf("[Flutter Plugin] Banner platform view factory registered\n");
   
   // Register platform view factory for native
   CloudXNativePlatformViewFactory *nativeFactory = [[CloudXNativePlatformViewFactory alloc] initWithPlugin:instance];
   [registrar registerViewFactory:nativeFactory withId:@"cloudx_native_view"];
-  NSLog(@"[Flutter Plugin] Native platform view factory registered");
-  printf("[Flutter Plugin] Native platform view factory registered\n");
   
   // Register platform view factory for MREC
   CloudXMRECPlatformViewFactory *mrecFactory = [[CloudXMRECPlatformViewFactory alloc] initWithPlugin:instance];
   [registrar registerViewFactory:mrecFactory withId:@"cloudx_mrec_view"];
-  NSLog(@"[Flutter Plugin] MREC platform view factory registered");
-  printf("[Flutter Plugin] MREC platform view factory registered\n");
-  
-  NSLog(@"[Flutter Plugin] Plugin registration completed successfully");
-  printf("[Flutter Plugin] Plugin registration completed successfully\n");
 }
 
 - (instancetype)init {
@@ -434,13 +381,13 @@
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-    NSLog(@"[Flutter Plugin] handleMethodCall called with method: %@", call.method);
-    printf("[Flutter Plugin] handleMethodCall called with method: %s\n", [call.method UTF8String]);
     
     if ([call.method isEqualToString:@"test"]) {
-        NSLog(@"[Flutter Plugin] Test method called");
-        printf("[Flutter Plugin] Test method called\n");
         result(@"TEST_SUCCESS");
+    } else if ([call.method isEqualToString:@"testMethod"]) {
+        result(@"TEST_SUCCESS");
+    } else if ([call.method isEqualToString:@"enableVerboseLogging"]) {
+        result(@YES);
     } else if ([call.method isEqualToString:@"initSDK"]) {
         NSLog(@"[Flutter Plugin] initSDK method called");
         printf("[Flutter Plugin] initSDK method called\n");
@@ -495,82 +442,35 @@
 #pragma mark - SDK Initialization
 
 - (void)initSDK:(NSDictionary *)arguments result:(FlutterResult)result {
-    printf("🔴🔴🔴 CloudX Flutter Plugin: initSDK called with arguments: %s\n", [arguments.description UTF8String]);
-    NSLog(@"🔴🔴🔴 CloudX Flutter Plugin: initSDK called with arguments: %@", arguments);
-    
-    // Check environment variable again
-    NSString *verboseLog = [[NSProcessInfo processInfo] environment][@"CLOUDX_VERBOSE_LOG"];
-    NSString *flutterVerboseLog = [[NSProcessInfo processInfo] environment][@"CLOUDX_FLUTTER_VERBOSE_LOG"];
-    printf("🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_VERBOSE_LOG in initSDK: %s\n", [verboseLog UTF8String]);
-    NSLog(@"🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_VERBOSE_LOG in initSDK: %@", verboseLog);
-    printf("🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_FLUTTER_VERBOSE_LOG in initSDK: %s\n", [flutterVerboseLog UTF8String]);
-    NSLog(@"🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_FLUTTER_VERBOSE_LOG in initSDK: %@", flutterVerboseLog);
-    
-    // Force output to console
-    printf("🔴🔴🔴 CLOUDX PLUGIN INITSDK METHOD CALLED - THIS SHOULD BE VISIBLE\n");
-    NSLog(@"🔴🔴🔴 CLOUDX PLUGIN INITSDK METHOD CALLED - THIS SHOULD BE VISIBLE");
-    fflush(stdout);
-    fflush(stderr);
-    
     NSString *appKey = arguments[@"appKey"];
     NSString *hashedUserID = arguments[@"hashedUserID"];
     
-    printf("🔴 CloudX Flutter Plugin: AppKey: %s\n", [appKey UTF8String]);
-    printf("🔴 CloudX Flutter Plugin: HashedUserID: %s\n", [hashedUserID UTF8String]);
-    NSLog(@"CloudX Flutter Plugin: AppKey: %@", appKey);
-    NSLog(@"CloudX Flutter Plugin: HashedUserID: %@", hashedUserID);
-    
     if (!appKey) {
-        printf("🔴 CloudX Flutter Plugin: ERROR - appKey is required\n");
-        NSLog(@"CloudX Flutter Plugin: ERROR - appKey is required");
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
                                   message:@"appKey is required" 
                                   details:nil]);
         return;
     }
     
-    printf("🔴🔴🔴 CloudX Flutter Plugin: Calling CloudXCore initSDK...\n");
-    NSLog(@"🔴🔴🔴 CloudX Flutter Plugin: Calling CloudXCore initSDK...");
-    
-    NSLog(@"🔴🔴🔴 ABOUT TO CALL CLOUDXCORE SHARED: %@", [CloudXCore shared]);
-    printf("🔴🔴🔴 ABOUT TO CALL CLOUDXCORE SHARED\n");
-    
     if (hashedUserID) {
-        printf("🔴 CloudX Flutter Plugin: Using initSDKWithAppKey:hashedUserID:completion:\n");
-        NSLog(@"CloudX Flutter Plugin: Using initSDKWithAppKey:hashedUserID:completion:");
         [[CloudXCore shared] initSDKWithAppKey:appKey 
                                   hashedUserID:hashedUserID 
                                     completion:^(BOOL success, NSError * _Nullable error) {
-            printf("🔴 CloudX Flutter Plugin: CloudXCore initSDK completion - Success: %s, Error: %s\n", 
-                  success ? "YES" : "NO", error ? [error.localizedDescription UTF8String] : "nil");
-            NSLog(@"CloudX Flutter Plugin: CloudXCore initSDK completion - Success: %@, Error: %@", 
-                  success ? @"YES" : @"NO", error ? error.localizedDescription : @"nil");
             [self handleInitResult:success error:error result:result];
         }];
     } else {
-        printf("🔴 CloudX Flutter Plugin: Using initSDKWithAppKey:completion:\n");
-        NSLog(@"CloudX Flutter Plugin: Using initSDKWithAppKey:completion:");
         [[CloudXCore shared] initSDKWithAppKey:appKey 
                                     completion:^(BOOL success, NSError * _Nullable error) {
-            printf("🔴 CloudX Flutter Plugin: CloudXCore initSDK completion - Success: %s, Error: %s\n", 
-                  success ? "YES" : "NO", error ? [error.localizedDescription UTF8String] : "nil");
-            NSLog(@"CloudX Flutter Plugin: CloudXCore initSDK completion - Success: %@, Error: %@", 
-                  success ? @"YES" : @"NO", error ? error.localizedDescription : @"nil");
             [self handleInitResult:success error:error result:result];
         }];
     }
 }
 
 - (void)handleInitResult:(BOOL)success error:(NSError *)error result:(FlutterResult)result {
-    NSLog(@"CloudX Flutter Plugin: handleInitResult - Success: %@, Error: %@", 
-          success ? @"YES" : @"NO", error ? error.localizedDescription : @"nil");
-    
     if (success) {
-        NSLog(@"CloudX Flutter Plugin: Returning success to Flutter");
         result(@YES);
     } else {
         NSString *errorMessage = error ? error.localizedDescription : @"Unknown error occurred";
-        NSLog(@"CloudX Flutter Plugin: Returning error to Flutter: %@", errorMessage);
         result([FlutterError errorWithCode:@"INIT_FAILED" 
                                   message:errorMessage 
                                   details:nil]);

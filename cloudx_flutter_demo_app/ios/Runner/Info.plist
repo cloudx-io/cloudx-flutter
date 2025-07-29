@@ -47,10 +47,7 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-	<key>LSEnvironment</key>
-	<dict>
-		<key>CLOUDX_FLUTTER_VERBOSE_LOG</key>
-		<string>1</string>
-	</dict>
+
+
 </dict>
 </plist> 
