@@ -339,7 +339,6 @@
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
   
   // Set environment variables for verbose logging
-  setenv("CLOUDX_VERBOSE_LOG", "1", 1);
   setenv("CLOUDX_FLUTTER_VERBOSE_LOG", "1", 1);
   NSLog(@"[CloudX Flutter Plugin] Environment variables set: CLOUDX_VERBOSE_LOG=1, CLOUDX_FLUTTER_VERBOSE_LOG=1");
   
