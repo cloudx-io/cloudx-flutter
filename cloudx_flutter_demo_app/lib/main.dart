@@ -15,7 +15,7 @@ class CloudXDemoApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'CloudX Flutter Host App',
+      title: 'CloudX Flutter Demo App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         useMaterial3: true,

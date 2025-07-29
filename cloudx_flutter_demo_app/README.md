@@ -1,4 +1,4 @@
-# CloudX Flutter Host App
+# CloudX Flutter Demo App
 
 A Flutter demo application that demonstrates the integration of the CloudX Flutter SDK. This app mirrors the functionality of the CloudXObjCRemotePods iOS app but uses the Flutter SDK wrapper instead of the native Objective-C SDK directly.
 
@@ -60,7 +60,7 @@ Each ad type has its own screen that extends `BaseAdScreen`:
 1. **Clone the repository**:
    ```bash
    git clone <repository-url>
-   cd CloudXFlutterSDK/cloudx_flutter_host_app
+   cd CloudXFlutterSDK/cloudx_flutter_demo_app
    ```
 
 2. **Install Flutter dependencies**:

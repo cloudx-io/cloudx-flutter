@@ -1,6 +1,7 @@
 library cloudx;
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
 
@@ -39,6 +40,12 @@ class CloudX {
       
       print('CloudX Flutter SDK: Calling native initSDK with arguments: $arguments');
       print('CloudX Flutter SDK: Method channel: $_channel');
+      
+      // Check environment variables on Flutter side
+      final envVars = Platform.environment;
+      print('CloudX Flutter SDK: CLOUDX_VERBOSE_LOG = ${envVars['CLOUDX_VERBOSE_LOG']}');
+      print('CloudX Flutter SDK: CLOUDX_FLUTTER_VERBOSE_LOG = ${envVars['CLOUDX_FLUTTER_VERBOSE_LOG']}');
+      print('CloudX Flutter SDK: All environment variables: $envVars');
       
       // Test if the method channel is working at all
       print('CloudX Flutter SDK: Testing method channel...');

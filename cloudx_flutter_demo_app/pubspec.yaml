@@ -1,5 +1,5 @@
-name: cloudx_flutter_host_app
-description: Flutter host app demonstrating CloudX SDK integration
+name: cloudx_flutter_demo_app
+description: Flutter demo app demonstrating CloudX SDK integration
 publish_to: 'none'
 version: 1.0.0+1
 

@@ -332,9 +332,54 @@
 
 @implementation CloudXFlutterSdkPlugin
 
++ (void)load {
+    NSLog(@"🔴🔴🔴 CloudX Flutter Plugin: +load method called");
+    printf("🔴🔴🔴 CloudX Flutter Plugin: +load method called\n");
+    fprintf(stderr, "🔴🔴🔴 CloudX Flutter Plugin: +load method called (stderr)\n");
+    fflush(stderr);
+    
+    // Force output to console
+    NSLog(@"🔴🔴🔴 CLOUDX PLUGIN LOAD METHOD CALLED - THIS SHOULD BE VISIBLE");
+    printf("🔴🔴🔴 CLOUDX PLUGIN LOAD METHOD CALLED - THIS SHOULD BE VISIBLE\n");
+    fprintf(stderr, "🔴🔴🔴 CLOUDX PLUGIN LOAD METHOD CALLED - THIS SHOULD BE VISIBLE\n");
+    fflush(stdout);
+    fflush(stderr);
+    
+    // Check environment variables for logging control
+    NSDictionary *env = [[NSProcessInfo processInfo] environment];
+    NSString *verboseLog = env[@"CLOUDX_VERBOSE_LOG"];
+    NSString *flutterVerboseLog = env[@"CLOUDX_FLUTTER_VERBOSE_LOG"];
+    
+    NSLog(@"🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_VERBOSE_LOG = %@", verboseLog);
+    printf("🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_VERBOSE_LOG = %s\n", [verboseLog UTF8String]);
+    NSLog(@"🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_FLUTTER_VERBOSE_LOG = %@", flutterVerboseLog);
+    printf("🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_FLUTTER_VERBOSE_LOG = %s\n", [flutterVerboseLog UTF8String]);
+    
+    // For Flutter apps, we should use CLOUDX_FLUTTER_VERBOSE_LOG
+    if ([flutterVerboseLog isEqualToString:@"1"]) {
+        NSLog(@"🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_FLUTTER_VERBOSE_LOG=1 is set - verbose logging should be enabled");
+        printf("🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_FLUTTER_VERBOSE_LOG=1 is set - verbose logging should be enabled\n");
+    } else {
+        NSLog(@"🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_FLUTTER_VERBOSE_LOG is NOT set to 1 - verbose logging may be disabled");
+        printf("🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_FLUTTER_VERBOSE_LOG is NOT set to 1 - verbose logging may be disabled\n");
+    }
+    
+    NSLog(@"🔴🔴🔴 CloudX Flutter Plugin: +load method completed");
+    printf("🔴🔴🔴 CloudX Flutter Plugin: +load method completed\n");
+}
+
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
-  NSLog(@"[Flutter Plugin] registerWithRegistrar called");
-  printf("[Flutter Plugin] registerWithRegistrar called\n");
+  NSLog(@"🔴🔴🔴 [Flutter Plugin] registerWithRegistrar called");
+  printf("🔴🔴🔴 [Flutter Plugin] registerWithRegistrar called\n");
+  fprintf(stderr, "🔴🔴🔴 [Flutter Plugin] registerWithRegistrar called (stderr)\n");
+  fflush(stderr);
+  
+  // Force output to console
+  NSLog(@"🔴🔴🔴 CLOUDX PLUGIN REGISTER METHOD CALLED - THIS SHOULD BE VISIBLE");
+  printf("🔴🔴🔴 CLOUDX PLUGIN REGISTER METHOD CALLED - THIS SHOULD BE VISIBLE\n");
+  fprintf(stderr, "🔴🔴🔴 CLOUDX PLUGIN REGISTER METHOD CALLED - THIS SHOULD BE VISIBLE\n");
+  fflush(stdout);
+  fflush(stderr);
   
   FlutterMethodChannel* channel = [FlutterMethodChannel
       methodChannelWithName:@"cloudx_flutter_sdk"
@@ -450,8 +495,22 @@
 #pragma mark - SDK Initialization
 
 - (void)initSDK:(NSDictionary *)arguments result:(FlutterResult)result {
-    printf("🔴 CloudX Flutter Plugin: initSDK called with arguments: %s\n", [arguments.description UTF8String]);
-    NSLog(@"CloudX Flutter Plugin: initSDK called with arguments: %@", arguments);
+    printf("🔴🔴🔴 CloudX Flutter Plugin: initSDK called with arguments: %s\n", [arguments.description UTF8String]);
+    NSLog(@"🔴🔴🔴 CloudX Flutter Plugin: initSDK called with arguments: %@", arguments);
+    
+    // Check environment variable again
+    NSString *verboseLog = [[NSProcessInfo processInfo] environment][@"CLOUDX_VERBOSE_LOG"];
+    NSString *flutterVerboseLog = [[NSProcessInfo processInfo] environment][@"CLOUDX_FLUTTER_VERBOSE_LOG"];
+    printf("🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_VERBOSE_LOG in initSDK: %s\n", [verboseLog UTF8String]);
+    NSLog(@"🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_VERBOSE_LOG in initSDK: %@", verboseLog);
+    printf("🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_FLUTTER_VERBOSE_LOG in initSDK: %s\n", [flutterVerboseLog UTF8String]);
+    NSLog(@"🔴🔴🔴 CloudX Flutter Plugin: CLOUDX_FLUTTER_VERBOSE_LOG in initSDK: %@", flutterVerboseLog);
+    
+    // Force output to console
+    printf("🔴🔴🔴 CLOUDX PLUGIN INITSDK METHOD CALLED - THIS SHOULD BE VISIBLE\n");
+    NSLog(@"🔴🔴🔴 CLOUDX PLUGIN INITSDK METHOD CALLED - THIS SHOULD BE VISIBLE");
+    fflush(stdout);
+    fflush(stderr);
     
     NSString *appKey = arguments[@"appKey"];
     NSString *hashedUserID = arguments[@"hashedUserID"];
@@ -470,10 +529,11 @@
         return;
     }
     
-    printf("🔴 CloudX Flutter Plugin: Calling CloudXCore initSDK...\n");
-    NSLog(@"CloudX Flutter Plugin: Calling CloudXCore initSDK...");
+    printf("🔴🔴🔴 CloudX Flutter Plugin: Calling CloudXCore initSDK...\n");
+    NSLog(@"🔴🔴🔴 CloudX Flutter Plugin: Calling CloudXCore initSDK...");
     
     NSLog(@"🔴🔴🔴 ABOUT TO CALL CLOUDXCORE SHARED: %@", [CloudXCore shared]);
+    printf("🔴🔴🔴 ABOUT TO CALL CLOUDXCORE SHARED\n");
     
     if (hashedUserID) {
         printf("🔴 CloudX Flutter Plugin: Using initSDKWithAppKey:hashedUserID:completion:\n");
@@ -574,6 +634,8 @@
     printf("[Flutter Plugin] createBanner - About to create banner with delegate: %s\n", [[self description] UTF8String]);
     
     // Match the working Objective-C app exactly: createBannerWithPlacement:viewController:delegate:tmax:
+    NSLog(@"🔴🔴🔴 [Flutter Plugin] About to create banner with delegate: %@", self);
+    printf("🔴🔴🔴 [Flutter Plugin] About to create banner with delegate: %s\n", [[self description] UTF8String]);
     CLXBannerAdView *bannerAd = [[CloudXCore shared] createBannerWithPlacement:placement
                                                                       viewController:viewController
                                                                           delegate:self
@@ -583,6 +645,11 @@
     printf("[Flutter Plugin] createBanner: bannerAd created: %s\n", [[bannerAd description] UTF8String]);
     
     if (bannerAd) {
+        NSLog(@"🔴🔴🔴 [Flutter Plugin] createBanner - bannerAd created: %@, class: %@", bannerAd, NSStringFromClass([bannerAd class]));
+        printf("🔴🔴🔴 [Flutter Plugin] createBanner - bannerAd created: %s, class: %s\n", [[bannerAd description] UTF8String], [NSStringFromClass([bannerAd class]) UTF8String]);
+        NSLog(@"🔴🔴🔴 [Flutter Plugin] createBanner - bannerAd conforms to CLXAd: %@", [bannerAd conformsToProtocol:@protocol(CLXAd)] ? @"YES" : @"NO");
+        printf("🔴🔴🔴 [Flutter Plugin] createBanner - bannerAd conforms to CLXAd: %s\n", [bannerAd conformsToProtocol:@protocol(CLXAd)] ? "YES" : "NO");
+        
         NSLog(@"[Flutter Plugin] createBanner - Storing banner instance in adInstances for adId: %@", adId);
         printf("[Flutter Plugin] createBanner - Storing banner instance in adInstances for adId: %s\n", [adId UTF8String]);
         
@@ -816,7 +883,12 @@
 - (void)loadAd:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *adId = arguments[@"adId"];
     
+    NSLog(@"🔴🔴🔴 [Flutter Plugin] loadAd START - adId: %@", adId);
+    printf("🔴🔴🔴 [Flutter Plugin] loadAd START - adId: %s\n", [adId UTF8String]);
+    
     if (!adId) {
+        NSLog(@"🔴🔴🔴 [Flutter Plugin] loadAd ERROR - adId is nil");
+        printf("🔴🔴🔴 [Flutter Plugin] loadAd ERROR - adId is nil\n");
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
                                   message:@"adId is required" 
                                   details:nil]);
@@ -824,7 +896,12 @@
     }
     
     id adInstance = self.adInstances[adId];
+    NSLog(@"🔴🔴🔴 [Flutter Plugin] loadAd - adInstance: %@, class: %@", adInstance, NSStringFromClass([adInstance class]));
+    printf("🔴🔴🔴 [Flutter Plugin] loadAd - adInstance: %s, class: %s\n", [[adInstance description] UTF8String], [NSStringFromClass([adInstance class]) UTF8String]);
+    
     if (!adInstance) {
+        NSLog(@"🔴🔴🔴 [Flutter Plugin] loadAd ERROR - adInstance not found for adId: %@", adId);
+        printf("🔴🔴🔴 [Flutter Plugin] loadAd ERROR - adInstance not found for adId: %s\n", [adId UTF8String]);
         result([FlutterError errorWithCode:@"AD_NOT_FOUND" 
                                   message:@"Ad instance not found" 
                                   details:nil]);
@@ -833,14 +910,25 @@
     
     // Store the result to be called when the ad loads
     self.pendingResults[adId] = result;
+    NSLog(@"🔴🔴🔴 [Flutter Plugin] loadAd - Stored pending result for adId: %@", adId);
+    printf("🔴🔴🔴 [Flutter Plugin] loadAd - Stored pending result for adId: %s\n", [adId UTF8String]);
     
     if ([adInstance conformsToProtocol:@protocol(CLXAd)]) {
+        NSLog(@"🔴🔴🔴 [Flutter Plugin] loadAd - adInstance conforms to CLXAd, calling load()");
+        printf("🔴🔴🔴 [Flutter Plugin] loadAd - adInstance conforms to CLXAd, calling load()\n");
         [(id<CLXAd>)adInstance load];
+        NSLog(@"🔴🔴🔴 [Flutter Plugin] loadAd - load() called successfully");
+        printf("🔴🔴🔴 [Flutter Plugin] loadAd - load() called successfully\n");
     } else {
+        NSLog(@"🔴🔴🔴 [Flutter Plugin] loadAd - adInstance does not conform to CLXAd protocol");
+        printf("🔴🔴🔴 [Flutter Plugin] loadAd - adInstance does not conform to CLXAd protocol\n");
         result([FlutterError errorWithCode:@"INVALID_AD_TYPE" 
                                   message:@"Ad instance does not support loading" 
                                   details:nil]);
     }
+    
+    NSLog(@"🔴🔴🔴 [Flutter Plugin] loadAd END");
+    printf("🔴🔴🔴 [Flutter Plugin] loadAd END\n");
 }
 
 - (void)showAd:(NSDictionary *)arguments result:(FlutterResult)result {
@@ -1024,11 +1112,73 @@
     printf("🔍 [Flutter Plugin] sendEventToFlutter END\n");
 }
 
+
+
 #pragma mark - CLXBannerDelegate
 
+- (void)didLoadBanner:(id<CLXAdapterBanner>)banner {
+    NSLog(@"🔴🔴🔴 [Flutter Plugin] didLoadBanner called for banner: %@", banner);
+    printf("🔴🔴🔴 [Flutter Plugin] didLoadBanner called for banner: %s\n", [[banner description] UTF8String]);
+    
+    // Find the ad instance that contains this banner
+    NSString *adId = nil;
+    for (NSString *key in self.adInstances) {
+        id instance = self.adInstances[key];
+        if ([instance respondsToSelector:@selector(banner)] && [instance performSelector:@selector(banner)] == banner) {
+            adId = key;
+            break;
+        }
+    }
+    
+    if (adId) {
+        NSLog(@"🔍 [Flutter Plugin] didLoadBanner - Found adId: %@, sending event to Flutter", adId);
+        printf("🔍 [Flutter Plugin] didLoadBanner - Found adId: %s, sending event to Flutter\n", [adId UTF8String]);
+        
+        [self sendEventToFlutter:@"didLoad" adId:adId data:nil];
+        
+        NSLog(@"🔍 [Flutter Plugin] didLoadBanner - Event sent to Flutter");
+        printf("🔍 [Flutter Plugin] didLoadBanner - Event sent to Flutter\n");
+    } else {
+        NSLog(@"🔍 [Flutter Plugin] didLoadBanner ERROR - could not find adId for banner: %@", banner);
+        printf("🔍 [Flutter Plugin] didLoadBanner ERROR - could not find adId for banner: %s\n", [[banner description] UTF8String]);
+        NSLog(@"🔍 [Flutter Plugin] didLoadBanner - Current adInstances: %@", self.adInstances);
+        NSString *instancesDescription = [self.adInstances description] ?: @"nil";
+        printf("🔍 [Flutter Plugin] didLoadBanner - Current adInstances: %s\n", [instancesDescription UTF8String]);
+    }
+    
+    NSLog(@"🔍 [Flutter Plugin] didLoadBanner END");
+    printf("🔍 [Flutter Plugin] didLoadBanner END\n");
+}
+
+- (void)failToLoadBanner:(id<CLXAdapterBanner>)banner error:(NSError *)error {
+    NSLog(@"🔴🔴🔴 [Flutter Plugin] failToLoadBanner called for banner: %@, error: %@", banner, error.localizedDescription);
+    printf("🔴🔴🔴 [Flutter Plugin] failToLoadBanner called for banner: %s, error: %s\n", [[banner description] UTF8String], [error.localizedDescription UTF8String]);
+    
+    // Find the ad instance that contains this banner
+    NSString *adId = nil;
+    for (NSString *key in self.adInstances) {
+        id instance = self.adInstances[key];
+        if ([instance respondsToSelector:@selector(banner)] && [instance performSelector:@selector(banner)] == banner) {
+            adId = key;
+            break;
+        }
+    }
+    
+    if (adId) {
+        NSLog(@"🔴 [Flutter Plugin] failToLoadBanner - adId: %@, error: %@", adId, error.localizedDescription);
+        printf("🔴 [Flutter Plugin] failToLoadBanner - adId: %s, error: %s\n", [adId UTF8String], [error.localizedDescription UTF8String]);
+        
+        NSDictionary *data = @{@"error": error.localizedDescription ?: @"Unknown error"};
+        [self sendEventToFlutter:@"failToLoad" adId:adId data:data];
+    } else {
+        NSLog(@"🔴 [Flutter Plugin] failToLoadBanner - could not find adId for banner: %@", banner);
+        printf("🔴 [Flutter Plugin] failToLoadBanner - could not find adId for banner: %s\n", [[banner description] UTF8String]);
+    }
+}
+
 - (void)didLoadWithAd:(id<CLXAd>)ad {
-    NSLog(@"[Flutter Plugin] didLoadWithAd called for ad: %@", ad);
-    printf("[Flutter Plugin] didLoadWithAd called for ad: %s\n", [[ad description] UTF8String]);
+    NSLog(@"🔴🔴🔴 [Flutter Plugin] didLoadWithAd called for ad: %@", ad);
+    printf("🔴🔴🔴 [Flutter Plugin] didLoadWithAd called for ad: %s\n", [[ad description] UTF8String]);
     NSString *adId = [self getAdIdForInstance:ad];
     NSLog(@"🔍 [Flutter Plugin] didLoadWithAd START - ad: %@, adId: %@", ad, adId);
     printf("🔍 [Flutter Plugin] didLoadWithAd START - ad: %s, adId: %s\n", [[ad description] UTF8String], [adId UTF8String]);
@@ -1060,8 +1210,8 @@
 }
 
 - (void)failToLoadWithAd:(id<CLXAd>)ad error:(NSError *)error {
-    NSLog(@"[Flutter Plugin] failToLoadWithAd called for ad: %@, error: %@", ad, error.localizedDescription);
-    printf("[Flutter Plugin] failToLoadWithAd called for ad: %s, error: %s\n", [[ad description] UTF8String], [error.localizedDescription UTF8String]);
+    NSLog(@"🔴🔴🔴 [Flutter Plugin] failToLoadWithAd called for ad: %@, error: %@", ad, error.localizedDescription);
+    printf("🔴🔴🔴 [Flutter Plugin] failToLoadWithAd called for ad: %s, error: %s\n", [[ad description] UTF8String], [error.localizedDescription UTF8String]);
     NSString *adId = [self getAdIdForInstance:ad];
     if (adId) {
         NSLog(@"🔴 [Flutter Plugin] failToLoadWithAd - adId: %@, error: %@", adId, error.localizedDescription);
@@ -1154,6 +1304,8 @@
     }
 }
 
+
+
 #pragma mark - CLXInterstitialDelegate (inherits from BaseAdDelegate, so same methods)
 
 #pragma mark - CLXNativeDelegate (inherits from BaseAdDelegate, so same methods)
@@ -1198,6 +1350,10 @@
         printf("🔴 [Flutter Plugin] rewardedVideoCompleted - could not find adId for ad: %s\n", [[ad description] UTF8String]);
     }
 }
+
+#pragma mark - CLXInterstitialDelegate (inherits from BaseAdDelegate, so same methods)
+
+#pragma mark - CLXNativeDelegate (inherits from BaseAdDelegate, so same methods)
 
 #pragma mark - FlutterStreamHandler
 

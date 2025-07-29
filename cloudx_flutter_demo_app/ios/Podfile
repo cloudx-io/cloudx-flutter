@@ -33,8 +33,9 @@ target 'Runner' do
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   
-  # CloudXCore dependency - disable module support to avoid multiple definition issues
-  pod 'CloudXCore', :path => '../../../cloudexchange.sdk.ios.coreObjC', :modular_headers => false
+  # Using published CloudXCore version from CocoaPods
+  
+  # Add the test adapter from local development version
   pod 'CloudXTestVastNetworkAdapter', :path => '../../../cloudexchange.sdk.ios.testAdapter'
 end
 
@@ -45,15 +46,6 @@ post_install do |installer|
     # Set deployment target for all pods
     target.build_configurations.each do |config|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
-    end
-    
-    # Add CoreTelephony framework to CloudXCore target
-    if target.name == 'CloudXCore'
-      target.build_configurations.each do |config|
-        config.build_settings['FRAMEWORK_SEARCH_PATHS'] ||= ['$(inherited)']
-        config.build_settings['OTHER_LDFLAGS'] ||= ['$(inherited)']
-        config.build_settings['OTHER_LDFLAGS'] << '-framework CoreTelephony'
-      end
     end
   end
 end 
