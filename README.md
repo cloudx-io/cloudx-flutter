@@ -12,7 +12,7 @@ Add the CloudX Flutter SDK to your `pubspec.yaml`:
 dependencies:
   flutter:
     sdk: flutter
-  cloudx_flutter_sdk: ^1.0.1
+  cloudx_flutter_sdk: ^1.0.7
 ```
 
 ### 2. iOS Configuration
