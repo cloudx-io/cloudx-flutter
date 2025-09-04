@@ -815,7 +815,7 @@
     if ([adInstance conformsToProtocol:@protocol(CLXAd)]) {
         NSLog(@"🔴🔴🔴 [Flutter Plugin] loadAd - adInstance conforms to CLXAd, calling load()");
         printf("🔴🔴🔴 [Flutter Plugin] loadAd - adInstance conforms to CLXAd, calling load()\n");
-        [(id<CLXAd>)adInstance load];
+        [(CLXAd *)adInstance load];
         NSLog(@"🔴🔴🔴 [Flutter Plugin] loadAd - load() called successfully");
         printf("🔴🔴🔴 [Flutter Plugin] loadAd - load() called successfully\n");
     } else {
@@ -1075,7 +1075,7 @@
     }
 }
 
-- (void)didLoadWithAd:(id<CLXAd>)ad {
+- (void)didLoadWithAd:(CLXAd *)ad {
     NSLog(@"🔴🔴🔴 [Flutter Plugin] didLoadWithAd called for ad: %@", ad);
     printf("🔴🔴🔴 [Flutter Plugin] didLoadWithAd called for ad: %s\n", [[ad description] UTF8String]);
     NSString *adId = [self getAdIdForInstance:ad];
@@ -1108,7 +1108,7 @@
     printf("🔍 [Flutter Plugin] didLoadWithAd END\n");
 }
 
-- (void)failToLoadWithAd:(id<CLXAd>)ad error:(NSError *)error {
+- (void)failToLoadWithAd:(CLXAd *)ad error:(NSError *)error {
     NSLog(@"🔴🔴🔴 [Flutter Plugin] failToLoadWithAd called for ad: %@, error: %@", ad, error.localizedDescription);
     printf("🔴🔴🔴 [Flutter Plugin] failToLoadWithAd called for ad: %s, error: %s\n", [[ad description] UTF8String], [error.localizedDescription UTF8String]);
     NSString *adId = [self getAdIdForInstance:ad];
@@ -1124,7 +1124,7 @@
     }
 }
 
-- (void)didShowWithAd:(id<CLXAd>)ad {
+- (void)didShowWithAd:(CLXAd *)ad {
     NSString *adId = [self getAdIdForInstance:ad];
     if (adId) {
         NSLog(@"🔴 [Flutter Plugin] didShowWithAd - adId: %@", adId);
@@ -1137,7 +1137,7 @@
     }
 }
 
-- (void)failToShowWithAd:(id<CLXAd>)ad error:(NSError *)error {
+- (void)failToShowWithAd:(CLXAd *)ad error:(NSError *)error {
     NSString *adId = [self getAdIdForInstance:ad];
     if (adId) {
         NSLog(@"🔴 [Flutter Plugin] failToShowWithAd - adId: %@, error: %@", adId, error.localizedDescription);
@@ -1151,7 +1151,7 @@
     }
 }
 
-- (void)didHideWithAd:(id<CLXAd>)ad {
+- (void)didHideWithAd:(CLXAd *)ad {
     NSString *adId = [self getAdIdForInstance:ad];
     if (adId) {
         NSLog(@"🔴 [Flutter Plugin] didHideWithAd - adId: %@", adId);
@@ -1164,7 +1164,7 @@
     }
 }
 
-- (void)didClickWithAd:(id<CLXAd>)ad {
+- (void)didClickWithAd:(CLXAd *)ad {
     NSString *adId = [self getAdIdForInstance:ad];
     if (adId) {
         NSLog(@"🔴 [Flutter Plugin] didClickWithAd - adId: %@", adId);
@@ -1177,7 +1177,7 @@
     }
 }
 
-- (void)impressionOn:(id<CLXAd>)ad {
+- (void)impressionOn:(CLXAd *)ad {
     NSString *adId = [self getAdIdForInstance:ad];
     if (adId) {
         NSLog(@"🔴 [Flutter Plugin] impressionOn - adId: %@", adId);
@@ -1190,7 +1190,7 @@
     }
 }
 
-- (void)closedByUserActionWithAd:(id<CLXAd>)ad {
+- (void)closedByUserActionWithAd:(CLXAd *)ad {
     NSString *adId = [self getAdIdForInstance:ad];
     if (adId) {
         NSLog(@"🔴 [Flutter Plugin] closedByUserActionWithAd - adId: %@", adId);
@@ -1211,7 +1211,7 @@
 
 #pragma mark - CLXRewardedDelegate (Rewarded-specific methods)
 
-- (void)userRewarded:(id<CLXAd>)ad {
+- (void)userRewarded:(CLXAd *)ad {
     NSString *adId = [self getAdIdForInstance:ad];
     if (adId) {
         NSLog(@"🔴 [Flutter Plugin] userRewarded - adId: %@", adId);
@@ -1224,7 +1224,7 @@
     }
 }
 
-- (void)rewardedVideoStarted:(id<CLXAd>)ad {
+- (void)rewardedVideoStarted:(CLXAd *)ad {
     NSString *adId = [self getAdIdForInstance:ad];
     if (adId) {
         NSLog(@"🔴 [Flutter Plugin] rewardedVideoStarted - adId: %@", adId);
@@ -1237,7 +1237,7 @@
     }
 }
 
-- (void)rewardedVideoCompleted:(id<CLXAd>)ad {
+- (void)rewardedVideoCompleted:(CLXAd *)ad {
     NSString *adId = [self getAdIdForInstance:ad];
     if (adId) {
         NSLog(@"🔴 [Flutter Plugin] rewardedVideoCompleted - adId: %@", adId);
