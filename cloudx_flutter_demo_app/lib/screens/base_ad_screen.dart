@@ -77,6 +77,11 @@ abstract class BaseAdScreenState<T extends BaseAdScreen> extends State<T> {
 
   @override
   Widget build(BuildContext context) {
+    return buildScreen(context);
+  }
+
+  /// Build the screen scaffold - can be overridden for AutomaticKeepAliveClientMixin
+  Widget buildScreen(BuildContext context) {
     return Scaffold(
       body: Column(
         children: [

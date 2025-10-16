@@ -1,19 +1,24 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloudx_flutter_sdk/cloudx.dart';
 import 'base_ad_screen.dart';
+import '../config/demo_config.dart';
 
 class BannerScreen extends BaseAdScreen {
+  final DemoEnvironmentConfig environment;
+  
   const BannerScreen({
     super.key,
     required super.isSDKInitialized,
+    required this.environment,
   });
 
   @override
   State<BannerScreen> createState() => _BannerScreenState();
 }
 
-class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
+class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticKeepAliveClientMixin {
   String? _currentAdId;
   String? _currentPlacement;
   double? _bannerWidth;
@@ -21,6 +26,15 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
   bool _isBannerLoaded = false;
   int _selectedBannerType = 0; // 0 = Banner, 1 = MREC
   BannerListener? _bannerListener;
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
+    return buildScreen(context);
+  }
 
   @override
   String getAdIdPrefix() => 'banner';
@@ -33,7 +47,7 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
   void initState() {
     super.initState();
     _bannerListener = BannerListener()
-      ..onAdLoaded = (adId) {
+      ..onAdLoaded = () {
         print('[BannerScreen] onAdLoaded callback received');
         setAdState(AdState.ready);
         setCustomStatus(text: 'Banner Ad Loaded', color: Colors.green);
@@ -42,7 +56,7 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
         });
         print('[BannerScreen] Status set to READY');
       }
-      ..onAdFailedToLoad = (adId, error) {
+      ..onAdFailedToLoad = (error) {
         print('[BannerScreen] onAdFailedToLoad callback received: $error');
         setAdState(AdState.noAd);
         setCustomStatus(text: 'Failed to load: $error', color: Colors.red);
@@ -51,20 +65,20 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
         });
         print('[BannerScreen] Status set to NO_AD');
       }
-      ..onAdShown = (adId) {
-        print('🔍 [BannerScreen] onAdShown callback START - adId: $adId');
+      ..onAdShown = () {
+        print('🔍 [BannerScreen] onAdShown callback START');
         setAdState(AdState.ready);
         setCustomStatus(text: 'Banner Ad Shown', color: Colors.green);
         print('🔍 [BannerScreen] State updated - READY');
         print('🔍 [BannerScreen] onAdShown callback END');
       }
-      ..onAdClicked = (adId) {
-        print('🔍 [BannerScreen] onAdClicked callback START - adId: $adId');
+      ..onAdClicked = () {
+        print('🔍 [BannerScreen] onAdClicked callback START');
         setCustomStatus(text: 'Banner Ad Clicked', color: Colors.blue);
         print('🔍 [BannerScreen] onAdClicked callback END');
       }
-      ..onAdImpression = (adId) {
-        print('🔍 [BannerScreen] onAdImpression callback START - adId: $adId');
+      ..onAdImpression = () {
+        print('🔍 [BannerScreen] onAdImpression callback START');
         setAdState(AdState.ready);
         setCustomStatus(text: 'Banner Ad Impression', color: Colors.green);
         print('🔍 [BannerScreen] State updated - READY');
@@ -128,17 +142,30 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
 
   Widget _buildBannerContainer() {
     if (_isBannerLoaded && _currentAdId != null) {
+      final width = _bannerWidth ?? 320.0;
+      final height = _bannerHeight ?? 50.0;
+      
       return Center(
         child: SizedBox(
-          width: _bannerWidth ?? 320.0,
-          height: _bannerHeight ?? 50.0,
-          child: UiKitView(
-            viewType: 'cloudx_banner_view',
-            creationParams: {
-              'adId': _currentAdId!,
-            },
-            creationParamsCodec: const StandardMessageCodec(),
-          ),
+          width: width,
+          height: height,
+          child: Platform.isAndroid
+              ? AndroidView(
+                  viewType: 'cloudx_banner_view',
+                  creationParams: {
+                    'adId': _currentAdId!,
+                    'width': width,
+                    'height': height,
+                  },
+                  creationParamsCodec: const StandardMessageCodec(),
+                )
+              : UiKitView(
+                  viewType: 'cloudx_banner_view',
+                  creationParams: {
+                    'adId': _currentAdId!,
+                  },
+                  creationParamsCodec: const StandardMessageCodec(),
+                ),
         ),
       );
     } else {
@@ -166,7 +193,9 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
     });
     print('🔍 [BannerScreen] Loading state set');
     // Set up the placement and dimensions based on banner type
-    _currentPlacement = _selectedBannerType == 0 ? 'banner1' : 'mrec1';
+    _currentPlacement = _selectedBannerType == 0 
+        ? widget.environment.bannerPlacement 
+        : widget.environment.mrecPlacement;
     if (_selectedBannerType == 0) {
       _bannerWidth = 320.0;
       _bannerHeight = 50.0;
@@ -178,19 +207,11 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
     // Generate a unique adId
     _currentAdId = '${getAdIdPrefix()}_${DateTime.now().millisecondsSinceEpoch}';
     print('🔍 [BannerScreen] Generated adId: $_currentAdId');
-    // Register the banner listener for this ad
-    if (_bannerListener != null) {
-      print('🔍 [BannerScreen] Registering banner listener for adId: $_currentAdId');
-      CloudX.setBannerListener(_currentAdId!, _bannerListener!);
-    } else {
-      print('🔍 [BannerScreen] WARNING - _bannerListener is null!');
-    }
     print('🔍 [BannerScreen] Calling CloudX.createBanner with adId: $_currentAdId, placement: $_currentPlacement');
     final success = await CloudX.createBanner(
       adId: _currentAdId!,
       placement: _currentPlacement!,
-      width: _bannerWidth,
-      height: _bannerHeight,
+      listener: _bannerListener,
     );
     print('🔍 [BannerScreen] CloudX.createBanner returned: $success');
     if (!success) {
@@ -203,15 +224,17 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
       setLoadingState(false);
       return;
     }
-    print('🔍 [BannerScreen] createBanner succeeded, waiting for delegate callbacks');
+    print('🔍 [BannerScreen] createBanner succeeded, setting banner as loaded');
     // Set the banner as loaded so the UiKitView will be shown
     setState(() {
       _isBannerLoaded = true;
     });
-    // Load the banner after it's added to the view hierarchy, following the working Objective-C app pattern
-    print('🔍 [BannerScreen] Calling CloudX.loadBanner to load the banner after UiKitView is shown');
+    
+    // Now load the banner (similar to Objective-C demo: create -> add to view -> load)
+    print('🔍 [BannerScreen] Calling CloudX.loadBanner with adId: $_currentAdId');
     final loadSuccess = await CloudX.loadBanner(adId: _currentAdId!);
     print('🔍 [BannerScreen] CloudX.loadBanner returned: $loadSuccess');
+    
     if (!loadSuccess) {
       print('🔍 [BannerScreen] loadBanner failed, setting error state');
       setAdState(AdState.noAd);
@@ -222,7 +245,8 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
       setLoadingState(false);
       return;
     }
-    print('🔍 [BannerScreen] loadBanner succeeded, banner should start loading');
+    
+    print('🔍 [BannerScreen] loadBanner called successfully, waiting for delegate callbacks');
     print('🔍 [BannerScreen] _loadBanner END');
   }
 
@@ -230,7 +254,6 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
     if (_currentAdId != null) {
       _log('🗑️ Destroying banner ad with adId: $_currentAdId');
       CloudX.destroyAd(adId: _currentAdId!);
-      CloudX.removeBannerListener(_currentAdId!);
     } else {
       _log('⚠️ No adId to destroy');
     }
@@ -249,9 +272,6 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
     if (_currentAdId != null) {
       print('[BannerScreen] Destroying banner ad with adId: $_currentAdId');
       CloudX.destroyAd(adId: _currentAdId!);
-    }
-    if (_currentAdId != null) {
-      CloudX.removeBannerListener(_currentAdId!);
     }
     super.dispose();
   }

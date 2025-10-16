@@ -1,20 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:cloudx_flutter_sdk/cloudx.dart';
 import 'base_ad_screen.dart';
+import '../config/demo_config.dart';
 
 class InterstitialScreen extends BaseAdScreen {
+  final DemoEnvironmentConfig environment;
+  
   const InterstitialScreen({
     super.key,
     required super.isSDKInitialized,
+    required this.environment,
   });
 
   @override
   State<InterstitialScreen> createState() => _InterstitialScreenState();
 }
 
-class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> {
+class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> with AutomaticKeepAliveClientMixin {
   String? _currentAdId;
   bool _isInterstitialLoaded = false;
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
+    return buildScreen(context);
+  }
 
   @override
   String getAdIdPrefix() => 'interstitial';
@@ -106,7 +119,7 @@ class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> {
       _currentAdId = '${getAdIdPrefix()}_${DateTime.now().millisecondsSinceEpoch}';
       _log('Creating interstitial with adId: $_currentAdId, placement: interstitial1');
       final success = await CloudX.createInterstitial(
-        placement: 'interstitial1',
+        placement: widget.environment.interstitialPlacement,
         adId: _currentAdId!,
         listener: InterstitialListener()
           ..onAdLoaded = () {
@@ -116,7 +129,7 @@ class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> {
               _isInterstitialLoaded = true;
             });
           }
-          ..onAdFailedToLoad = (adId, error) {
+          ..onAdFailedToLoad = (error) {
             setAdState(AdState.noAd);
             setCustomStatus(text: 'Failed to load interstitial ad: $error', color: Colors.red);
             setState(() {
@@ -127,7 +140,7 @@ class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> {
             setAdState(AdState.ready);
             setCustomStatus(text: 'Interstitial Ad Shown', color: Colors.green);
           }
-          ..onAdFailedToShow = (adId, error) {
+          ..onAdFailedToShow = (error) {
             setCustomStatus(text: 'Failed to show interstitial ad: $error', color: Colors.red);
           }
           ..onAdHidden = () {
@@ -147,7 +160,26 @@ class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> {
         setState(() {
           _isInterstitialLoaded = false;
         });
+        setLoadingState(false);
+        return;
       }
+      
+      // Now load the interstitial (create -> load -> wait for callbacks)
+      _log('Calling CloudX.loadInterstitial with adId: $_currentAdId');
+      final loadSuccess = await CloudX.loadInterstitial(adId: _currentAdId!);
+      _log('CloudX.loadInterstitial returned: $loadSuccess');
+      
+      if (!loadSuccess) {
+        setAdState(AdState.noAd);
+        setCustomStatus(text: 'Failed to load interstitial ad.', color: Colors.red);
+        setState(() {
+          _isInterstitialLoaded = false;
+        });
+        setLoadingState(false);
+        return;
+      }
+      
+      _log('loadInterstitial called successfully, waiting for delegate callbacks');
     } catch (e) {
       setAdState(AdState.noAd);
       setCustomStatus(text: 'Error loading interstitial ad: $e', color: Colors.red);

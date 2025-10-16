@@ -1,15 +1,18 @@
 # CloudX Flutter SDK
 
-A Flutter plugin that provides a comprehensive wrapper around the CloudX Core Objective-C SDK, exposing all ad types (banner, interstitial, rewarded, native, MREC) and SDK initialization.
+A Flutter plugin that provides a comprehensive wrapper around the CloudX native SDKs (iOS and Android), exposing all ad types (banner, interstitial, rewarded, native, MREC) with full privacy compliance support.
 
 ## Features
 
-- **Full SDK Integration**: Complete wrapper for CloudX Core Objective-C SDK
+- **Full SDK Integration**: Complete wrapper for CloudX Core (iOS) and CloudX Android SDK
+- **Cross-Platform**: Single Dart API works on both iOS and Android
 - **All Ad Types**: Banner, Interstitial, Rewarded, Native, and MREC ads
+- **Privacy Compliance**: Built-in CCPA, GDPR, COPPA, and GPP support
 - **Listener Pattern**: Callback-based events for ad lifecycle management
 - **Error Handling**: Comprehensive error handling and user feedback
 - **Type Safety**: Strongly typed Dart interfaces
-- **Platform Support**: iOS support with Objective-C backend
+- **DRY & SOLID**: Architecture following best practices for maintainability
+- **Platform Support**: iOS (Objective-C) and Android (Kotlin) backends
 
 ## Installation
 
@@ -264,16 +267,68 @@ try {
 }
 ```
 
+## Privacy & Compliance
+
+The SDK provides comprehensive privacy compliance features:
+
+```dart
+// CCPA Privacy String
+await CloudX.setCCPAPrivacyString('1YNN');
+
+// GDPR Consent
+await CloudX.setIsUserConsent(true);
+
+// COPPA (Age-Restricted Users)
+await CloudX.setIsAgeRestrictedUser(false);
+
+// Do Not Sell (CCPA)
+await CloudX.setIsDoNotSell(false);
+
+// Global Privacy Platform (GPP)
+await CloudX.setGPPString('DBACNYA~CPXxRfAPXxRfAAfKABENB...');
+await CloudX.setGPPSid([7, 8]); // US-National (7), US-CA (8)
+```
+
+## User Targeting
+
+```dart
+// Set hashed user ID
+await CloudX.provideUserDetailsWithHashedUserID('hashed-email-here');
+
+// Set single key-value pair
+await CloudX.useHashedKeyValue('age', '25');
+
+// Set multiple key-values (more efficient)
+await CloudX.useKeyValues({
+  'gender': 'male',
+  'location': 'US',
+  'interests': 'gaming',
+});
+```
+
 ## Platform Support
 
-- **iOS**: Full support via Objective-C backend
-- **Android**: Not yet supported
+- **iOS**: Full support via Objective-C backend (iOS 14.0+)
+- **Android**: Full support via Kotlin backend (API 21+)
 
 ## Requirements
 
-- iOS 14.0+
+### iOS
+- iOS 14.0 or higher
+- CocoaPods
+
+### Android
+- Android API 21 (Android 5.0) or higher
+- Gradle 8.0+
+
+### Flutter
 - Flutter 3.0+
-- Dart 2.17+
+- Dart 3.0+
+
+## Documentation
+
+- **[Integration Guide](INTEGRATION_GUIDE.md)**: Step-by-step guide for iOS and Android integration
+- **[Architecture Review](ARCHITECTURE_REVIEW.md)**: Deep dive into SDK architecture and design principles
 
 ## License
 
