@@ -1,62 +1,75 @@
 library cloudx;
 
 import 'dart:async';
-
 import 'package:flutter/services.dart';
 
+/// Custom exception for CloudX SDK errors
+class CloudXException implements Exception {
+  final String code;
+  final String message;
+  final dynamic details;
+
+  CloudXException(this.code, this.message, [this.details]);
+
+  @override
+  String toString() => 'CloudXException($code): $message';
+}
+
 /// The main CloudX Flutter SDK class.
-/// 
+///
 /// Provides a comprehensive Flutter wrapper for the CloudX Core Objective-C SDK.
 class CloudX {
   static const MethodChannel _channel = MethodChannel('cloudx_flutter_sdk');
   static const EventChannel _eventChannel = EventChannel('cloudx_flutter_sdk_events');
 
+  // Listener storage (SRP: separated by type)
+  static final Map<String, BaseAdListener> _listeners = {};
+
+  // Event stream (initialized lazily)
+  static StreamSubscription? _eventSubscription;
+  static bool _eventStreamInitialized = false;
+
   /// Flutter plugin registration (required for some plugin registration scenarios)
   static void registerWith() {}
 
+  // ============================================================================
+  // MARK: - Core SDK Methods
+  // ============================================================================
+
   /// Initialize the CloudX SDK
-  /// 
+  ///
   /// [appKey] - Your CloudX app key
   /// [hashedUserID] - Optional hashed user ID for targeting
-  /// 
+  ///
   /// Returns `true` if initialization was successful
+  /// Throws [CloudXException] if initialization fails
   static Future<bool> initialize({
     required String appKey,
     String? hashedUserID,
   }) async {
-    print('CloudX Flutter SDK: Starting initialization...');
-    print('CloudX Flutter SDK: AppKey: $appKey');
-    print('CloudX Flutter SDK: HashedUserID: $hashedUserID');
-
     final arguments = <String, dynamic>{
       'appKey': appKey,
+      if (hashedUserID != null) 'hashedUserID': hashedUserID,
     };
-    
-    if (hashedUserID != null) {
-      arguments['hashedUserID'] = hashedUserID;
-    }
 
-    print('CloudX Flutter SDK: Calling native initSDK with arguments: $arguments');
-    print('CloudX Flutter SDK: Method channel: $_channel');
-
-    final result = await _channel.invokeMethod('initSDK', arguments);
-    print('CloudX Flutter SDK: Native initSDK returned: $result (type: ${result.runtimeType})');
-
-    if (result == true) {
-      print('CloudX Flutter SDK: Initialization completed');
-      return true;
-    } else {
-      print('CloudX Flutter SDK: Initialization failed');
-      return false;
+    try {
+      final result = await _invokeMethod<bool>('initSDK', arguments);
+      await _ensureEventStreamInitialized();
+      return result ?? false;
+    } on PlatformException catch (e) {
+      throw CloudXException(
+        e.code,
+        e.message ?? 'Failed to initialize SDK',
+        e.details,
+      );
     }
   }
 
   /// Check if the SDK is initialized
   static Future<bool> isInitialized() async {
     try {
-      return await _channel.invokeMethod('isSDKInitialized');
-    } on PlatformException catch (e) {
-      print('CloudX SDK status check failed: ${e.message}');
+      return await _invokeMethod<bool>('isSDKInitialized') ?? false;
+    } catch (e) {
       return false;
     }
   }
@@ -64,710 +77,617 @@ class CloudX {
   /// Get the SDK version
   static Future<String> getVersion() async {
     try {
-      return await _channel.invokeMethod('getSDKVersion');
-    } on PlatformException catch (e) {
-      print('CloudX SDK version check failed: ${e.message}');
+      return await _invokeMethod<String>('getSDKVersion') ?? 'Unknown';
+    } catch (e) {
       return 'Unknown';
     }
   }
 
-  // Banner Ad Methods
+  /// Get or set the user ID
+  static Future<String?> getUserID() async {
+    try {
+      return await _invokeMethod<String>('getUserID');
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Set the user ID
+  static Future<void> setUserID(String? userID) async {
+    await _invokeMethod('setUserID', {'userID': userID});
+  }
+
+  /// Get logs data dictionary
+  static Future<Map<String, String>> getLogsData() async {
+    try {
+      final result = await _invokeMethod<Map>('getLogsData');
+      return result?.cast<String, String>() ?? {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  /// Track SDK errors for analytics
+  static Future<void> trackSDKError(String error) async {
+    await _invokeMethod('trackSDKError', {'error': error});
+  }
+
+  /// Set the environment (dev, staging, production)
+  /// Must be called BEFORE initialize()
+  static Future<void> setEnvironment(String environment) async {
+    await _invokeMethod('setEnvironment', {'environment': environment});
+  }
+
+  // ============================================================================
+  // MARK: - Privacy & Compliance APIs
+  // ============================================================================
+
+  /// Set CCPA privacy string (e.g., "1YNN")
+  ///
+  /// California Consumer Privacy Act compliance.
+  /// Format: "1" + version + opt-out-sale + opt-out-sharing + limited-service-provider
+  ///
+  /// Example: "1YNN" = version 1, opted out of sale, not opted out of sharing, not LSP
+  static Future<void> setCCPAPrivacyString(String? ccpaString) async {
+    await _invokeMethod('setCCPAPrivacyString', {'ccpaString': ccpaString});
+  }
+
+  /// Set whether user has given consent (GDPR)
+  ///
+  /// ⚠️ Warning: GDPR is not yet supported by CloudX servers.
+  /// Please contact CloudX if you need GDPR support. CCPA is fully supported.
+  static Future<void> setIsUserConsent(bool hasConsent) async {
+    await _invokeMethod('setIsUserConsent', {'isUserConsent': hasConsent});
+  }
+
+  /// Set whether user is age-restricted (COPPA)
+  ///
+  /// Children's Online Privacy Protection Act compliance.
+  /// Data clearing is implemented but not included in bid requests (server limitation).
+  static Future<void> setIsAgeRestrictedUser(bool isAgeRestricted) async {
+    await _invokeMethod('setIsAgeRestrictedUser', {
+      'isAgeRestrictedUser': isAgeRestricted,
+    });
+  }
+
+  /// Set "do not sell" preference (CCPA)
+  ///
+  /// Sets the CCPA "do not sell my personal information" flag.
+  /// This is converted to CCPA privacy string format internally.
+  static Future<void> setIsDoNotSell(bool doNotSell) async {
+    await _invokeMethod('setIsDoNotSell', {'isDoNotSell': doNotSell});
+  }
+
+  /// Set GPP (Global Privacy Platform) consent string
+  ///
+  /// IAB Global Privacy Platform compliance string for comprehensive
+  /// privacy management across multiple jurisdictions.
+  static Future<void> setGPPString(String? gppString) async {
+    await _invokeMethod('setGPPString', {'gppString': gppString});
+  }
+
+  /// Get GPP consent string
+  ///
+  /// Returns the current GPP consent string, or null if not set.
+  static Future<String?> getGPPString() async {
+    try {
+      return await _invokeMethod<String>('getGPPString');
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Set GPP section IDs
+  ///
+  /// Array of GPP section IDs indicating applicable privacy frameworks.
+  /// Example: [7, 8] for US-National (7) and US-CA/California (8)
+  static Future<void> setGPPSid(List<int>? sectionIds) async {
+    await _invokeMethod('setGPPSid', {'gppSid': sectionIds});
+  }
+
+  /// Get GPP section IDs
+  ///
+  /// Returns array of GPP section IDs, or null if not set.
+  static Future<List<int>?> getGPPSid() async {
+    try {
+      final result = await _invokeMethod<List>('getGPPSid');
+      return result?.cast<int>();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // ============================================================================
+  // MARK: - User Targeting APIs
+  // ============================================================================
+
+  /// Provide user details with hashed user ID
+  ///
+  /// Sets the hashed user ID for ad targeting after initialization.
+  /// Can be called multiple times to update the user ID.
+  static Future<void> provideUserDetailsWithHashedUserID(String hashedUserID) async {
+    await _invokeMethod('provideUserDetails', {'hashedUserID': hashedUserID});
+  }
+
+  /// Use hashed key-value pair for targeting
+  ///
+  /// Sets a single key-value pair for ad targeting.
+  /// For multiple pairs, consider using [useKeyValues] for better performance.
+  static Future<void> useHashedKeyValue(String key, String value) async {
+    await _invokeMethod('useHashedKeyValue', {'key': key, 'value': value});
+  }
+
+  /// Use multiple key-value pairs for targeting (batch operation)
+  ///
+  /// More efficient than calling [useHashedKeyValue] multiple times.
+  /// All key-value pairs are sent in a single method channel call.
+  static Future<void> useKeyValues(Map<String, String> keyValues) async {
+    await _invokeMethod('useKeyValues', {'keyValues': keyValues});
+  }
+
+  /// Use bidder-specific key-value pair for targeting
+  ///
+  /// Sets targeting parameters specific to a particular bidder/ad network.
+  static Future<void> useBidderKeyValue(String bidder, String key, String value) async {
+    await _invokeMethod('useBidderKeyValue', {
+      'bidder': bidder,
+      'key': key,
+      'value': value,
+    });
+  }
+
+  // ============================================================================
+  // MARK: - Banner Ad Methods
+  // ============================================================================
 
   /// Create a banner ad
-  /// 
+  ///
   /// [placement] - The placement name from your CloudX dashboard
   /// [adId] - Unique identifier for this ad instance
-  /// [listener] - Callback listener for ad events
+  /// [listener] - Optional callback listener for ad events
+  /// [tmax] - Optional timeout in milliseconds for bid requests
   static Future<bool> createBanner({
     required String placement,
     required String adId,
-    double? width,
-    double? height,
+    BannerListener? listener,
+    int? tmax,
   }) async {
-    print('[CloudX Flutter SDK] createBanner called with adId: $adId, placement: $placement, width: $width, height: $height');
-    final result = await _channel.invokeMethod('createBanner', {
-      'adId': adId,
+    await _ensureEventStreamInitialized();
+    
+    final success = await _invokeMethod<bool>('createBanner', {
       'placement': placement,
-      if (width != null) 'width': width,
-      if (height != null) 'height': height,
+      'adId': adId,
+      if (tmax != null) 'tmax': tmax,
     });
-    print('[CloudX Flutter SDK] createBanner result: $result');
-    return result == true;
+
+    if (success == true && listener != null) {
+      _listeners[adId] = listener;
+    }
+
+    return success ?? false;
   }
 
   /// Load a banner ad
-  /// 
-  /// [adId] - The unique identifier of the ad to load
   static Future<bool> loadBanner({required String adId}) async {
-    try {
-      return await _channel.invokeMethod('loadAd', {'adId': adId});
-    } on PlatformException catch (e) {
-      print('CloudX banner load failed: ${e.message}');
-      return false;
-    }
+    return await _invokeMethod<bool>('loadAd', {'adId': adId}) ?? false;
   }
 
   /// Show a banner ad
-  /// 
-  /// [adId] - The unique identifier of the ad to show
   static Future<bool> showBanner({required String adId}) async {
-    try {
-      return await _channel.invokeMethod('showAd', {'adId': adId});
-    } on PlatformException catch (e) {
-      print('CloudX banner show failed: ${e.message}');
-      return false;
-    }
+    return await _invokeMethod<bool>('showAd', {'adId': adId}) ?? false;
   }
 
   /// Hide a banner ad
-  /// 
-  /// [adId] - The unique identifier of the ad to hide
   static Future<bool> hideBanner({required String adId}) async {
-    try {
-      return await _channel.invokeMethod('hideAd', {'adId': adId});
-    } on PlatformException catch (e) {
-      print('CloudX banner hide failed: ${e.message}');
-      return false;
-    }
+    return await _invokeMethod<bool>('hideAd', {'adId': adId}) ?? false;
   }
 
-  // Interstitial Ad Methods
+  // ============================================================================
+  // MARK: - Interstitial Ad Methods
+  // ============================================================================
 
   /// Create an interstitial ad
-  /// 
-  /// [placement] - The placement name from your CloudX dashboard
-  /// [adId] - Unique identifier for this ad instance
-  /// [listener] - Callback listener for ad events
   static Future<bool> createInterstitial({
     required String placement,
     required String adId,
     InterstitialListener? listener,
   }) async {
-    try {
-      print('🔍 [Flutter SDK] createInterstitial START - placement: $placement, adId: $adId');
-      
-      final arguments = {
-        'placement': placement,
-        'adId': adId,
-      };
-      
-      print('🔍 [Flutter SDK] createInterstitial - About to call _channel.invokeMethod with arguments: $arguments');
-      
-      final success = await _channel.invokeMethod('createInterstitial', arguments);
-      
-      print('🔍 [Flutter SDK] createInterstitial - _channel.invokeMethod returned: $success (type: ${success.runtimeType})');
-      
-      if (success && listener != null) {
-        print('🔍 [Flutter SDK] createInterstitial - Setting listener for adId: $adId');
-        _setInterstitialListener(adId, listener);
-      }
-      
-      print('🔍 [Flutter SDK] createInterstitial END - returning: $success');
-      return success;
-    } on PlatformException catch (e) {
-      print('🔍 [Flutter SDK] createInterstitial ERROR - PlatformException: ${e.message}');
-      print('CloudX interstitial creation failed: ${e.message}');
-      return false;
-    } catch (e) {
-      print('🔍 [Flutter SDK] createInterstitial ERROR - Unexpected error: $e');
-      return false;
+    await _ensureEventStreamInitialized();
+    
+    final success = await _invokeMethod<bool>('createInterstitial', {
+      'placement': placement,
+      'adId': adId,
+    });
+
+    if (success == true && listener != null) {
+      _listeners[adId] = listener;
     }
+
+    return success ?? false;
   }
 
   /// Load an interstitial ad
-  /// 
-  /// [adId] - The unique identifier of the ad to load
   static Future<bool> loadInterstitial({required String adId}) async {
-    try {
-      return await _channel.invokeMethod('loadAd', {'adId': adId});
-    } on PlatformException catch (e) {
-      print('CloudX interstitial load failed: ${e.message}');
-      return false;
-    }
+    return await _invokeMethod<bool>('loadAd', {'adId': adId}) ?? false;
   }
 
   /// Show an interstitial ad
-  /// 
-  /// [adId] - The unique identifier of the ad to show
   static Future<bool> showInterstitial({required String adId}) async {
-    try {
-      return await _channel.invokeMethod('showAd', {'adId': adId});
-    } on PlatformException catch (e) {
-      print('CloudX interstitial show failed: ${e.message}');
-      return false;
-    }
+    return await _invokeMethod<bool>('showAd', {'adId': adId}) ?? false;
   }
 
-  /// Check if interstitial is ready to show
-  /// 
-  /// [adId] - The unique identifier of the ad to check
+  /// Check if interstitial ad is ready to show
   static Future<bool> isInterstitialReady({required String adId}) async {
-    try {
-      return await _channel.invokeMethod('isAdReady', {'adId': adId});
-    } on PlatformException catch (e) {
-      print('CloudX interstitial ready check failed: ${e.message}');
-      return false;
-    }
+    return await _invokeMethod<bool>('isAdReady', {'adId': adId}) ?? false;
   }
 
-  // Rewarded Ad Methods
+  // ============================================================================
+  // MARK: - Rewarded Ad Methods
+  // ============================================================================
 
   /// Create a rewarded ad
-  /// 
-  /// [placement] - The placement name from your CloudX dashboard
-  /// [adId] - Unique identifier for this ad instance
-  /// [listener] - Callback listener for ad events
   static Future<bool> createRewarded({
     required String placement,
     required String adId,
     RewardedListener? listener,
   }) async {
-    try {
-      final arguments = {
-        'placement': placement,
-        'adId': adId,
-      };
-      
-      final success = await _channel.invokeMethod('createRewarded', arguments);
-      if (success && listener != null) {
-        _setRewardedListener(adId, listener);
-      }
-      return success;
-    } on PlatformException catch (e) {
-      print('CloudX rewarded creation failed: ${e.message}');
-      return false;
+    await _ensureEventStreamInitialized();
+    
+    final success = await _invokeMethod<bool>('createRewarded', {
+      'placement': placement,
+      'adId': adId,
+    });
+
+    if (success == true && listener != null) {
+      _listeners[adId] = listener;
     }
+
+    return success ?? false;
   }
 
   /// Load a rewarded ad
-  /// 
-  /// [adId] - The unique identifier of the ad to load
   static Future<bool> loadRewarded({required String adId}) async {
-    try {
-      return await _channel.invokeMethod('loadAd', {'adId': adId});
-    } on PlatformException catch (e) {
-      print('CloudX rewarded load failed: ${e.message}');
-      return false;
-    }
+    return await _invokeMethod<bool>('loadAd', {'adId': adId}) ?? false;
   }
 
   /// Show a rewarded ad
-  /// 
-  /// [adId] - The unique identifier of the ad to show
   static Future<bool> showRewarded({required String adId}) async {
-    try {
-      return await _channel.invokeMethod('showAd', {'adId': adId});
-    } on PlatformException catch (e) {
-      print('CloudX rewarded show failed: ${e.message}');
-      return false;
-    }
+    return await _invokeMethod<bool>('showAd', {'adId': adId}) ?? false;
   }
 
   /// Check if rewarded ad is ready to show
-  /// 
-  /// [adId] - The unique identifier of the ad to check
   static Future<bool> isRewardedReady({required String adId}) async {
-    try {
-      return await _channel.invokeMethod('isAdReady', {'adId': adId});
-    } on PlatformException catch (e) {
-      print('CloudX rewarded ready check failed: ${e.message}');
-      return false;
-    }
+    return await _invokeMethod<bool>('isAdReady', {'adId': adId}) ?? false;
   }
 
-  // Native Ad Methods
+  // ============================================================================
+  // MARK: - Native Ad Methods
+  // ============================================================================
 
   /// Create a native ad
-  /// 
-  /// [placement] - The placement name from your CloudX dashboard
-  /// [adId] - Unique identifier for this ad instance
-  /// [listener] - Callback listener for ad events
   static Future<bool> createNative({
     required String placement,
     required String adId,
     NativeListener? listener,
   }) async {
-    try {
-      final arguments = {
-        'placement': placement,
-        'adId': adId,
-      };
-      
-      final success = await _channel.invokeMethod('createNative', arguments);
-      if (success && listener != null) {
-        _setNativeListener(adId, listener);
-      }
-      return success;
-    } on PlatformException catch (e) {
-      print('CloudX native creation failed: ${e.message}');
-      return false;
+    await _ensureEventStreamInitialized();
+    
+    final success = await _invokeMethod<bool>('createNative', {
+      'placement': placement,
+      'adId': adId,
+    });
+
+    if (success == true && listener != null) {
+      _listeners[adId] = listener;
     }
+
+    return success ?? false;
   }
 
   /// Load a native ad
-  /// 
-  /// [adId] - The unique identifier of the ad to load
   static Future<bool> loadNative({required String adId}) async {
-    try {
-      return await _channel.invokeMethod('loadAd', {'adId': adId});
-    } on PlatformException catch (e) {
-      print('CloudX native load failed: ${e.message}');
-      return false;
-    }
+    return await _invokeMethod<bool>('loadAd', {'adId': adId}) ?? false;
   }
 
   /// Show a native ad
-  /// 
-  /// [adId] - The unique identifier of the ad to show
   static Future<bool> showNative({required String adId}) async {
-    try {
-      return await _channel.invokeMethod('showAd', {'adId': adId});
-    } on PlatformException catch (e) {
-      print('CloudX native show failed: ${e.message}');
-      return false;
-    }
+    return await _invokeMethod<bool>('showAd', {'adId': adId}) ?? false;
   }
 
   /// Check if native ad is ready to show
-  /// 
-  /// [adId] - The unique identifier of the ad to check
   static Future<bool> isNativeReady({required String adId}) async {
-    try {
-      return await _channel.invokeMethod('isAdReady', {'adId': adId});
-    } on PlatformException catch (e) {
-      print('CloudX native ready check failed: ${e.message}');
-      return false;
-    }
+    return await _invokeMethod<bool>('isAdReady', {'adId': adId}) ?? false;
   }
 
-  // MREC Ad Methods
+  // ============================================================================
+  // MARK: - MREC Ad Methods
+  // ============================================================================
 
-  /// Create an MREC ad
-  /// 
-  /// [placement] - The placement name from your CloudX dashboard
-  /// [adId] - Unique identifier for this ad instance
-  /// [listener] - Callback listener for ad events
+  /// Create an MREC (Medium Rectangle) ad
   static Future<bool> createMREC({
     required String placement,
     required String adId,
     MRECListener? listener,
   }) async {
-    try {
-      final arguments = {
-        'placement': placement,
-        'adId': adId,
-      };
-      
-      final success = await _channel.invokeMethod('createMREC', arguments);
-      if (success && listener != null) {
-        _setMRECListener(adId, listener);
-      }
-      return success;
-    } on PlatformException catch (e) {
-      print('CloudX MREC creation failed: ${e.message}');
-      return false;
+    await _ensureEventStreamInitialized();
+    
+    final success = await _invokeMethod<bool>('createMREC', {
+      'placement': placement,
+      'adId': adId,
+    });
+
+    if (success == true && listener != null) {
+      _listeners[adId] = listener;
     }
+
+    return success ?? false;
   }
 
   /// Load an MREC ad
-  /// 
-  /// [adId] - The unique identifier of the ad to load
   static Future<bool> loadMREC({required String adId}) async {
-    try {
-      return await _channel.invokeMethod('loadAd', {'adId': adId});
-    } on PlatformException catch (e) {
-      print('CloudX MREC load failed: ${e.message}');
-      return false;
-    }
+    return await _invokeMethod<bool>('loadAd', {'adId': adId}) ?? false;
   }
 
   /// Show an MREC ad
-  /// 
-  /// [adId] - The unique identifier of the ad to show
   static Future<bool> showMREC({required String adId}) async {
-    try {
-      return await _channel.invokeMethod('showAd', {'adId': adId});
-    } on PlatformException catch (e) {
-      print('CloudX MREC show failed: ${e.message}');
-      return false;
-    }
+    return await _invokeMethod<bool>('showAd', {'adId': adId}) ?? false;
   }
 
   /// Check if MREC ad is ready to show
-  /// 
-  /// [adId] - The unique identifier of the ad to check
   static Future<bool> isMRECReady({required String adId}) async {
-    try {
-      return await _channel.invokeMethod('isAdReady', {'adId': adId});
-    } on PlatformException catch (e) {
-      print('CloudX MREC ready check failed: ${e.message}');
-      return false;
-    }
+    return await _invokeMethod<bool>('isAdReady', {'adId': adId}) ?? false;
   }
 
-  // Generic Ad Methods
+  // ============================================================================
+  // MARK: - Generic Ad Methods
+  // ============================================================================
 
-  /// Destroy an ad
-  /// 
-  /// [adId] - The unique identifier of the ad to destroy
+  /// Destroy an ad instance and free resources
+  ///
+  /// Call this when you're done with an ad to prevent memory leaks.
   static Future<bool> destroyAd({required String adId}) async {
+    _listeners.remove(adId);
+    return await _invokeMethod<bool>('destroyAd', {'adId': adId}) ?? false;
+  }
+
+  // ============================================================================
+  // MARK: - Internal Methods (DRY Principle)
+  // ============================================================================
+
+  /// Centralized method invocation with error handling (DRY)
+  static Future<T?> _invokeMethod<T>(String method, [Map<String, dynamic>? arguments]) async {
     try {
-      return await _channel.invokeMethod('destroyAd', {'adId': adId});
+      return await _channel.invokeMethod<T>(method, arguments);
     } on PlatformException catch (e) {
-      print('CloudX ad destroy failed: ${e.message}');
-      return false;
+      print('CloudX SDK method "$method" failed: ${e.message}');
+      rethrow;
     }
   }
 
-  // Listener Management
+  // Completer to track when EventChannel is actually ready on native side
+  static Completer<void>? _eventChannelReadyCompleter;
 
-  static final Map<String, BannerListener> _bannerListeners = {};
-  static final Map<String, InterstitialListener> _interstitialListeners = {};
-  static final Map<String, RewardedListener> _rewardedListeners = {};
-  static final Map<String, NativeListener> _nativeListeners = {};
-  static final Map<String, MRECListener> _mrecListeners = {};
+  /// Ensure event stream is initialized (lazy initialization)
+  /// 
+  /// Returns a Future that completes when the event stream subscription is fully established.
+  /// Uses a test event to confirm the native side is ready instead of arbitrary delays.
+  static Future<void> _ensureEventStreamInitialized() async {
+    if (_eventStreamInitialized) {
+      print('🔵 [CloudX] Event stream already initialized');
+      return;
+    }
 
-  static void _setBannerListener(String adId, BannerListener listener) {
-    _bannerListeners[adId] = listener;
-  }
-
-  static void _setInterstitialListener(String adId, InterstitialListener listener) {
-    _interstitialListeners[adId] = listener;
-  }
-
-  static void _setRewardedListener(String adId, RewardedListener listener) {
-    _rewardedListeners[adId] = listener;
-  }
-
-  static void _setNativeListener(String adId, NativeListener listener) {
-    _nativeListeners[adId] = listener;
-  }
-
-  static void _setMRECListener(String adId, MRECListener listener) {
-    _mrecListeners[adId] = listener;
-  }
-
-  static void _removeListener(String adId) {
-    _bannerListeners.remove(adId);
-    _interstitialListeners.remove(adId);
-    _rewardedListeners.remove(adId);
-    _nativeListeners.remove(adId);
-    _mrecListeners.remove(adId);
-  }
-
-  // Event Handling
-
-  static void _handleEvent(Map<Object?, Object?> event) {
-    print('🔍 [Flutter SDK] _handleEvent START - event: $event');
+    print('🔵 [CloudX] Initializing event stream...');
+    _eventChannelReadyCompleter = Completer<void>();
     
+    _eventSubscription = _eventChannel.receiveBroadcastStream().listen(
+      (dynamic event) {
+        print('🔵 [CloudX] Event received from platform: $event');
+        if (event is Map) {
+          // Check for ready confirmation
+          final eventType = event['event'] as String?;
+          if (eventType == '__eventChannelReady__' && _eventChannelReadyCompleter != null && !_eventChannelReadyCompleter!.isCompleted) {
+            print('🔵 [CloudX] EventChannel ready confirmation received from native');
+            _eventChannelReadyCompleter!.complete();
+          } else {
+            _handleEvent(event);
+          }
+        }
+      },
+      onError: (error) {
+        print('CloudX event stream error: $error');
+      },
+    );
+
+    _eventStreamInitialized = true;
+    print('🔵 [CloudX] Event stream subscription created');
+    
+    // Wait with timeout for the native side to be ready
+    // If the completer isn't completed within 500ms, proceed anyway
     try {
+      await _eventChannelReadyCompleter!.future.timeout(
+        const Duration(milliseconds: 500),
+        onTimeout: () {
+          print('⚠️ [CloudX] EventChannel ready timeout - proceeding anyway');
+        },
+      );
+      print('🔵 [CloudX] Event stream fully initialized (confirmed by native)');
+    } catch (e) {
+      print('⚠️ [CloudX] EventChannel initialization warning: $e');
+    } finally {
+      _eventChannelReadyCompleter = null;
+    }
+  }
+
+  /// Centralized event handling (DRY)
+  static void _handleEvent(Map<Object?, Object?> event) {
+    try {
+      print('🔵 [CloudX] _handleEvent called with: $event');
       final adId = event['adId'] as String?;
       final eventType = event['event'] as String?;
-      final eventData = event['data'] as Map<Object?, Object?>?;
-      
-      print('🔍 [Flutter SDK] _handleEvent - parsed adId: $adId, eventType: $eventType, eventData: $eventData');
-      
+      final data = event['data'] as Map<Object?, Object?>?;
+
+      print('🔵 [CloudX] Parsed - adId: $adId, eventType: $eventType, data: $data');
+
       if (adId == null || eventType == null) {
-        print('🔍 [Flutter SDK] _handleEvent ERROR - adId or eventType is null');
+        print('🔵 [CloudX] ERROR - adId or eventType is null, ignoring event');
         return;
       }
-      
-      print('🔍 [Flutter SDK] _handleEvent - Looking for listener for adId: $adId');
-      
-      // Check all listener types for the adId
-      BannerListener? bannerListener = _bannerListeners[adId];
-      InterstitialListener? interstitialListener = _interstitialListeners[adId];
-      RewardedListener? rewardedListener = _rewardedListeners[adId];
-      NativeListener? nativeListener = _nativeListeners[adId];
-      MRECListener? mrecListener = _mrecListeners[adId];
-      
-      // Find the first available listener
-      dynamic listener;
-      if (bannerListener != null) {
-        listener = bannerListener;
-      } else if (interstitialListener != null) {
-        listener = interstitialListener;
-      } else if (rewardedListener != null) {
-        listener = rewardedListener;
-      } else if (nativeListener != null) {
-        listener = nativeListener;
-      } else if (mrecListener != null) {
-        listener = mrecListener;
-      }
+
+      final listener = _listeners[adId];
+      print('🔵 [CloudX] Looking up listener for adId: $adId, found: ${listener != null}');
+      print('🔵 [CloudX] All registered listeners: ${_listeners.keys.toList()}');
       
       if (listener == null) {
-        print('🔍 [Flutter SDK] _handleEvent ERROR - No listener found for adId: $adId');
-        print('🔍 [Flutter SDK] _handleEvent - Available banner listeners: ${_bannerListeners.keys}');
-        print('🔍 [Flutter SDK] _handleEvent - Available interstitial listeners: ${_interstitialListeners.keys}');
-        print('🔍 [Flutter SDK] _handleEvent - Available rewarded listeners: ${_rewardedListeners.keys}');
-        print('🔍 [Flutter SDK] _handleEvent - Available native listeners: ${_nativeListeners.keys}');
-        print('🔍 [Flutter SDK] _handleEvent - Available mrec listeners: ${_mrecListeners.keys}');
+        print('🔵 [CloudX] ERROR - No listener found for adId: $adId');
         return;
       }
-      
-      print('🔍 [Flutter SDK] _handleEvent - Found listener, calling appropriate callback for eventType: $eventType');
-      
-      switch (eventType) {
-        case 'didLoad':
-          print('🔍 [Flutter SDK] _handleEvent - Calling onAdLoaded for adId: $adId');
-          if (listener is BannerListener) {
-            listener.onAdLoaded?.call(adId);
-          } else {
-            listener.onAdLoaded?.call();
-          }
-          break;
-        case 'failToLoad':
-          final error = eventData?['error'] as String? ?? 'Unknown error';
-          print('🔍 [Flutter SDK] _handleEvent - Calling onAdFailedToLoad for adId: $adId with error: $error');
-          listener.onAdFailedToLoad?.call(adId, error);
-          break;
-        case 'didShow':
-          print('🔍 [Flutter SDK] _handleEvent - Calling onAdShown for adId: $adId');
-          if (listener is BannerListener) {
-            listener.onAdShown?.call(adId);
-          } else {
-            listener.onAdShown?.call();
-          }
-          break;
-        case 'failToShow':
-          final error = eventData?['error'] as String? ?? 'Unknown error';
-          print('🔍 [Flutter SDK] _handleEvent - Calling onAdFailedToShow for adId: $adId with error: $error');
-          listener.onAdFailedToShow?.call(adId, error);
-          break;
-        case 'didHide':
-          print('🔍 [Flutter SDK] _handleEvent - Calling onAdHidden for adId: $adId');
-          listener.onAdHidden?.call();
-          break;
-        case 'didClick':
-          print('🔍 [Flutter SDK] _handleEvent - Calling onAdClicked for adId: $adId');
-          if (listener is BannerListener) {
-            listener.onAdClicked?.call(adId);
-          } else {
-            listener.onAdClicked?.call();
-          }
-          break;
-        case 'impression':
-          print('🔍 [Flutter SDK] _handleEvent - Calling onAdImpression for adId: $adId');
-          if (listener is BannerListener) {
-            listener.onAdImpression?.call(adId);
-          } else {
-            listener.onAdImpression?.call();
-          }
-          break;
-        case 'closedByUserAction':
-          print('🔍 [Flutter SDK] _handleEvent - Calling onAdClosedByUser for adId: $adId');
-          listener.onAdClosedByUser?.call();
-          break;
-        case 'userRewarded':
-          if (listener is RewardedListener) {
-            final rewardType = eventData?['rewardType'] as String? ?? 'unknown';
-            final rewardAmount = eventData?['rewardAmount'] as int? ?? 0;
-            print('🔍 [Flutter SDK] _handleEvent - Calling onRewarded for adId: $adId with rewardType: $rewardType, rewardAmount: $rewardAmount');
-            listener.onRewarded?.call(rewardType, rewardAmount);
-          }
-          break;
-        case 'rewardedVideoStarted':
-          if (listener is RewardedListener) {
-            print('🔍 [Flutter SDK] _handleEvent - Calling onRewardedVideoStarted for adId: $adId');
-            listener.onRewardedVideoStarted?.call();
-          }
-          break;
-        case 'rewardedVideoCompleted':
-          if (listener is RewardedListener) {
-            print('🔍 [Flutter SDK] _handleEvent - Calling onRewardedVideoCompleted for adId: $adId');
-            listener.onRewardedVideoCompleted?.call();
-          }
-          break;
-        default:
-          print('🔍 [Flutter SDK] _handleEvent WARNING - Unknown eventType: $eventType');
-      }
-      
-      print('🔍 [Flutter SDK] _handleEvent - Callback completed for eventType: $eventType');
-      
-    } catch (e, stackTrace) {
-      print('🔍 [Flutter SDK] _handleEvent ERROR - Exception: $e');
-      print('🔍 [Flutter SDK] _handleEvent ERROR - Stack trace: $stackTrace');
-    }
-    
-    print('🔍 [Flutter SDK] _handleEvent END');
-  }
 
-  // Initialize event stream
-  static StreamSubscription? _eventSubscription;
-
-  static void _initializeEventStream() {
-    if (_eventSubscription != null) return;
-
-    _eventSubscription = _eventChannel.receiveBroadcastStream().listen((dynamic event) {
-      print('🔵 [Flutter SDK] Received event: $event (type: ${event.runtimeType})');
-      
-      if (event is Map) {
-        _handleEvent(event);
-      } else {
-        print('🔵 [Flutter SDK] Event is not a Map: $event');
-      }
-    });
-  }
-
-  // Initialize event handling when the class is first used
-  static bool _initialized = false;
-  
-  static void _ensureInitialized() {
-    if (!_initialized) {
-      _initializeEventStream();
-      _initialized = true;
+      print('🔵 [CloudX] Dispatching event: $eventType to listener');
+      _dispatchEventToListener(listener, eventType, data);
+      print('🔵 [CloudX] Event dispatched successfully');
+    } catch (e) {
+      print('CloudX event handling error: $e');
     }
   }
 
+  /// Dispatch events to appropriate listener callbacks (DRY)
+  static void _dispatchEventToListener(BaseAdListener listener, String eventType, Map<Object?, Object?>? data) {
+    switch (eventType) {
+      case 'didLoad':
+        listener.onAdLoaded?.call();
+        break;
+      case 'failToLoad':
+        final error = data?['error'] as String? ?? 'Unknown error';
+        listener.onAdFailedToLoad?.call(error);
+        break;
+      case 'didShow':
+        listener.onAdShown?.call();
+        break;
+      case 'failToShow':
+        final error = data?['error'] as String? ?? 'Unknown error';
+        listener.onAdFailedToShow?.call(error);
+        break;
+      case 'didHide':
+        listener.onAdHidden?.call();
+        break;
+      case 'didClick':
+        listener.onAdClicked?.call();
+        break;
+      case 'impression':
+        listener.onAdImpression?.call();
+        break;
+      case 'closedByUserAction':
+        listener.onAdClosedByUser?.call();
+        break;
+      case 'revenuePaid':
+        listener.onRevenuePaid?.call();
+        break;
+      
+      // Banner-specific events
+      case 'didExpandAd':
+        if (listener is BannerListener) {
+          listener.onAdExpanded?.call();
+        }
+        break;
+      case 'didCollapseAd':
+        if (listener is BannerListener) {
+          listener.onAdCollapsed?.call();
+        }
+        break;
 
-
-  /// Set a banner listener for a specific ad
-  /// 
-  /// [adId] - The unique identifier of the ad
-  /// [listener] - The listener to receive events
-  static void setBannerListener(String adId, BannerListener listener) {
-    _ensureInitialized();
-    _setBannerListener(adId, listener);
-  }
-
-  /// Remove a banner listener for a specific ad
-  /// 
-  /// [adId] - The unique identifier of the ad
-  static void removeBannerListener(String adId) {
-    _ensureInitialized();
-    _removeListener(adId);
-  }
-
-  /// Set an interstitial listener for a specific ad
-  /// 
-  /// [adId] - The unique identifier of the ad
-  /// [listener] - The listener to receive events
-  static void setInterstitialListener(String adId, InterstitialListener listener) {
-    _ensureInitialized();
-    _setInterstitialListener(adId, listener);
-  }
-
-  /// Remove an interstitial listener for a specific ad
-  /// 
-  /// [adId] - The unique identifier of the ad
-  static void removeInterstitialListener(String adId) {
-    _ensureInitialized();
-    _removeListener(adId);
-  }
-
-  /// Set a rewarded listener for a specific ad
-  /// 
-  /// [adId] - The unique identifier of the ad
-  /// [listener] - The listener to receive events
-  static void setRewardedListener(String adId, RewardedListener listener) {
-    _ensureInitialized();
-    _setRewardedListener(adId, listener);
-  }
-
-  /// Remove a rewarded listener for a specific ad
-  /// 
-  /// [adId] - The unique identifier of the ad
-  static void removeRewardedListener(String adId) {
-    _ensureInitialized();
-    _removeListener(adId);
-  }
-
-  /// Set a native listener for a specific ad
-  /// 
-  /// [adId] - The unique identifier of the ad
-  /// [listener] - The listener to receive events
-  static void setNativeListener(String adId, NativeListener listener) {
-    _ensureInitialized();
-    _setNativeListener(adId, listener);
-  }
-
-  /// Remove a native listener for a specific ad
-  /// 
-  /// [adId] - The unique identifier of the ad
-  static void removeNativeListener(String adId) {
-    _ensureInitialized();
-    _removeListener(adId);
-  }
-
-  /// Set an MREC listener for a specific ad
-  /// 
-  /// [adId] - The unique identifier of the ad
-  /// [listener] - The listener to receive events
-  static void setMRECListener(String adId, MRECListener listener) {
-    _ensureInitialized();
-    _setMRECListener(adId, listener);
-  }
-
-  /// Remove an MREC listener for a specific ad
-  /// 
-  /// [adId] - The unique identifier of the ad
-  static void removeMRECListener(String adId) {
-    _ensureInitialized();
-    _removeListener(adId);
+      // Rewarded-specific events
+      case 'userRewarded':
+        if (listener is RewardedListener) {
+          listener.onRewarded?.call();
+        }
+        break;
+      case 'rewardedVideoStarted':
+        if (listener is RewardedListener) {
+          listener.onRewardedVideoStarted?.call();
+        }
+        break;
+      case 'rewardedVideoCompleted':
+        if (listener is RewardedListener) {
+          listener.onRewardedVideoCompleted?.call();
+        }
+        break;
+    }
   }
 }
 
-// Listener Classes
+// ==============================================================================
+// MARK: - Listener Classes (SOLID: Interface Segregation Principle)
+// ==============================================================================
+
+/// Base class for all ad listeners
+/// Provides common callbacks for all ad types
+abstract class BaseAdListener {
+  /// Called when ad is loaded and ready to show
+  void Function()? onAdLoaded;
+
+  /// Called when ad fails to load
+  /// [error] - Error message describing the failure
+  void Function(String error)? onAdFailedToLoad;
+
+  /// Called when ad is shown to the user
+  void Function()? onAdShown;
+
+  /// Called when ad fails to show
+  /// [error] - Error message describing the failure
+  void Function(String error)? onAdFailedToShow;
+
+  /// Called when ad is hidden or closed
+  void Function()? onAdHidden;
+
+  /// Called when user clicks on the ad
+  void Function()? onAdClicked;
+
+  /// Called when ad impression is recorded
+  void Function()? onAdImpression;
+
+  /// Called when ad is closed by user action (e.g., close button)
+  void Function()? onAdClosedByUser;
+
+  /// Called when revenue is paid for the ad
+  /// Triggered after NURL is successfully sent to server
+  void Function()? onRevenuePaid;
+}
 
 /// Listener for banner ad events
-class BannerListener {
-  Function(String)? onAdLoaded;
-  Function(String, String)? onAdFailedToLoad;
-  Function(String)? onAdShown;
-  Function(String, String)? onAdFailedToShow;
-  VoidCallback? onAdHidden;
-  Function(String)? onAdClicked;
-  Function(String)? onAdImpression;
-  VoidCallback? onAdClosedByUser;
+/// Extends [BaseAdListener] with banner-specific callbacks
+class BannerListener extends BaseAdListener {
+  /// Called when banner ad expands (e.g., MRAID expand)
+  void Function()? onAdExpanded;
+
+  /// Called when banner ad collapses back to original size
+  void Function()? onAdCollapsed;
 }
 
 /// Listener for interstitial ad events
-class InterstitialListener {
-  VoidCallback? onAdLoaded;
-  Function(String, String)? onAdFailedToLoad;
-  VoidCallback? onAdShown;
-  Function(String, String)? onAdFailedToShow;
-  VoidCallback? onAdHidden;
-  VoidCallback? onAdClicked;
-  VoidCallback? onAdImpression;
-  VoidCallback? onAdClosedByUser;
-}
+/// Uses only the base callbacks from [BaseAdListener]
+class InterstitialListener extends BaseAdListener {}
 
 /// Listener for rewarded ad events
-class RewardedListener {
-  VoidCallback? onAdLoaded;
-  Function(String, String)? onAdFailedToLoad;
-  VoidCallback? onAdShown;
-  Function(String, String)? onAdFailedToShow;
-  VoidCallback? onAdHidden;
-  VoidCallback? onAdClicked;
-  VoidCallback? onAdImpression;
-  VoidCallback? onAdClosedByUser;
-  Function(String, int)? onRewarded;
-  VoidCallback? onRewardedVideoStarted;
-  VoidCallback? onRewardedVideoCompleted;
+/// Extends [BaseAdListener] with rewarded-specific callbacks
+class RewardedListener extends BaseAdListener {
+  /// Called when user is rewarded
+  ///
+  /// Note: The iOS SDK doesn't provide reward type/amount in the callback.
+  /// Reward details should be managed on your backend.
+  void Function()? onRewarded;
+
+  /// Called when rewarded video starts playing
+  void Function()? onRewardedVideoStarted;
+
+  /// Called when rewarded video completes playback
+  void Function()? onRewardedVideoCompleted;
 }
 
 /// Listener for native ad events
-class NativeListener {
-  VoidCallback? onAdLoaded;
-  Function(String, String)? onAdFailedToLoad;
-  VoidCallback? onAdShown;
-  Function(String, String)? onAdFailedToShow;
-  VoidCallback? onAdHidden;
-  VoidCallback? onAdClicked;
-  VoidCallback? onAdImpression;
-  VoidCallback? onAdClosedByUser;
-}
+/// Uses only the base callbacks from [BaseAdListener]
+class NativeListener extends BaseAdListener {}
 
 /// Listener for MREC ad events
-class MRECListener {
-  VoidCallback? onAdLoaded;
-  Function(String, String)? onAdFailedToLoad;
-  VoidCallback? onAdShown;
-  Function(String, String)? onAdFailedToShow;
-  VoidCallback? onAdHidden;
-  VoidCallback? onAdClicked;
-  Function(String, String)? onAdImpression;
-  VoidCallback? onAdClosedByUser;
-} 
+/// Uses only the base callbacks from [BaseAdListener]
+class MRECListener extends BaseAdListener {}

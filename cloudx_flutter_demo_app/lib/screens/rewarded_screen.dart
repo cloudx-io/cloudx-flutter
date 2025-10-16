@@ -1,20 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:cloudx_flutter_sdk/cloudx.dart';
 import 'base_ad_screen.dart';
+import '../config/demo_config.dart';
 
 class RewardedScreen extends BaseAdScreen {
+  final DemoEnvironmentConfig environment;
+  
   const RewardedScreen({
     super.key,
     required super.isSDKInitialized,
+    required this.environment,
   });
 
   @override
   State<RewardedScreen> createState() => _RewardedScreenState();
 }
 
-class _RewardedScreenState extends BaseAdScreenState<RewardedScreen> {
+class _RewardedScreenState extends BaseAdScreenState<RewardedScreen> with AutomaticKeepAliveClientMixin {
   String? _currentAdId;
   bool _isRewardedLoaded = false;
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
+    return buildScreen(context);
+  }
 
   @override
   String getAdIdPrefix() => 'rewarded';
@@ -109,7 +122,7 @@ class _RewardedScreenState extends BaseAdScreenState<RewardedScreen> {
     try {
       _currentAdId = '${getAdIdPrefix()}_${DateTime.now().millisecondsSinceEpoch}';
       final success = await CloudX.createRewarded(
-        placement: 'rewarded1',
+        placement: widget.environment.rewardedPlacement,
         adId: _currentAdId!,
         listener: RewardedListener()
           ..onAdLoaded = () {
@@ -119,7 +132,7 @@ class _RewardedScreenState extends BaseAdScreenState<RewardedScreen> {
               _isRewardedLoaded = true;
             });
           }
-          ..onAdFailedToLoad = (adId, error) {
+          ..onAdFailedToLoad = (error) {
             setAdState(AdState.noAd);
             setCustomStatus(text: 'Failed to load rewarded ad: $error', color: Colors.red);
             setState(() {
@@ -130,7 +143,7 @@ class _RewardedScreenState extends BaseAdScreenState<RewardedScreen> {
             setAdState(AdState.ready);
             setCustomStatus(text: 'Rewarded Ad Shown', color: Colors.green);
           }
-          ..onAdFailedToShow = (adId, error) {
+          ..onAdFailedToShow = (error) {
             setCustomStatus(text: 'Failed to show rewarded ad: $error', color: Colors.red);
           }
           ..onAdHidden = () {
@@ -143,8 +156,8 @@ class _RewardedScreenState extends BaseAdScreenState<RewardedScreen> {
           ..onAdClicked = () {
             setCustomStatus(text: 'Rewarded Ad Clicked', color: Colors.blue);
           }
-          ..onRewarded = (rewardType, rewardAmount) {
-            setCustomStatus(text: 'User rewarded: $rewardAmount $rewardType', color: Colors.purple);
+          ..onRewarded = () {
+            setCustomStatus(text: 'User rewarded!', color: Colors.purple);
           },
       );
       if (!success) {
@@ -153,7 +166,26 @@ class _RewardedScreenState extends BaseAdScreenState<RewardedScreen> {
         setState(() {
           _isRewardedLoaded = false;
         });
+        setLoadingState(false);
+        return;
       }
+      
+      // Now load the rewarded ad (create -> load -> wait for callbacks)
+      _log('Calling CloudX.loadRewarded with adId: $_currentAdId');
+      final loadSuccess = await CloudX.loadRewarded(adId: _currentAdId!);
+      _log('CloudX.loadRewarded returned: $loadSuccess');
+      
+      if (!loadSuccess) {
+        setAdState(AdState.noAd);
+        setCustomStatus(text: 'Failed to load rewarded ad.', color: Colors.red);
+        setState(() {
+          _isRewardedLoaded = false;
+        });
+        setLoadingState(false);
+        return;
+      }
+      
+      _log('loadRewarded called successfully, waiting for delegate callbacks');
     } catch (e) {
       setAdState(AdState.noAd);
       setCustomStatus(text: 'Error loading rewarded ad: $e', color: Colors.red);

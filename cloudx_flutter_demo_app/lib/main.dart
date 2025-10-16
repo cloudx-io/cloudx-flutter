@@ -4,6 +4,7 @@ import 'screens/banner_screen.dart';
 import 'screens/interstitial_screen.dart';
 import 'screens/rewarded_screen.dart';
 import 'screens/native_screen.dart';
+import 'config/demo_config.dart';
 
 void main() {
   runApp(const CloudXDemoApp());
@@ -36,6 +37,7 @@ class _InitScreenState extends State<InitScreen> {
   bool _isSDKInitialized = false;
   bool _isInitializing = false;
   String? _initError;
+  DemoEnvironmentConfig? _currentEnvironment;
 
   @override
   Widget build(BuildContext context) {
@@ -58,8 +60,8 @@ class _InitScreenState extends State<InitScreen> {
             const SizedBox(height: 16),
             Text(
               _isSDKInitialized
-                  ? 'SDK READY'
-                  : (_initError ?? 'SDK not initialized'),
+                  ? 'SDK Initialized (${_currentEnvironment?.name ?? ""})'
+                  : (_initError ?? 'SDK Not Initialized'),
               style: TextStyle(
                 color: _isSDKInitialized
                     ? Colors.green
@@ -67,48 +69,99 @@ class _InitScreenState extends State<InitScreen> {
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
               ),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: _isInitializing || _isSDKInitialized
-                  ? null
-                  : _initializeSDK,
-              child: _isInitializing
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Initialize SDK'),
+            const SizedBox(height: 48),
+            // Environment buttons (matches Obj-C demo app order)
+            _buildEnvironmentButton(
+              'Init Staging',
+              DemoConfig.staging,
+              const Color.fromRGBO(102, 179, 230, 1.0), // Light blue
             ),
-            if (_isSDKInitialized)
-              Padding(
-                padding: const EdgeInsets.only(top: 32.0),
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (_) => const MainTabView(),
-                      ),
-                    );
-                  },
-                  child: const Text('Continue to Demo'),
+            const SizedBox(height: 16),
+            _buildEnvironmentButton(
+              'Init Dev',
+              DemoConfig.dev,
+              Colors.blue,
+            ),
+            const SizedBox(height: 16),
+            _buildEnvironmentButton(
+              'Init Production',
+              DemoConfig.production,
+              const Color.fromRGBO(51, 179, 77, 1.0), // Green
+            ),
+            if (_isSDKInitialized) ...[
+              const SizedBox(height: 48),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (_) => MainTabView(environment: _currentEnvironment!),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(200, 44),
                 ),
+                child: const Text('Continue to Demo'),
               ),
+            ],
           ],
         ),
       ),
     );
   }
 
-  Future<void> _initializeSDK() async {
+  Widget _buildEnvironmentButton(String label, DemoEnvironmentConfig config, Color color) {
+    return SizedBox(
+      width: 200,
+      height: 44,
+      child: ElevatedButton(
+        onPressed: _isInitializing || _isSDKInitialized ? null : () => _initializeSDK(config),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: color.withOpacity(0.5),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: _isInitializing && _currentEnvironment == config
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            : Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+      ),
+    );
+  }
+
+  Future<void> _initializeSDK(DemoEnvironmentConfig config) async {
     setState(() {
       _isInitializing = true;
       _initError = null;
+      _currentEnvironment = config;
     });
-    const appKey = 'qT9U-tJ0FRb0x4gXb-pF0';
+
     try {
-      final success = await CloudX.initialize(appKey: appKey);
+      // Set environment (iOS only, Android uses CloudXInitializationServer)
+      await CloudX.setEnvironment(config.name.toLowerCase());
+      
+      final success = await CloudX.initialize(
+        appKey: config.appKey,
+        hashedUserID: config.hashedUserId,
+      );
+      
       setState(() {
         _isSDKInitialized = success;
         _isInitializing = false;
@@ -127,7 +180,9 @@ class _InitScreenState extends State<InitScreen> {
 }
 
 class MainTabView extends StatefulWidget {
-  const MainTabView({super.key});
+  final DemoEnvironmentConfig environment;
+  
+  const MainTabView({super.key, required this.environment});
 
   @override
   State<MainTabView> createState() => _MainTabViewState();
@@ -146,10 +201,10 @@ class _MainTabViewState extends State<MainTabView> {
   @override
   Widget build(BuildContext context) {
     final screens = [
-      BannerScreen(isSDKInitialized: true),
-      InterstitialScreen(isSDKInitialized: true),
-      RewardedScreen(isSDKInitialized: true),
-      NativeScreen(isSDKInitialized: true),
+      BannerScreen(isSDKInitialized: true, environment: widget.environment),
+      InterstitialScreen(isSDKInitialized: true, environment: widget.environment),
+      RewardedScreen(isSDKInitialized: true, environment: widget.environment),
+      NativeScreen(isSDKInitialized: true, environment: widget.environment),
     ];
     return Scaffold(
       appBar: AppBar(
