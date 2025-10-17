@@ -34,7 +34,7 @@ class DemoConfig {
 
   static const staging = DemoEnvironmentConfig(
     name: 'Staging',
-    appKey: 'Ty5bVlbX2tQOSL9YNoZ0D',
+    appKey: 'A7ovaBRCcAL8lapKtoZmm',
     hashedUserId: 'test-user-123-staging',
     bannerPlacement: 'objcDemo-banner-1',
     mrecPlacement: 'objcDemo-mrec-1',
