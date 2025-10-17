@@ -24,7 +24,6 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticK
   double? _bannerWidth;
   double? _bannerHeight;
   bool _isBannerLoaded = false;
-  int _selectedBannerType = 0; // 0 = Banner, 1 = MREC
   BannerListener? _bannerListener;
 
   @override
@@ -49,15 +48,17 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticK
     _bannerListener = BannerListener()
       ..onAdLoaded = () {
         print('[BannerScreen] onAdLoaded callback received');
+        setLoadingState(false); // Clear loading state
         setAdState(AdState.ready);
         setCustomStatus(text: 'Banner Ad Loaded', color: Colors.green);
         setState(() {
-          _isBannerLoaded = true;
+          _isBannerLoaded = true; // NOW show the banner
         });
-        print('[BannerScreen] Status set to READY');
+        print('[BannerScreen] Status set to READY, banner will render');
       }
       ..onAdFailedToLoad = (error) {
         print('[BannerScreen] onAdFailedToLoad callback received: $error');
+        setLoadingState(false); // Clear loading state
         setAdState(AdState.noAd);
         setCustomStatus(text: 'Failed to load: $error', color: Colors.red);
         setState(() {
@@ -94,42 +95,14 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticK
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 24),
-        _buildBannerTypeSelector(),
-        const SizedBox(height: 16),
         _buildLoadButton(),
         const Spacer(),
         _buildBannerContainer(),
         const SizedBox(height: 16),
-        // Removed the top status label here
       ],
     );
   }
 
-  Widget _buildBannerTypeSelector() {
-    return Center(
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 250),
-        child: SegmentedButton<int>(
-          segments: const [
-            ButtonSegment<int>(value: 0, label: Text('Banner')),
-            ButtonSegment<int>(value: 1, label: Text('MREC')),
-          ],
-          selected: {_selectedBannerType},
-          onSelectionChanged: (Set<int> newSelection) {
-            final newType = newSelection.first;
-            _log('User changed banner type from ${_selectedBannerType == 0 ? "Banner" : "MREC"} to ${newType == 0 ? "Banner" : "MREC"}');
-            setState(() {
-              _selectedBannerType = newType;
-              if (_isBannerLoaded) {
-                _log('Destroying existing banner due to type change');
-                _destroyBanner();
-              }
-            });
-          },
-        ),
-      ),
-    );
-  }
 
   Widget _buildLoadButton() {
     return Center(
@@ -192,18 +165,11 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticK
       _isBannerLoaded = false;
     });
     print('🔍 [BannerScreen] Loading state set');
-    // Set up the placement and dimensions based on banner type
-    _currentPlacement = _selectedBannerType == 0 
-        ? widget.environment.bannerPlacement 
-        : widget.environment.mrecPlacement;
-    if (_selectedBannerType == 0) {
-      _bannerWidth = 320.0;
-      _bannerHeight = 50.0;
-    } else {
-      _bannerWidth = 300.0;
-      _bannerHeight = 250.0;
-    }
-    print('🔍 [BannerScreen] Banner type: ${_selectedBannerType == 0 ? "Banner" : "MREC"}, placement: $_currentPlacement, width: $_bannerWidth, height: $_bannerHeight');
+    // Set up the placement and dimensions for banner (320x50)
+    _currentPlacement = widget.environment.bannerPlacement;
+    _bannerWidth = 320.0;
+    _bannerHeight = 50.0;
+    print('🔍 [BannerScreen] Banner placement: $_currentPlacement, width: $_bannerWidth, height: $_bannerHeight');
     // Generate a unique adId
     _currentAdId = '${getAdIdPrefix()}_${DateTime.now().millisecondsSinceEpoch}';
     print('🔍 [BannerScreen] Generated adId: $_currentAdId');
@@ -224,11 +190,7 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticK
       setLoadingState(false);
       return;
     }
-    print('🔍 [BannerScreen] createBanner succeeded, setting banner as loaded');
-    // Set the banner as loaded so the UiKitView will be shown
-    setState(() {
-      _isBannerLoaded = true;
-    });
+    print('🔍 [BannerScreen] createBanner succeeded, now loading banner');
     
     // Now load the banner (similar to Objective-C demo: create -> add to view -> load)
     print('🔍 [BannerScreen] Calling CloudX.loadBanner with adId: $_currentAdId');
@@ -239,15 +201,12 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticK
       print('🔍 [BannerScreen] loadBanner failed, setting error state');
       setAdState(AdState.noAd);
       setCustomStatus(text: 'Failed to load banner ad.', color: Colors.red);
-      setState(() {
-        _isBannerLoaded = false;
-      });
       setLoadingState(false);
       return;
     }
     
     print('🔍 [BannerScreen] loadBanner called successfully, waiting for delegate callbacks');
-    print('🔍 [BannerScreen] _loadBanner END');
+    print('🔍 [BannerScreen] _loadBanner END - banner will show when onAdLoaded fires');
   }
 
   void _destroyBanner() {

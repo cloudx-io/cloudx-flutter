@@ -438,6 +438,22 @@ class CloudX {
     return await _invokeMethod<bool>('isAdReady', {'adId': adId}) ?? false;
   }
 
+  /// Start auto-refresh for banner or MREC ad
+  ///
+  /// Enables automatic ad refresh for the specified banner/MREC ad instance.
+  /// The refresh interval is configured server-side in CloudX dashboard.
+  static Future<bool> startAutoRefresh({required String adId}) async {
+    return await _invokeMethod<bool>('startAutoRefresh', {'adId': adId}) ?? false;
+  }
+
+  /// Stop auto-refresh for banner or MREC ad
+  ///
+  /// Disables automatic ad refresh for the specified banner/MREC ad instance.
+  /// Critical to call this when destroying ads to prevent background timers.
+  static Future<bool> stopAutoRefresh({required String adId}) async {
+    return await _invokeMethod<bool>('stopAutoRefresh', {'adId': adId}) ?? false;
+  }
+
   // ============================================================================
   // MARK: - Generic Ad Methods
   // ============================================================================
@@ -689,5 +705,6 @@ class RewardedListener extends BaseAdListener {
 class NativeListener extends BaseAdListener {}
 
 /// Listener for MREC ad events
-/// Uses only the base callbacks from [BaseAdListener]
-class MRECListener extends BaseAdListener {}
+/// MRECs are built on banner infrastructure, so they use [BannerListener]
+/// which includes expand/collapse callbacks for MRAID support
+class MRECListener extends BannerListener {}
