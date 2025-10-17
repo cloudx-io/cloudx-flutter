@@ -153,9 +153,16 @@ The app uses a test user ID: `test-user-123`
    - Check that all dependencies are properly installed
 
 ### Debug Information
-- Enable verbose logging in the CloudX SDK
+
+**Verbose Logging**: This demo app has verbose logging enabled by default to help with debugging. The logging is configured in:
+- **iOS**: `ios/Runner/AppDelegate.swift` - Sets `CLOUDX_VERBOSE_LOG` and `CLOUDX_FLUTTER_VERBOSE_LOG` environment variables
+- **Android**: `android/app/src/main/kotlin/.../MainActivity.kt` - Calls `CloudX.setLoggingEnabled(true)` and `CloudX.setMinLogLevel(CloudXLogLevel.VERBOSE)`
+
+Additional debugging tips:
 - Check the console for detailed error messages
 - Monitor the status indicators for real-time feedback
+- iOS logs will appear in Xcode console and device logs
+- Android logs can be viewed with `adb logcat | grep CX:`
 
 ## License
 
