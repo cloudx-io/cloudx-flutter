@@ -415,7 +415,7 @@
     if ([call.method isEqualToString:@"initSDK"]) {
         [self initSDK:call.arguments result:result];
     } else if ([call.method isEqualToString:@"isSDKInitialized"]) {
-        result(@([[CloudXCore shared] isInitialised]));
+        result(@([[CloudXCore shared] isInitialized]));
     } else if ([call.method isEqualToString:@"getSDKVersion"]) {
         result([[CloudXCore shared] sdkVersion]);
     } else if ([call.method isEqualToString:@"getUserID"]) {
@@ -423,8 +423,6 @@
     } else if ([call.method isEqualToString:@"setUserID"]) {
         [CloudXCore shared].userID = call.arguments[@"userID"];
         result(@YES);
-    } else if ([call.method isEqualToString:@"getLogsData"]) {
-        result([[CloudXCore shared] logsData] ?: @{});
     } else if ([call.method isEqualToString:@"trackSDKError"]) {
         NSString *errorMsg = call.arguments[@"error"];
         NSError *error = [NSError errorWithDomain:@"com.cloudx.flutter" code:-1 
@@ -462,19 +460,19 @@
     }
     // Targeting Methods
     else if ([call.method isEqualToString:@"provideUserDetails"]) {
-        [[CloudXCore shared] provideUserDetailsWithHashedUserID:call.arguments[@"hashedUserID"]];
+        [[CloudXCore shared] setHashedUserID:call.arguments[@"hashedUserID"]];
         result(@YES);
     } else if ([call.method isEqualToString:@"useHashedKeyValue"]) {
-        [[CloudXCore shared] useHashedKeyValueWithKey:call.arguments[@"key"] 
-                                                 value:call.arguments[@"value"]];
+        [[CloudXCore shared] setHashedKeyValue:call.arguments[@"key"] 
+                                          value:call.arguments[@"value"]];
         result(@YES);
     } else if ([call.method isEqualToString:@"useKeyValues"]) {
-        [[CloudXCore shared] useKeyValuesWithUserDictionary:call.arguments[@"keyValues"]];
+        [[CloudXCore shared] setKeyValueDictionary:call.arguments[@"keyValues"]];
         result(@YES);
     } else if ([call.method isEqualToString:@"useBidderKeyValue"]) {
-        [[CloudXCore shared] useBidderKeyValueWithBidder:call.arguments[@"bidder"]
-                                                      key:call.arguments[@"key"]
-                                                    value:call.arguments[@"value"]];
+        [[CloudXCore shared] setBidderKeyValue:call.arguments[@"bidder"]
+                                           key:call.arguments[@"key"]
+                                         value:call.arguments[@"value"]];
         result(@YES);
     }
     // Ad Creation Methods
@@ -526,9 +524,9 @@
     if (hashedUserID) {
         NSLog(@"🔴 [CloudX Flutter] Calling initSDK WITH hashedUserID");
         printf("🔴 [CloudX Flutter] Calling initSDK WITH hashedUserID\n");
-        [[CloudXCore shared] initSDKWithAppKey:appKey 
-                                  hashedUserID:hashedUserID 
-                                    completion:^(BOOL success, NSError * _Nullable error) {
+        [[CloudXCore shared] initializeSDKWithAppKey:appKey 
+                                        hashedUserID:hashedUserID 
+                                          completion:^(BOOL success, NSError * _Nullable error) {
             NSLog(@"🔴 [CloudX Flutter] initSDK completion - success: %d, error: %@", success, error);
             printf("🔴 [CloudX Flutter] initSDK completion - success: %d, error: %s\n", success, [[error description] UTF8String] ?: "nil");
             [self handleInitResult:success error:error result:result];
@@ -536,8 +534,8 @@
     } else {
         NSLog(@"🔴 [CloudX Flutter] Calling initSDK WITHOUT hashedUserID");
         printf("🔴 [CloudX Flutter] Calling initSDK WITHOUT hashedUserID\n");
-        [[CloudXCore shared] initSDKWithAppKey:appKey 
-                                    completion:^(BOOL success, NSError * _Nullable error) {
+        [[CloudXCore shared] initializeSDKWithAppKey:appKey 
+                                          completion:^(BOOL success, NSError * _Nullable error) {
             NSLog(@"🔴 [CloudX Flutter] initSDK completion - success: %d, error: %@", success, error);
             printf("🔴 [CloudX Flutter] initSDK completion - success: %d, error: %s\n", success, [[error description] UTF8String] ?: "nil");
             [self handleInitResult:success error:error result:result];
@@ -647,8 +645,8 @@
     NSLog(@"[Flutter Plugin] createInterstitial - About to create interstitial with delegate: %@", self);
     printf("[Flutter Plugin] createInterstitial - About to create interstitial with delegate: %s\n", [[self description] UTF8String]);
     
-    id<CLXInterstitial> interstitialAd = [[CloudXCore shared] createInterstitialWithPlacement:placement
-                                                                                        delegate:self];
+    CLXPublisherFullscreenAd *interstitialAd = [[CloudXCore shared] createInterstitialWithPlacement:placement
+                                                                                              delegate:self];
     
     NSLog(@"[Flutter Plugin] createInterstitial: interstitialAd created: %@", interstitialAd);
     printf("[Flutter Plugin] createInterstitial: interstitialAd created: %s\n", [[interstitialAd description] UTF8String]);
@@ -699,8 +697,8 @@
     NSLog(@"[Flutter Plugin] createRewarded - About to create rewarded with delegate: %@", self);
     printf("[Flutter Plugin] createRewarded - About to create rewarded with delegate: %s\n", [[self description] UTF8String]);
     
-    id<CLXRewardedInterstitial> rewardedAd = [[CloudXCore shared] createRewardedWithPlacement:placement
-                                                                                        delegate:self];
+    CLXPublisherFullscreenAd *rewardedAd = [[CloudXCore shared] createRewardedWithPlacement:placement
+                                                                                     delegate:self];
     
     NSLog(@"[Flutter Plugin] createRewarded: rewardedAd created: %@", rewardedAd);
     printf("[Flutter Plugin] createRewarded: rewardedAd created: %s\n", [[rewardedAd description] UTF8String]);
@@ -1065,15 +1063,35 @@
 }
 
 - (NSString *)getAdIdForInstance:(id)instance {
+    if (!instance) {
+        return nil;
+    }
     return objc_getAssociatedObject(instance, "adId");
 }
 
 - (void)setAdId:(NSString *)adId forInstance:(id)instance {
+    if (!instance) {
+        NSLog(@"⚠️ [CloudX Plugin] setAdId called with nil instance, skipping");
+        return;
+    }
+    if (!adId) {
+        NSLog(@"⚠️ [CloudX Plugin] setAdId called with nil adId, skipping");
+        return;
+    }
     objc_setAssociatedObject(instance, "adId", adId, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 // Helper to store placementId mapping for an ad instance
 - (void)storePlacementIdMappingForAdInstance:(id)adInstance withAdId:(NSString *)adId adType:(NSString *)adType {
+    if (!adInstance) {
+        NSLog(@"⚠️ [CloudX Plugin] storePlacementIdMapping called with nil adInstance, skipping");
+        return;
+    }
+    if (!adId) {
+        NSLog(@"⚠️ [CloudX Plugin] storePlacementIdMapping called with nil adId, skipping");
+        return;
+    }
+    
     NSLog(@"🔍🔍🔍 [CloudX Plugin] storePlacementIdMapping START - adType: %@, adId: %@, instance: %p, class: %@", 
           adType, adId, adInstance, NSStringFromClass([adInstance class]));
     

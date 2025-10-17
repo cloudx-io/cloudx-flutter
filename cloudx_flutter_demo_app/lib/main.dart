@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloudx_flutter_sdk/cloudx.dart';
 import 'screens/banner_screen.dart';
+import 'screens/mrec_screen.dart';
 import 'screens/interstitial_screen.dart';
 import 'screens/rewarded_screen.dart';
 import 'screens/native_screen.dart';
@@ -193,6 +194,7 @@ class _MainTabViewState extends State<MainTabView> {
 
   static const List<Widget> _tabTitles = [
     Text('Banner'),
+    Text('MREC'),
     Text('Interstitial'),
     Text('Rewarded'),
     Text('Native'),
@@ -202,6 +204,7 @@ class _MainTabViewState extends State<MainTabView> {
   Widget build(BuildContext context) {
     final screens = [
       BannerScreen(isSDKInitialized: true, environment: widget.environment),
+      MRECScreen(isSDKInitialized: true, environment: widget.environment),
       InterstitialScreen(isSDKInitialized: true, environment: widget.environment),
       RewardedScreen(isSDKInitialized: true, environment: widget.environment),
       NativeScreen(isSDKInitialized: true, environment: widget.environment),
@@ -216,6 +219,7 @@ class _MainTabViewState extends State<MainTabView> {
         onTap: (index) => setState(() => _selectedIndex = index),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.view_day), label: 'Banner'),
+          BottomNavigationBarItem(icon: Icon(Icons.crop_square), label: 'MREC'),
           BottomNavigationBarItem(icon: Icon(Icons.crop_3_2), label: 'Interstitial'),
           BottomNavigationBarItem(icon: Icon(Icons.card_giftcard), label: 'Rewarded'),
           BottomNavigationBarItem(icon: Icon(Icons.view_module), label: 'Native'),
