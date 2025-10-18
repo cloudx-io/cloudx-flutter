@@ -125,10 +125,21 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
                 result.success(true)
             }
             "setEnvironment" -> {
-                // Android SDK doesn't have environment switching like iOS
-                // Log it but don't fail - environment is determined by CloudXInitializationServer
                 val environment = call.argument<String>("environment")
-                Log.d(TAG, "setEnvironment called with: $environment (Android uses CloudXInitializationServer)")
+                Log.d(TAG, "setEnvironment called with: $environment")
+                
+                // Map environment string to CloudXInitializationServer
+                initializationServer = when (environment?.lowercase()) {
+                    "dev", "development" -> CloudXInitializationServer.Development
+                    "staging" -> CloudXInitializationServer.Staging
+                    "production", "prod" -> CloudXInitializationServer.Production
+                    else -> {
+                        Log.w(TAG, "Unknown environment: $environment, defaulting to Production")
+                        CloudXInitializationServer.Production
+                    }
+                }
+                
+                Log.d(TAG, "Environment set to: $initializationServer")
                 result.success(true)
             }
             
@@ -201,6 +212,9 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     // MARK: - SDK Initialization
     // ============================================================================
 
+    // Store the environment setting to use during initialization
+    private var initializationServer: CloudXInitializationServer = CloudXInitializationServer.Production
+
     private fun initSDK(call: MethodCall, result: Result) {
         val appKey = call.argument<String>("appKey")
         val hashedUserID = call.argument<String>("hashedUserID")
@@ -210,9 +224,11 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
             return
         }
         
+        Log.d(TAG, "Initializing CloudX SDK with appKey: $appKey, server: $initializationServer, hashedUserID: $hashedUserID")
+        
         val initParams = CloudXInitializationParams(
             appKey = appKey,
-            initServer = CloudXInitializationServer.Production,
+            initServer = initializationServer,
             hashedUserId = hashedUserID
         )
         

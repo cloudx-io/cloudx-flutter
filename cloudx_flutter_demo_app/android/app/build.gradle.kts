@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.cloudx_flutter_demo_app"
+    namespace = "com.example.cloudxFlutterHostApp"
     compileSdk = 34
     ndkVersion = flutter.ndkVersion
 
@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.cloudx_flutter_demo_app"
+        applicationId = "com.example.cloudxFlutterHostApp"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 21  // Required by CloudX Android SDK
@@ -41,4 +41,10 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // CloudX Android SDK from mavenLocal()
+    implementation("io.cloudx:sdk:unspecified")
+    implementation("io.cloudx:adapter-meta:unspecified")
 }
