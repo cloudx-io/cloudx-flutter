@@ -52,11 +52,12 @@ android {
     dependencies {
         implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
         
-        // CloudX Android SDK from mavenLocal()
-        // Using "unspecified" version which is what gets published to mavenLocal by default
-        implementation "io.cloudx:sdk:unspecified"
-        implementation "io.cloudx:adapter-cloudx:unspecified"
-        implementation "io.cloudx:adapter-meta:unspecified"
+        // CloudX Android SDK from mavenLocal() for Flutter plugin development.
+        // -LOCAL suffix = Gradle won't hit GitHub Maven, preventing auth errors & stale cache.
+        // Publish SDK first: cd ../../../cloudexchange.android.sdk && ./gradlew publishToMavenLocal -Pversion=0.0.1.42-LOCAL
+        implementation "io.cloudx:sdk:0.0.1.42-LOCAL"
+        implementation "io.cloudx:adapter-cloudx:0.0.1.42-LOCAL"
+        implementation "io.cloudx:adapter-meta:0.0.1.42-LOCAL"
     }
 }
 

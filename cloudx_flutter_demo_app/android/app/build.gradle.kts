@@ -44,7 +44,8 @@ flutter {
 }
 
 dependencies {
-    // CloudX Android SDK from mavenLocal()
-    implementation("io.cloudx:sdk:unspecified")
-    implementation("io.cloudx:adapter-meta:unspecified")
+    // CloudX SDK via mavenLocal() for demo app development.
+    // Keeps demo app in sync with SDK changes without publishing to remote Maven.
+    implementation("io.cloudx:sdk:0.0.1.42-LOCAL")
+    implementation("io.cloudx:adapter-meta:0.0.1.42-LOCAL")
 }
