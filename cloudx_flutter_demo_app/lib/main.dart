@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:cloudx_flutter_sdk/cloudx.dart';
 import 'screens/banner_screen.dart';
@@ -76,19 +77,19 @@ class _InitScreenState extends State<InitScreen> {
             // Environment buttons (matches Obj-C demo app order)
             _buildEnvironmentButton(
               'Init Staging',
-              DemoConfig.staging,
+              Platform.isIOS ? DemoConfig.iosStaging : DemoConfig.androidStaging,
               const Color.fromRGBO(102, 179, 230, 1.0), // Light blue
             ),
             const SizedBox(height: 16),
             _buildEnvironmentButton(
               'Init Dev',
-              DemoConfig.dev,
+              Platform.isIOS ? DemoConfig.iosDev : DemoConfig.androidDev,
               Colors.blue,
             ),
             const SizedBox(height: 16),
             _buildEnvironmentButton(
               'Init Production',
-              DemoConfig.production,
+              Platform.isIOS ? DemoConfig.iosProduction : DemoConfig.androidProduction,
               const Color.fromRGBO(51, 179, 77, 1.0), // Green
             ),
             if (_isSDKInitialized) ...[

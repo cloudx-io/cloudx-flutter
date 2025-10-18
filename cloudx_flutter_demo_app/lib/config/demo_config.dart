@@ -21,7 +21,8 @@ class DemoEnvironmentConfig {
 }
 
 class DemoConfig {
-  static const dev = DemoEnvironmentConfig(
+  // iOS Configs
+  static const iosDev = DemoEnvironmentConfig(
     name: 'Development',
     appKey: 'g0PdN9_0ilfIcuNXhBopl',
     hashedUserId: 'test-user-123',
@@ -32,7 +33,7 @@ class DemoConfig {
     rewardedPlacement: 'metaRewarded',
   );
 
-  static const staging = DemoEnvironmentConfig(
+  static const iosStaging = DemoEnvironmentConfig(
     name: 'Staging',
     appKey: 'A7ovaBRCcAL8lapKtoZmm',
     hashedUserId: 'test-user-123-staging',
@@ -43,9 +44,43 @@ class DemoConfig {
     rewardedPlacement: '-',
   );
 
-  static const production = DemoEnvironmentConfig(
+  static const iosProduction = DemoEnvironmentConfig(
     name: 'Production',
-    appKey: 'ZFyiqxXWTOGYclwHElLbM',  // FlutterDemoApp - com.example.cloudxFlutterHostApp
+    appKey: 'ZFyiqxXWTOGYclwHElLbM',
+    hashedUserId: 'prod-user-123',
+    bannerPlacement: 'flutter-demo-banner-1',
+    mrecPlacement: 'flutter-demo-mrec-1',
+    interstitialPlacement: 'flutter-demo-interstitial-1',
+    nativePlacement: '-',
+    rewardedPlacement: '-',
+  );
+
+  // Android Configs
+  static const androidDev = DemoEnvironmentConfig(
+    name: 'Development',
+    appKey: 'g0PdN9_0ilfIcuNXhBopl', // TODO: Replace with actual Android dev app key
+    hashedUserId: 'test-user-123',
+    bannerPlacement: 'metaBanner',
+    mrecPlacement: 'metaMREC',
+    interstitialPlacement: 'metaInterstitial',
+    nativePlacement: 'metaNative',
+    rewardedPlacement: 'metaRewarded',
+  );
+
+  static const androidStaging = DemoEnvironmentConfig(
+    name: 'Staging',
+    appKey: 'A7ovaBRCcAL8lapKtoZmm', // TODO: Replace with actual Android staging app key
+    hashedUserId: 'test-user-123-staging',
+    bannerPlacement: 'objcDemo-banner-1',
+    mrecPlacement: 'objcDemo-mrec-1',
+    interstitialPlacement: 'objcDemo-interstitial-1',
+    nativePlacement: '-',
+    rewardedPlacement: '-',
+  );
+
+  static const androidProduction = DemoEnvironmentConfig(
+    name: 'Production',
+    appKey: 'Le01Sy3tmPjg8dlN0750r',
     hashedUserId: 'prod-user-123',
     bannerPlacement: 'flutter-demo-banner-1',
     mrecPlacement: 'flutter-demo-mrec-1',
@@ -54,4 +89,3 @@ class DemoConfig {
     rewardedPlacement: '-',
   );
 }
-

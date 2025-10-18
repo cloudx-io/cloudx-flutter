@@ -18,6 +18,13 @@ pluginManagement {
 
 // Include local CloudX Android SDK as a composite build
 // This allows us to use the local SDK modules instead of pulling from Maven
+includeBuild("../../../cloudexchange.android.sdk") {
+    dependencySubstitution {
+        substitute(module("io.cloudx:sdk")).using(project(":sdk"))
+        substitute(module("io.cloudx:adapter-cloudx")).using(project(":adapter-cloudx"))
+        substitute(module("io.cloudx:adapter-meta")).using(project(":adapter-meta"))
+    }
+}
 
 plugins {
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
