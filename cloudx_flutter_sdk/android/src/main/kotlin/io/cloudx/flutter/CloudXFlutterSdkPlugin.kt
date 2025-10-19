@@ -142,6 +142,12 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
                 Log.d(TAG, "Environment set to: $initializationServer")
                 result.success(true)
             }
+            "setLoggingEnabled" -> {
+                val enabled = call.argument<Boolean>("enabled") ?: false
+                CloudX.setLoggingEnabled(enabled)
+                Log.d(TAG, "Logging enabled set to: $enabled")
+                result.success(true)
+            }
             
             // Privacy & Compliance Methods
             "setCCPAPrivacyString" -> setCCPAPrivacyString(call, result)
@@ -572,6 +578,23 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     // MARK: - Event Helpers
     // ============================================================================
 
+    /**
+     * Serialize CloudXAd to Map for Flutter
+     */
+    private fun serializeCloudXAd(ad: CloudXAd?): Map<String, Any?> {
+        if (ad == null) {
+            return emptyMap()
+        }
+        
+        return mapOf(
+            "placementName" to ad.placementName,
+            "placementId" to ad.placementId,
+            "bidder" to ad.bidderName,  // Android uses bidderName
+            "externalPlacementId" to ad.externalPlacementId,
+            "revenue" to ad.revenue
+        )
+    }
+
     private fun sendEventToFlutter(eventName: String, adId: String, data: Map<String, Any?>? = null) {
         val eventData = mutableMapOf<String, Any?>()
         eventData["event"] = eventName
@@ -593,22 +616,22 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
         return object : CloudXAdViewListener {
             override fun onAdLoaded(cloudXAd: CloudXAd) {
                 Log.d(TAG, "Ad loaded: $adId")
-                sendEventToFlutter("didLoad", adId)
+                sendEventToFlutter("didLoad", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdDisplayed(cloudXAd: CloudXAd) {
                 Log.d(TAG, "Ad displayed: $adId")
-                sendEventToFlutter("didShow", adId)
+                sendEventToFlutter("didShow", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdHidden(cloudXAd: CloudXAd) {
                 Log.d(TAG, "Ad hidden: $adId")
-                sendEventToFlutter("didHide", adId)
+                sendEventToFlutter("didHide", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdClicked(cloudXAd: CloudXAd) {
                 Log.d(TAG, "Ad clicked: $adId")
-                sendEventToFlutter("didClick", adId)
+                sendEventToFlutter("didClick", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdLoadFailed(cloudXError: CloudXError) {
@@ -623,12 +646,12 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
             
             override fun onAdExpanded(cloudXAd: CloudXAd) {
                 Log.d(TAG, "Ad expanded: $adId")
-                sendEventToFlutter("didExpandAd", adId)
+                sendEventToFlutter("didExpandAd", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdCollapsed(cloudXAd: CloudXAd) {
                 Log.d(TAG, "Ad collapsed: $adId")
-                sendEventToFlutter("didCollapseAd", adId)
+                sendEventToFlutter("didCollapseAd", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
         }
     }
@@ -637,22 +660,22 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
         return object : CloudXInterstitialListener {
             override fun onAdLoaded(cloudXAd: CloudXAd) {
                 Log.d(TAG, "Interstitial loaded: $adId")
-                sendEventToFlutter("didLoad", adId)
+                sendEventToFlutter("didLoad", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdDisplayed(cloudXAd: CloudXAd) {
                 Log.d(TAG, "Interstitial displayed: $adId")
-                sendEventToFlutter("didShow", adId)
+                sendEventToFlutter("didShow", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdHidden(cloudXAd: CloudXAd) {
                 Log.d(TAG, "Interstitial hidden: $adId")
-                sendEventToFlutter("didHide", adId)
+                sendEventToFlutter("didHide", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdClicked(cloudXAd: CloudXAd) {
                 Log.d(TAG, "Interstitial clicked: $adId")
-                sendEventToFlutter("didClick", adId)
+                sendEventToFlutter("didClick", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdLoadFailed(cloudXError: CloudXError) {
@@ -671,22 +694,22 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
         return object : CloudXRewardedInterstitialListener {
             override fun onAdLoaded(cloudXAd: CloudXAd) {
                 Log.d(TAG, "Rewarded loaded: $adId")
-                sendEventToFlutter("didLoad", adId)
+                sendEventToFlutter("didLoad", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdDisplayed(cloudXAd: CloudXAd) {
                 Log.d(TAG, "Rewarded displayed: $adId")
-                sendEventToFlutter("didShow", adId)
+                sendEventToFlutter("didShow", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdHidden(cloudXAd: CloudXAd) {
                 Log.d(TAG, "Rewarded hidden: $adId")
-                sendEventToFlutter("didHide", adId)
+                sendEventToFlutter("didHide", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdClicked(cloudXAd: CloudXAd) {
                 Log.d(TAG, "Rewarded clicked: $adId")
-                sendEventToFlutter("didClick", adId)
+                sendEventToFlutter("didClick", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdLoadFailed(cloudXError: CloudXError) {
@@ -701,7 +724,7 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
             
             override fun onUserRewarded(cloudXAd: CloudXAd) {
                 Log.d(TAG, "User rewarded: $adId")
-                sendEventToFlutter("userRewarded", adId)
+                sendEventToFlutter("userRewarded", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
         }
     }

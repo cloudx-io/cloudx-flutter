@@ -3,6 +3,33 @@ library cloudx;
 import 'dart:async';
 import 'package:flutter/services.dart';
 
+// ==============================================================================
+// MARK: - Internal Imports
+// ==============================================================================
+
+import 'models/clx_ad.dart';
+import 'listeners/base_ad_listener.dart';
+import 'listeners/banner_listener.dart';
+import 'listeners/interstitial_listener.dart';
+import 'listeners/rewarded_listener.dart';
+import 'listeners/native_listener.dart';
+import 'listeners/mrec_listener.dart';
+
+// ==============================================================================
+// MARK: - Public API Exports
+// ==============================================================================
+
+// Models
+export 'models/clx_ad.dart';
+
+// Listeners
+export 'listeners/base_ad_listener.dart';
+export 'listeners/banner_listener.dart';
+export 'listeners/interstitial_listener.dart';
+export 'listeners/rewarded_listener.dart';
+export 'listeners/native_listener.dart';
+export 'listeners/mrec_listener.dart';
+
 /// Custom exception for CloudX SDK errors
 class CloudXException implements Exception {
   final String code;
@@ -116,6 +143,14 @@ class CloudX {
   /// Must be called BEFORE initialize()
   static Future<void> setEnvironment(String environment) async {
     await _invokeMethod('setEnvironment', {'environment': environment});
+  }
+
+  /// Enable or disable SDK logging
+  ///
+  /// Controls verbose logging output from the SDK. Disabled by default in production.
+  /// Call this method early in your app lifecycle, before SDK initialization, to see all logs.
+  static Future<void> setLoggingEnabled(bool enabled) async {
+    await _invokeMethod('setLoggingEnabled', {'enabled': enabled});
   }
 
   // ============================================================================
@@ -569,142 +604,70 @@ class CloudX {
 
   /// Dispatch events to appropriate listener callbacks (DRY)
   static void _dispatchEventToListener(BaseAdListener listener, String eventType, Map<Object?, Object?>? data) {
+    // Parse ad data if present
+    final adMap = data?['ad'] as Map<Object?, Object?>?;
+    final ad = CLXAd.fromMap(adMap);
+    
     switch (eventType) {
       case 'didLoad':
-        listener.onAdLoaded?.call();
+        listener.onAdLoaded?.call(ad);
         break;
       case 'failToLoad':
         final error = data?['error'] as String? ?? 'Unknown error';
-        listener.onAdFailedToLoad?.call(error);
+        listener.onAdFailedToLoad?.call(error, ad);
         break;
       case 'didShow':
-        listener.onAdShown?.call();
+        listener.onAdShown?.call(ad);
         break;
       case 'failToShow':
         final error = data?['error'] as String? ?? 'Unknown error';
-        listener.onAdFailedToShow?.call(error);
+        listener.onAdFailedToShow?.call(error, ad);
         break;
       case 'didHide':
-        listener.onAdHidden?.call();
+        listener.onAdHidden?.call(ad);
         break;
       case 'didClick':
-        listener.onAdClicked?.call();
+        listener.onAdClicked?.call(ad);
         break;
       case 'impression':
-        listener.onAdImpression?.call();
+        listener.onAdImpression?.call(ad);
         break;
       case 'closedByUserAction':
-        listener.onAdClosedByUser?.call();
+        listener.onAdClosedByUser?.call(ad);
         break;
       case 'revenuePaid':
-        listener.onRevenuePaid?.call();
+        listener.onRevenuePaid?.call(ad);
         break;
       
       // Banner-specific events
       case 'didExpandAd':
         if (listener is BannerListener) {
-          listener.onAdExpanded?.call();
+          listener.onAdExpanded?.call(ad);
         }
         break;
       case 'didCollapseAd':
         if (listener is BannerListener) {
-          listener.onAdCollapsed?.call();
+          listener.onAdCollapsed?.call(ad);
         }
         break;
 
       // Rewarded-specific events
       case 'userRewarded':
         if (listener is RewardedListener) {
-          listener.onRewarded?.call();
+          listener.onRewarded?.call(ad);
         }
         break;
       case 'rewardedVideoStarted':
         if (listener is RewardedListener) {
-          listener.onRewardedVideoStarted?.call();
+          listener.onRewardedVideoStarted?.call(ad);
         }
         break;
       case 'rewardedVideoCompleted':
         if (listener is RewardedListener) {
-          listener.onRewardedVideoCompleted?.call();
+          listener.onRewardedVideoCompleted?.call(ad);
         }
         break;
     }
   }
 }
 
-// ==============================================================================
-// MARK: - Listener Classes (SOLID: Interface Segregation Principle)
-// ==============================================================================
-
-/// Base class for all ad listeners
-/// Provides common callbacks for all ad types
-abstract class BaseAdListener {
-  /// Called when ad is loaded and ready to show
-  void Function()? onAdLoaded;
-
-  /// Called when ad fails to load
-  /// [error] - Error message describing the failure
-  void Function(String error)? onAdFailedToLoad;
-
-  /// Called when ad is shown to the user
-  void Function()? onAdShown;
-
-  /// Called when ad fails to show
-  /// [error] - Error message describing the failure
-  void Function(String error)? onAdFailedToShow;
-
-  /// Called when ad is hidden or closed
-  void Function()? onAdHidden;
-
-  /// Called when user clicks on the ad
-  void Function()? onAdClicked;
-
-  /// Called when ad impression is recorded
-  void Function()? onAdImpression;
-
-  /// Called when ad is closed by user action (e.g., close button)
-  void Function()? onAdClosedByUser;
-
-  /// Called when revenue is paid for the ad
-  /// Triggered after NURL is successfully sent to server
-  void Function()? onRevenuePaid;
-}
-
-/// Listener for banner ad events
-/// Extends [BaseAdListener] with banner-specific callbacks
-class BannerListener extends BaseAdListener {
-  /// Called when banner ad expands (e.g., MRAID expand)
-  void Function()? onAdExpanded;
-
-  /// Called when banner ad collapses back to original size
-  void Function()? onAdCollapsed;
-}
-
-/// Listener for interstitial ad events
-/// Uses only the base callbacks from [BaseAdListener]
-class InterstitialListener extends BaseAdListener {}
-
-/// Listener for rewarded ad events
-/// Extends [BaseAdListener] with rewarded-specific callbacks
-class RewardedListener extends BaseAdListener {
-  /// Called when user is rewarded
-  ///
-  /// Note: The iOS SDK doesn't provide reward type/amount in the callback.
-  /// Reward details should be managed on your backend.
-  void Function()? onRewarded;
-
-  /// Called when rewarded video starts playing
-  void Function()? onRewardedVideoStarted;
-
-  /// Called when rewarded video completes playback
-  void Function()? onRewardedVideoCompleted;
-}
-
-/// Listener for native ad events
-/// Uses only the base callbacks from [BaseAdListener]
-class NativeListener extends BaseAdListener {}
-
-/// Listener for MREC ad events
-/// MRECs are built on banner infrastructure, so they use [BannerListener]
-/// which includes expand/collapse callbacks for MRAID support
-class MRECListener extends BannerListener {}

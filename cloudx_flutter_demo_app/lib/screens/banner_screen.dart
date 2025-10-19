@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:cloudx_flutter_sdk/cloudx.dart';
 import 'base_ad_screen.dart';
 import '../config/demo_config.dart';
+import '../utils/demo_app_logger.dart';
 
 class BannerScreen extends BaseAdScreen {
   final DemoEnvironmentConfig environment;
@@ -46,7 +47,8 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticK
   void initState() {
     super.initState();
     _bannerListener = BannerListener()
-      ..onAdLoaded = () {
+      ..onAdLoaded = (ad) {
+        DemoAppLogger.sharedInstance.logAdEvent('✅ Banner didLoadWithAd', ad);
         print('[BannerScreen] onAdLoaded callback received');
         setLoadingState(false); // Clear loading state
         setAdState(AdState.ready);
@@ -56,7 +58,9 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticK
         });
         print('[BannerScreen] Status set to READY, banner will render');
       }
-      ..onAdFailedToLoad = (error) {
+      ..onAdFailedToLoad = (error, ad) {
+        DemoAppLogger.sharedInstance.logAdEvent('❌ Banner failToLoadWithAd', ad);
+        DemoAppLogger.sharedInstance.logMessage('  Error: $error');
         print('[BannerScreen] onAdFailedToLoad callback received: $error');
         setLoadingState(false); // Clear loading state
         setAdState(AdState.noAd);
@@ -66,19 +70,22 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticK
         });
         print('[BannerScreen] Status set to NO_AD');
       }
-      ..onAdShown = () {
+      ..onAdShown = (ad) {
+        DemoAppLogger.sharedInstance.logAdEvent('👀 Banner didShowWithAd', ad);
         print('🔍 [BannerScreen] onAdShown callback START');
         setAdState(AdState.ready);
         setCustomStatus(text: 'Banner Ad Shown', color: Colors.green);
         print('🔍 [BannerScreen] State updated - READY');
         print('🔍 [BannerScreen] onAdShown callback END');
       }
-      ..onAdClicked = () {
+      ..onAdClicked = (ad) {
+        DemoAppLogger.sharedInstance.logAdEvent('👆 Banner didClickWithAd', ad);
         print('🔍 [BannerScreen] onAdClicked callback START');
         setCustomStatus(text: 'Banner Ad Clicked', color: Colors.blue);
         print('🔍 [BannerScreen] onAdClicked callback END');
       }
-      ..onAdImpression = () {
+      ..onAdImpression = (ad) {
+        DemoAppLogger.sharedInstance.logAdEvent('👁️ Banner impressionOn', ad);
         print('🔍 [BannerScreen] onAdImpression callback START');
         setAdState(AdState.ready);
         setCustomStatus(text: 'Banner Ad Impression', color: Colors.green);
@@ -156,6 +163,7 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticK
   }
 
   Future<void> _loadBanner() async {
+    DemoAppLogger.sharedInstance.logMessage('🔄 Banner load initiated');
     print('🔍 [BannerScreen] _loadBanner START');
     // Set loading state immediately when user taps the button
     print('🔍 [BannerScreen] Setting loading state...');
@@ -181,6 +189,7 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticK
     );
     print('🔍 [BannerScreen] CloudX.createBanner returned: $success');
     if (!success) {
+      DemoAppLogger.sharedInstance.logMessage('❌ Failed to create banner ad');
       print('🔍 [BannerScreen] createBanner failed, setting error state');
       setAdState(AdState.noAd);
       setCustomStatus(text: 'Failed to create banner ad.', color: Colors.red);
@@ -198,6 +207,7 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticK
     print('🔍 [BannerScreen] CloudX.loadBanner returned: $loadSuccess');
     
     if (!loadSuccess) {
+      DemoAppLogger.sharedInstance.logMessage('❌ Failed to load banner ad');
       print('🔍 [BannerScreen] loadBanner failed, setting error state');
       setAdState(AdState.noAd);
       setCustomStatus(text: 'Failed to load banner ad.', color: Colors.red);
@@ -211,6 +221,7 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticK
 
   void _destroyBanner() {
     if (_currentAdId != null) {
+      DemoAppLogger.sharedInstance.logMessage('🗑️ Destroying banner ad');
       _log('🗑️ Destroying banner ad with adId: $_currentAdId');
       CloudX.destroyAd(adId: _currentAdId!);
     } else {
@@ -226,6 +237,16 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticK
   }
 
   @override
+  Future<void> loadAd() async {
+    await _loadBanner();
+  }
+
+  @override
+  Future<void> showAd() async {
+    // Banner ads are automatically shown when loaded, no explicit show needed
+  }
+
+  @override
   void dispose() {
     print('[BannerScreen] dispose called');
     if (_currentAdId != null) {
@@ -234,4 +255,4 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticK
     }
     super.dispose();
   }
-} 
+}

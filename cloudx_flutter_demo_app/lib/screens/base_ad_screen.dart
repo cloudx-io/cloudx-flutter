@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cloudx_flutter_sdk/cloudx.dart';
+import '../utils/demo_app_logger.dart';
+import 'logs_modal_screen.dart';
 
 /// Base screen that provides common functionality for all ad screens
 abstract class BaseAdScreen extends StatefulWidget {
@@ -18,6 +19,9 @@ abstract class BaseAdScreenState<T extends BaseAdScreen> extends State<T> {
   // Add custom status fields
   String? _customStatusText;
   Color? _customStatusColor;
+  
+  // Track the last ad format for log clearing
+  static String? _lastAdFormat;
 
   AdState get adState => _adState;
   bool get isLoading => _isLoading;
@@ -33,6 +37,18 @@ abstract class BaseAdScreenState<T extends BaseAdScreen> extends State<T> {
   @override
   void initState() {
     super.initState();
+    
+    // Clear logs when switching between different ad formats (tabs)
+    final currentAdFormat = runtimeType.toString();
+    
+    if (_lastAdFormat != null && _lastAdFormat != currentAdFormat) {
+      // Switching between different ad formats - clear logs for clean slate
+      DemoAppLogger.sharedInstance.clearLogs();
+      DemoAppLogger.sharedInstance.logMessage('[$currentAdFormat] Switched from $_lastAdFormat - logs cleared');
+    }
+    
+    // Remember current ad format for next time (session only)
+    _lastAdFormat = currentAdFormat;
   }
 
   void showErrorDialog(String title, String message) {
@@ -70,10 +86,10 @@ abstract class BaseAdScreenState<T extends BaseAdScreen> extends State<T> {
   String getAdIdPrefix();
 
   /// Override this method to implement ad loading logic
-  Future<void> _loadAd();
+  Future<void> loadAd();
 
   /// Override this method to implement ad showing logic
-  Future<void> _showAd();
+  Future<void> showAd();
 
   @override
   Widget build(BuildContext context) {
@@ -95,6 +111,7 @@ abstract class BaseAdScreenState<T extends BaseAdScreen> extends State<T> {
       ),
     );
   }
+  
 
   /// Override this method to provide the main content for each screen
   Widget buildMainContent();
@@ -179,13 +196,13 @@ abstract class BaseAdScreenState<T extends BaseAdScreen> extends State<T> {
       children: [
         _buildCenteredButton(
           title: _isLoading ? 'Loading...' : 'Load Ad',
-          onPressed: _isLoading ? () {} : _loadAd,
+          onPressed: _isLoading ? () {} : loadAd,
           enabled: !_isLoading,
         ),
         const SizedBox(height: 16),
         _buildCenteredButton(
           title: 'Show Ad',
-          onPressed: _adState == AdState.ready ? _showAd : () {},
+          onPressed: _adState == AdState.ready ? showAd : () {},
           enabled: _adState == AdState.ready,
         ),
       ],
