@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloudx_flutter_sdk/cloudx.dart';
 import 'base_ad_screen.dart';
 import '../config/demo_config.dart';
+import '../utils/demo_app_logger.dart';
 
 class InterstitialScreen extends BaseAdScreen {
   final DemoEnvironmentConfig environment;
@@ -56,7 +57,7 @@ class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> wit
   Widget _buildLoadButton() {
     return Center(
       child: ElevatedButton(
-        onPressed: _isInterstitialLoaded ? null : _loadAd,
+        onPressed: _isInterstitialLoaded ? null : loadAd,
         child: Text(_isInterstitialLoaded ? 'Interstitial Loaded' : 'Load Interstitial'),
       ),
     );
@@ -65,7 +66,7 @@ class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> wit
   Widget _buildShowButton() {
     return Center(
       child: ElevatedButton(
-        onPressed: _isInterstitialLoaded ? _showAd : null,
+        onPressed: _isInterstitialLoaded ? showAd : null,
         child: const Text('Show Interstitial'),
       ),
     );
@@ -107,8 +108,9 @@ class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> wit
   }
 
   @override
-  Future<void> _loadAd() async {
+  Future<void> loadAd() async {
     _log('User clicked Load Interstitial - starting load...');
+    DemoAppLogger.sharedInstance.logMessage('🔄 Interstitial load initiated');
     setLoadingState(true);
     setCustomStatus(text: 'Loading...', color: Colors.orange);
     setState(() {
@@ -117,44 +119,53 @@ class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> wit
     
     try {
       _currentAdId = '${getAdIdPrefix()}_${DateTime.now().millisecondsSinceEpoch}';
-      _log('Creating interstitial with adId: $_currentAdId, placement: interstitial1');
+      _log('Creating interstitial with adId: $_currentAdId, placement: ${widget.environment.interstitialPlacement}');
       final success = await CloudX.createInterstitial(
         placement: widget.environment.interstitialPlacement,
         adId: _currentAdId!,
         listener: InterstitialListener()
-          ..onAdLoaded = () {
+          ..onAdLoaded = (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('✅ Interstitial didLoadWithAd', ad);
             setAdState(AdState.ready);
             setCustomStatus(text: 'Interstitial Ad Loaded', color: Colors.green);
             setState(() {
               _isInterstitialLoaded = true;
             });
           }
-          ..onAdFailedToLoad = (error) {
+          ..onAdFailedToLoad = (error, ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('❌ Interstitial failToLoadWithAd', ad);
+            DemoAppLogger.sharedInstance.logMessage('  Error: $error');
             setAdState(AdState.noAd);
             setCustomStatus(text: 'Failed to load interstitial ad: $error', color: Colors.red);
             setState(() {
               _isInterstitialLoaded = false;
             });
           }
-          ..onAdShown = () {
+          ..onAdShown = (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('👀 Interstitial didShowWithAd', ad);
             setAdState(AdState.ready);
             setCustomStatus(text: 'Interstitial Ad Shown', color: Colors.green);
           }
-          ..onAdFailedToShow = (error) {
+          ..onAdFailedToShow = (error, ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('❌ Interstitial failToShowWithAd', ad);
+            DemoAppLogger.sharedInstance.logMessage('  Error: $error');
             setCustomStatus(text: 'Failed to show interstitial ad: $error', color: Colors.red);
           }
-          ..onAdHidden = () {
+          ..onAdHidden = (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('🔚 Interstitial didHideWithAd', ad);
             setAdState(AdState.noAd);
             setCustomStatus(text: 'No Ad Loaded', color: Colors.red);
             setState(() {
               _isInterstitialLoaded = false;
             });
           }
-          ..onAdClicked = () {
+          ..onAdClicked = (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('👆 Interstitial didClickWithAd', ad);
             setCustomStatus(text: 'Interstitial Ad Clicked', color: Colors.blue);
           },
       );
       if (!success) {
+        DemoAppLogger.sharedInstance.logMessage('❌ Failed to create interstitial ad');
         setAdState(AdState.noAd);
         setCustomStatus(text: 'Failed to create interstitial ad.', color: Colors.red);
         setState(() {
@@ -170,6 +181,7 @@ class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> wit
       _log('CloudX.loadInterstitial returned: $loadSuccess');
       
       if (!loadSuccess) {
+        DemoAppLogger.sharedInstance.logMessage('❌ Failed to load interstitial ad');
         setAdState(AdState.noAd);
         setCustomStatus(text: 'Failed to load interstitial ad.', color: Colors.red);
         setState(() {
@@ -181,6 +193,7 @@ class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> wit
       
       _log('loadInterstitial called successfully, waiting for delegate callbacks');
     } catch (e) {
+      DemoAppLogger.sharedInstance.logMessage('❌ Error loading interstitial ad: $e');
       setAdState(AdState.noAd);
       setCustomStatus(text: 'Error loading interstitial ad: $e', color: Colors.red);
       setState(() {
@@ -189,16 +202,19 @@ class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> wit
     }
   }
 
-  Future<void> _showAd() async {
+  @override
+  Future<void> showAd() async {
     if (_currentAdId == null) {
       setCustomStatus(text: 'No adId available for showing interstitial', color: Colors.red);
       return;
     }
     _log('User clicked Show Interstitial - showing ad with adId: $_currentAdId');
+    DemoAppLogger.sharedInstance.logMessage('📺 Attempting to show interstitial ad');
     try {
       await CloudX.showInterstitial(adId: _currentAdId!);
       setCustomStatus(text: 'Interstitial Ad Shown', color: Colors.green);
     } catch (e) {
+      DemoAppLogger.sharedInstance.logMessage('❌ Error showing interstitial ad: $e');
       setCustomStatus(text: 'Error showing interstitial ad: $e', color: Colors.red);
     }
   }

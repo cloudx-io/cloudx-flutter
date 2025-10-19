@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:cloudx_flutter_sdk/cloudx.dart';
 import 'base_ad_screen.dart';
 import '../config/demo_config.dart';
+import '../utils/demo_app_logger.dart';
 
 class NativeScreen extends BaseAdScreen {
   final DemoEnvironmentConfig environment;
@@ -57,7 +58,7 @@ class _NativeScreenState extends BaseAdScreenState<NativeScreen> with AutomaticK
   Widget _buildLoadButton() {
     return Center(
       child: ElevatedButton(
-        onPressed: _isNativeLoaded ? _destroyNative : _loadAd,
+        onPressed: _isNativeLoaded ? _destroyNative : loadAd,
         child: Text(_isNativeLoaded ? 'Stop' : 'Load / Show Native'),
       ),
     );
@@ -93,8 +94,9 @@ class _NativeScreenState extends BaseAdScreenState<NativeScreen> with AutomaticK
   }
 
   @override
-  Future<void> _loadAd() async {
+  Future<void> loadAd() async {
     _log('User clicked Load Native - starting load...');
+    DemoAppLogger.sharedInstance.logMessage('🔄 Native load initiated');
     setLoadingState(true);
     setCustomStatus(text: 'Loading...', color: Colors.orange);
     setState(() {
@@ -107,39 +109,48 @@ class _NativeScreenState extends BaseAdScreenState<NativeScreen> with AutomaticK
         placement: widget.environment.nativePlacement,
         adId: _currentAdId!,
         listener: NativeListener()
-          ..onAdLoaded = () {
+          ..onAdLoaded = (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('✅ Native didLoadWithAd', ad);
             setAdState(AdState.ready);
             setCustomStatus(text: 'Native Ad Loaded', color: Colors.green);
             setState(() {
               _isNativeLoaded = true;
             });
           }
-          ..onAdFailedToLoad = (error) {
+          ..onAdFailedToLoad = (error, ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('❌ Native failToLoadWithAd', ad);
+            DemoAppLogger.sharedInstance.logMessage('  Error: $error');
             setAdState(AdState.noAd);
             setCustomStatus(text: 'Failed to load native ad: $error', color: Colors.red);
             setState(() {
               _isNativeLoaded = false;
             });
           }
-          ..onAdShown = () {
+          ..onAdShown = (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('👀 Native didShowWithAd', ad);
             setAdState(AdState.ready);
             setCustomStatus(text: 'Native Ad Shown', color: Colors.green);
           }
-          ..onAdFailedToShow = (error) {
+          ..onAdFailedToShow = (error, ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('❌ Native failToShowWithAd', ad);
+            DemoAppLogger.sharedInstance.logMessage('  Error: $error');
             setCustomStatus(text: 'Failed to show native ad: $error', color: Colors.red);
           }
-          ..onAdHidden = () {
+          ..onAdHidden = (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('🔚 Native didHideWithAd', ad);
             setAdState(AdState.noAd);
             setCustomStatus(text: 'No Ad Loaded', color: Colors.red);
             setState(() {
               _isNativeLoaded = false;
             });
           }
-          ..onAdClicked = () {
+          ..onAdClicked = (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('👆 Native didClickWithAd', ad);
             setCustomStatus(text: 'Native Ad Clicked', color: Colors.blue);
           },
       );
       if (!success) {
+        DemoAppLogger.sharedInstance.logMessage('❌ Failed to create native ad');
         setAdState(AdState.noAd);
         setCustomStatus(text: 'Failed to create native ad.', color: Colors.red);
         setState(() {
@@ -155,6 +166,7 @@ class _NativeScreenState extends BaseAdScreenState<NativeScreen> with AutomaticK
       _log('CloudX.loadNative returned: $loadSuccess');
       
       if (!loadSuccess) {
+        DemoAppLogger.sharedInstance.logMessage('❌ Failed to load native ad');
         setAdState(AdState.noAd);
         setCustomStatus(text: 'Failed to load native ad.', color: Colors.red);
         setState(() {
@@ -166,6 +178,7 @@ class _NativeScreenState extends BaseAdScreenState<NativeScreen> with AutomaticK
       
       _log('loadNative called successfully, waiting for delegate callbacks');
     } catch (e) {
+      DemoAppLogger.sharedInstance.logMessage('❌ Error loading native ad: $e');
       setAdState(AdState.noAd);
       setCustomStatus(text: 'Error loading native ad: $e', color: Colors.red);
       setState(() {
@@ -174,8 +187,14 @@ class _NativeScreenState extends BaseAdScreenState<NativeScreen> with AutomaticK
     }
   }
 
+  @override
+  Future<void> showAd() async {
+    // Native ads are automatically shown when loaded, no explicit show needed
+  }
+
   void _destroyNative() {
     if (_currentAdId != null) {
+      DemoAppLogger.sharedInstance.logMessage('🗑️ Destroying native ad');
       _log('🗑️ Destroying native ad with adId: $_currentAdId');
       CloudX.destroyAd(adId: _currentAdId!);
     }

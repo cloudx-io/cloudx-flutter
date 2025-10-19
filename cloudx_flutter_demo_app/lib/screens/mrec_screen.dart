@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:cloudx_flutter_sdk/cloudx.dart';
 import 'base_ad_screen.dart';
 import '../config/demo_config.dart';
+import '../utils/demo_app_logger.dart';
 
 /// MREC (Medium Rectangle) Ad Screen
 /// 
@@ -134,8 +135,9 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> with AutomaticKeepA
 
   /// Load MREC ad (user-initiated)
   @override
-  Future<void> _loadAd() async {
+  Future<void> loadAd() async {
     _log('User clicked Load MREC button');
+    DemoAppLogger.sharedInstance.logMessage('🔄 MREC load initiated');
 
     if (!widget.isSDKInitialized) {
       _showErrorDialog('SDK Not Initialized', 'Please initialize SDK first.');
@@ -168,6 +170,7 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> with AutomaticKeepA
       _log('CloudX.loadMREC returned: $loadSuccess');
 
       if (!loadSuccess) {
+        DemoAppLogger.sharedInstance.logMessage('❌ Failed to load MREC');
         _log('❌ loadMREC returned false');
         setAdState(AdState.noAd);
         setCustomStatus(text: 'Failed to load MREC', color: Colors.red);
@@ -175,6 +178,7 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> with AutomaticKeepA
       }
       // Success case handled by onAdLoaded callback
     } catch (e) {
+      DemoAppLogger.sharedInstance.logMessage('❌ Error loading MREC: $e');
       _log('❌ Exception loading MREC: $e');
       setAdState(AdState.noAd);
       setCustomStatus(text: 'Error loading MREC: $e', color: Colors.red);
@@ -184,7 +188,7 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> with AutomaticKeepA
 
   /// Not used for MREC (auto-shows when loaded)
   @override
-  Future<void> _showAd() async {
+  Future<void> showAd() async {
     // MREC ads are automatically shown when loaded, no explicit show needed
     _log('Show button pressed (MREC auto-shows on load)');
   }
@@ -215,7 +219,8 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> with AutomaticKeepA
   // MARK: - MREC Delegate Callbacks
   // ============================================================================
 
-  void _handleAdLoaded() {
+  void _handleAdLoaded(CLXAd? ad) {
+    DemoAppLogger.sharedInstance.logAdEvent('✅ MREC didLoadWithAd', ad);
     _log('✅ didLoadWithAd - MREC loaded successfully');
     setLoadingState(false);
     setAdState(AdState.ready);
@@ -225,7 +230,9 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> with AutomaticKeepA
     });
   }
 
-  void _handleAdFailedToLoad(String error) {
+  void _handleAdFailedToLoad(String error, CLXAd? ad) {
+    DemoAppLogger.sharedInstance.logAdEvent('❌ MREC failToLoadWithAd', ad);
+    DemoAppLogger.sharedInstance.logMessage('  Error: $error');
     _log('❌ failToLoadWithAd - Error: $error');
     setLoadingState(false);
     setAdState(AdState.noAd);
@@ -240,22 +247,26 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> with AutomaticKeepA
     });
   }
 
-  void _handleAdShown() {
+  void _handleAdShown(CLXAd? ad) {
+    DemoAppLogger.sharedInstance.logAdEvent('👀 MREC didShowWithAd', ad);
     _log('👀 didShowWithAd - MREC shown to user');
     setCustomStatus(text: 'MREC Ad Shown', color: Colors.green);
   }
 
-  void _handleAdClicked() {
+  void _handleAdClicked(CLXAd? ad) {
+    DemoAppLogger.sharedInstance.logAdEvent('👆 MREC didClickWithAd', ad);
     _log('👆 didClickWithAd - MREC clicked');
     setCustomStatus(text: 'MREC Ad Clicked', color: Colors.blue);
   }
 
-  void _handleAdImpression() {
+  void _handleAdImpression(CLXAd? ad) {
+    DemoAppLogger.sharedInstance.logAdEvent('👁️ MREC impressionOn', ad);
     _log('👁️ impressionOn - MREC impression recorded');
     setCustomStatus(text: 'MREC Impression', color: Colors.green);
   }
 
-  void _handleAdExpanded() {
+  void _handleAdExpanded(CLXAd? ad) {
+    DemoAppLogger.sharedInstance.logAdEvent('🔍 MREC didExpandAd', ad);
     _log('🔍 didExpandAd - MREC expanded to fullscreen');
     setCustomStatus(text: 'MREC Expanded', color: Colors.purple);
     
@@ -265,7 +276,8 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> with AutomaticKeepA
     });
   }
 
-  void _handleAdCollapsed() {
+  void _handleAdCollapsed(CLXAd? ad) {
+    DemoAppLogger.sharedInstance.logAdEvent('🔍 MREC didCollapseAd', ad);
     _log('🔍 didCollapseAd - MREC collapsed from fullscreen');
     setCustomStatus(text: 'MREC Collapsed', color: Colors.green);
     
@@ -275,7 +287,8 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> with AutomaticKeepA
     });
   }
 
-  void _handleAdClosedByUser() {
+  void _handleAdClosedByUser(CLXAd? ad) {
+    DemoAppLogger.sharedInstance.logAdEvent('✋ MREC closedByUserActionWithAd', ad);
     _log('✋ closedByUserActionWithAd - MREC closed by user');
     setCustomStatus(text: 'MREC Closed', color: Colors.orange);
     setState(() {
@@ -308,7 +321,7 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> with AutomaticKeepA
   Widget _buildLoadButton() {
     return Center(
       child: ElevatedButton(
-        onPressed: isLoading ? null : _loadAd,
+        onPressed: isLoading ? null : loadAd,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.green,
           foregroundColor: Colors.white,

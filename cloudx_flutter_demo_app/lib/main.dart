@@ -6,9 +6,14 @@ import 'screens/mrec_screen.dart';
 import 'screens/interstitial_screen.dart';
 import 'screens/rewarded_screen.dart';
 import 'screens/native_screen.dart';
+import 'screens/logs_modal_screen.dart';
 import 'config/demo_config.dart';
 
-void main() {
+void main() async {
+  // Enable verbose logging for demo app
+  WidgetsFlutterBinding.ensureInitialized();
+  await CloudX.setLoggingEnabled(true);
+  
   runApp(const CloudXDemoApp());
 }
 
@@ -213,6 +218,20 @@ class _MainTabViewState extends State<MainTabView> {
     return Scaffold(
       appBar: AppBar(
         title: _tabTitles[_selectedIndex],
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const LogsModalScreen(title: 'Logs'),
+                  fullscreenDialog: true,
+                ),
+              );
+            },
+            icon: const Icon(Icons.article_outlined),
+            tooltip: 'Show Logs',
+          ),
+        ],
       ),
       body: screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(

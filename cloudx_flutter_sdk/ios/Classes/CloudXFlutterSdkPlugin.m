@@ -317,6 +317,10 @@
         NSString *environment = call.arguments[@"environment"];
         [CLXURLProvider setEnvironment:environment];
         result(@YES);
+    } else if ([call.method isEqualToString:@"setLoggingEnabled"]) {
+        BOOL enabled = [call.arguments[@"enabled"] boolValue];
+        [CloudXCore setLoggingEnabled:enabled];
+        result(@YES);
     }
     // Privacy & Compliance Methods
     else if ([call.method isEqualToString:@"setCCPAPrivacyString"]) {
@@ -918,6 +922,23 @@
 
 
 
+#pragma mark - Ad Data Serialization
+
+/// Serialize CLXAd to dictionary for Flutter
+- (NSDictionary *)serializeCLXAd:(CLXAd *)ad {
+    if (!ad) {
+        return @{};
+    }
+    
+    return @{
+        @"placementName": ad.placementName ?: [NSNull null],
+        @"placementId": ad.placementId ?: [NSNull null],
+        @"bidder": ad.bidder ?: [NSNull null],
+        @"externalPlacementId": ad.externalPlacementId ?: [NSNull null],
+        @"revenue": ad.revenue ?: [NSNull null],
+    };
+}
+
 #pragma mark - CLXBannerDelegate
 
 - (void)didLoadBanner:(id<CLXAdapterBanner>)banner {
@@ -971,7 +992,7 @@
     }
     
     if (adId) {
-        [self sendEventToFlutter:@"didLoad" adId:adId data:nil];
+        [self sendEventToFlutter:@"didLoad" adId:adId data:@{@"ad": [self serializeCLXAd:ad]}];
     } else {
         [self.logger error:[NSString stringWithFormat:@"Could not resolve adId for placementId: %@", ad.placementId]];
     }
@@ -983,7 +1004,10 @@
     NSString *adId = [self getAdIdForCLXAd:ad];
     
     if (adId) {
-        NSDictionary *data = @{@"error": error.localizedDescription ?: @"Unknown error"};
+        NSDictionary *data = @{
+            @"error": error.localizedDescription ?: @"Unknown error",
+            @"ad": [self serializeCLXAd:ad]
+        };
         [self sendEventToFlutter:@"failToLoad" adId:adId data:data];
     } else {
         [self.logger error:[NSString stringWithFormat:@"Could not resolve adId for placementId: %@", ad.placementId]];
@@ -993,14 +1017,17 @@
 - (void)didShowWithAd:(CLXAd *)ad {
     NSString *adId = [self getAdIdForCLXAd:ad];
     if (adId) {
-        [self sendEventToFlutter:@"didShow" adId:adId data:nil];
+        [self sendEventToFlutter:@"didShow" adId:adId data:@{@"ad": [self serializeCLXAd:ad]}];
     }
 }
 
 - (void)failToShowWithAd:(CLXAd *)ad error:(NSError *)error {
     NSString *adId = [self getAdIdForCLXAd:ad];
     if (adId) {
-        NSDictionary *data = @{@"error": error.localizedDescription ?: @"Unknown error"};
+        NSDictionary *data = @{
+            @"error": error.localizedDescription ?: @"Unknown error",
+            @"ad": [self serializeCLXAd:ad]
+        };
         [self sendEventToFlutter:@"failToShow" adId:adId data:data];
     }
 }
@@ -1008,35 +1035,35 @@
 - (void)didHideWithAd:(CLXAd *)ad {
     NSString *adId = [self getAdIdForCLXAd:ad];
     if (adId) {
-        [self sendEventToFlutter:@"didHide" adId:adId data:nil];
+        [self sendEventToFlutter:@"didHide" adId:adId data:@{@"ad": [self serializeCLXAd:ad]}];
     }
 }
 
 - (void)didClickWithAd:(CLXAd *)ad {
     NSString *adId = [self getAdIdForCLXAd:ad];
     if (adId) {
-        [self sendEventToFlutter:@"didClick" adId:adId data:nil];
+        [self sendEventToFlutter:@"didClick" adId:adId data:@{@"ad": [self serializeCLXAd:ad]}];
     }
 }
 
 - (void)impressionOn:(CLXAd *)ad {
     NSString *adId = [self getAdIdForCLXAd:ad];
     if (adId) {
-        [self sendEventToFlutter:@"impression" adId:adId data:nil];
+        [self sendEventToFlutter:@"impression" adId:adId data:@{@"ad": [self serializeCLXAd:ad]}];
     }
 }
 
 - (void)closedByUserActionWithAd:(CLXAd *)ad {
     NSString *adId = [self getAdIdForCLXAd:ad];
     if (adId) {
-        [self sendEventToFlutter:@"closedByUserAction" adId:adId data:nil];
+        [self sendEventToFlutter:@"closedByUserAction" adId:adId data:@{@"ad": [self serializeCLXAd:ad]}];
     }
 }
 
 - (void)revenuePaid:(CLXAd *)ad {
     NSString *adId = [self getAdIdForCLXAd:ad];
     if (adId) {
-        [self sendEventToFlutter:@"revenuePaid" adId:adId data:nil];
+        [self sendEventToFlutter:@"revenuePaid" adId:adId data:@{@"ad": [self serializeCLXAd:ad]}];
     }
 }
 
@@ -1045,14 +1072,14 @@
 - (void)didExpandAd:(CLXAd *)ad {
     NSString *adId = [self getAdIdForCLXAd:ad];
     if (adId) {
-        [self sendEventToFlutter:@"didExpandAd" adId:adId data:nil];
+        [self sendEventToFlutter:@"didExpandAd" adId:adId data:@{@"ad": [self serializeCLXAd:ad]}];
     }
 }
 
 - (void)didCollapseAd:(CLXAd *)ad {
     NSString *adId = [self getAdIdForCLXAd:ad];
     if (adId) {
-        [self sendEventToFlutter:@"didCollapseAd" adId:adId data:nil];
+        [self sendEventToFlutter:@"didCollapseAd" adId:adId data:@{@"ad": [self serializeCLXAd:ad]}];
     }
 }
 
@@ -1065,7 +1092,7 @@
 - (void)userRewarded:(CLXAd *)ad {
     NSString *adId = [self getAdIdForCLXAd:ad];
     if (adId) {
-        [self sendEventToFlutter:@"userRewarded" adId:adId data:nil];
+        [self sendEventToFlutter:@"userRewarded" adId:adId data:@{@"ad": [self serializeCLXAd:ad]}];
     }
 }
 
