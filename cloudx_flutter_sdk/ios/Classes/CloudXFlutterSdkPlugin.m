@@ -362,6 +362,17 @@
                                            key:call.arguments[@"key"]
                                          value:call.arguments[@"value"]];
         result(@YES);
+    } else if ([call.method isEqualToString:@"setUserKeyValue"]) {
+        [[CloudXCore shared] setUserKeyValue:call.arguments[@"key"]
+                                       value:call.arguments[@"value"]];
+        result(@YES);
+    } else if ([call.method isEqualToString:@"setAppKeyValue"]) {
+        [[CloudXCore shared] setAppKeyValue:call.arguments[@"key"]
+                                      value:call.arguments[@"value"]];
+        result(@YES);
+    } else if ([call.method isEqualToString:@"clearAllKeyValues"]) {
+        [[CloudXCore shared] clearAllKeyValues];
+        result(@YES);
     }
     // Ad Creation Methods
     else if ([call.method isEqualToString:@"createBanner"]) {
