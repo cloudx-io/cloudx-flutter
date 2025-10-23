@@ -271,6 +271,32 @@ class CloudX {
     });
   }
 
+  /// Set user-level key-value pair for targeting
+  ///
+  /// User-level key-values are injected into bid requests at server-configured paths.
+  /// These values are typically user-specific targeting parameters and will be cleared
+  /// if privacy regulations require removing personal data (COPPA, GDPR).
+  static Future<void> setUserKeyValue(String key, String value) async {
+    await _invokeMethod('setUserKeyValue', {'key': key, 'value': value});
+  }
+
+  /// Set app-level key-value pair for targeting
+  ///
+  /// App-level key-values are injected into bid requests at server-configured paths.
+  /// These values are typically app-specific targeting parameters and are NOT affected
+  /// by privacy regulations (persistent across privacy changes).
+  static Future<void> setAppKeyValue(String key, String value) async {
+    await _invokeMethod('setAppKeyValue', {'key': key, 'value': value});
+  }
+
+  /// Clear all user and app-level key-value pairs
+  ///
+  /// Removes all previously set targeting key-value pairs (both user-level and app-level).
+  /// Useful for resetting targeting state or implementing privacy controls.
+  static Future<void> clearAllKeyValues() async {
+    await _invokeMethod('clearAllKeyValues');
+  }
+
   // ============================================================================
   // MARK: - Banner Ad Methods
   // ============================================================================

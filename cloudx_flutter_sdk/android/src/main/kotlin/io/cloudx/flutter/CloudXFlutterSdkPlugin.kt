@@ -195,6 +195,30 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
                     result.error("INVALID_ARGUMENTS", "bidder, key, and value are required", null)
                 }
             }
+            "setUserKeyValue" -> {
+                val key = call.argument<String>("key")
+                val value = call.argument<String>("value")
+                if (key != null && value != null) {
+                    CloudX.setUserKeyValue(key, value)
+                    result.success(true)
+                } else {
+                    result.error("INVALID_ARGUMENTS", "key and value are required", null)
+                }
+            }
+            "setAppKeyValue" -> {
+                val key = call.argument<String>("key")
+                val value = call.argument<String>("value")
+                if (key != null && value != null) {
+                    CloudX.setAppKeyValue(key, value)
+                    result.success(true)
+                } else {
+                    result.error("INVALID_ARGUMENTS", "key and value are required", null)
+                }
+            }
+            "clearAllKeyValues" -> {
+                CloudX.clearAllKeyValues()
+                result.success(true)
+            }
             
             // Ad Creation Methods
             "createBanner" -> createBanner(call, result)

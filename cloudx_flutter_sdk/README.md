@@ -54,10 +54,10 @@ final success = await CloudX.createBanner(
   placement: 'banner1',
   adId: 'unique_banner_id',
   listener: BannerListener()
-    ..onAdLoaded = () => print('Banner loaded')
-    ..onAdFailedToLoad = (error) => print('Banner failed: $error')
-    ..onAdShown = () => print('Banner shown')
-    ..onAdClicked = () => print('Banner clicked'),
+    ..onAdLoaded = (ad) => print('Banner loaded: ${ad?.placementName}')
+    ..onAdFailedToLoad = (error, ad) => print('Banner failed: $error')
+    ..onAdShown = (ad) => print('Banner shown')
+    ..onAdClicked = (ad) => print('Banner clicked'),
 );
 
 if (success) {
@@ -74,10 +74,10 @@ final success = await CloudX.createInterstitial(
   placement: 'interstitial1',
   adId: 'unique_interstitial_id',
   listener: InterstitialListener()
-    ..onAdLoaded = () => print('Interstitial loaded')
-    ..onAdFailedToLoad = (error) => print('Interstitial failed: $error')
-    ..onAdShown = () => print('Interstitial shown')
-    ..onAdHidden = () => print('Interstitial hidden'),
+    ..onAdLoaded = (ad) => print('Interstitial loaded')
+    ..onAdFailedToLoad = (error, ad) => print('Interstitial failed: $error')
+    ..onAdShown = (ad) => print('Interstitial shown')
+    ..onAdHidden = (ad) => print('Interstitial hidden'),
 );
 
 if (success) {
@@ -97,12 +97,11 @@ final success = await CloudX.createRewarded(
   placement: 'rewarded1',
   adId: 'unique_rewarded_id',
   listener: RewardedListener()
-    ..onAdLoaded = () => print('Rewarded loaded')
-    ..onAdFailedToLoad = (error) => print('Rewarded failed: $error')
-    ..onAdShown = () => print('Rewarded shown')
-    ..onAdHidden = () => print('Rewarded hidden')
-    ..onRewarded = (rewardType, rewardAmount) => 
-        print('User earned $rewardAmount $rewardType'),
+    ..onAdLoaded = (ad) => print('Rewarded loaded')
+    ..onAdFailedToLoad = (error, ad) => print('Rewarded failed: $error')
+    ..onAdShown = (ad) => print('Rewarded shown')
+    ..onAdHidden = (ad) => print('Rewarded hidden')
+    ..onRewarded = (ad) => print('User earned reward!'),
 );
 
 if (success) {
@@ -122,10 +121,10 @@ final success = await CloudX.createNative(
   placement: 'native1',
   adId: 'unique_native_id',
   listener: NativeListener()
-    ..onAdLoaded = () => print('Native loaded')
-    ..onAdFailedToLoad = (error) => print('Native failed: $error')
-    ..onAdShown = () => print('Native shown')
-    ..onAdClicked = () => print('Native clicked'),
+    ..onAdLoaded = (ad) => print('Native loaded')
+    ..onAdFailedToLoad = (error, ad) => print('Native failed: $error')
+    ..onAdShown = (ad) => print('Native shown')
+    ..onAdClicked = (ad) => print('Native clicked'),
 );
 
 if (success) {
@@ -145,10 +144,10 @@ final success = await CloudX.createMREC(
   placement: 'mrec1',
   adId: 'unique_mrec_id',
   listener: MRECListener()
-    ..onAdLoaded = () => print('MREC loaded')
-    ..onAdFailedToLoad = (error) => print('MREC failed: $error')
-    ..onAdShown = () => print('MREC shown')
-    ..onAdClicked = () => print('MREC clicked'),
+    ..onAdLoaded = (ad) => print('MREC loaded')
+    ..onAdFailedToLoad = (error, ad) => print('MREC failed: $error')
+    ..onAdShown = (ad) => print('MREC shown')
+    ..onAdClicked = (ad) => print('MREC clicked'),
 );
 
 if (success) {
@@ -181,61 +180,80 @@ final version = await CloudX.getVersion();
 ### BannerListener
 ```dart
 abstract class BannerListener {
-  void Function()? onAdLoaded;
-  void Function(String error)? onAdFailedToLoad;
-  void Function()? onAdShown;
-  void Function(String error)? onAdFailedToShow;
-  void Function()? onAdHidden;
-  void Function()? onAdClicked;
+  void Function(CLXAd? ad)? onAdLoaded;
+  void Function(String error, CLXAd? ad)? onAdFailedToLoad;
+  void Function(CLXAd? ad)? onAdShown;
+  void Function(String error, CLXAd? ad)? onAdFailedToShow;
+  void Function(CLXAd? ad)? onAdHidden;
+  void Function(CLXAd? ad)? onAdClicked;
+  void Function(CLXAd? ad)? onAdImpression;
+  void Function(CLXAd? ad)? onAdClosedByUser;
+  void Function(CLXAd? ad)? onRevenuePaid;
+  void Function(CLXAd? ad)? onAdExpanded;
+  void Function(CLXAd? ad)? onAdCollapsed;
 }
 ```
 
 ### InterstitialListener
 ```dart
 abstract class InterstitialListener {
-  void Function()? onAdLoaded;
-  void Function(String error)? onAdFailedToLoad;
-  void Function()? onAdShown;
-  void Function(String error)? onAdFailedToShow;
-  void Function()? onAdHidden;
-  void Function()? onAdClicked;
+  void Function(CLXAd? ad)? onAdLoaded;
+  void Function(String error, CLXAd? ad)? onAdFailedToLoad;
+  void Function(CLXAd? ad)? onAdShown;
+  void Function(String error, CLXAd? ad)? onAdFailedToShow;
+  void Function(CLXAd? ad)? onAdHidden;
+  void Function(CLXAd? ad)? onAdClicked;
+  void Function(CLXAd? ad)? onAdImpression;
+  void Function(CLXAd? ad)? onAdClosedByUser;
+  void Function(CLXAd? ad)? onRevenuePaid;
 }
 ```
 
 ### RewardedListener
 ```dart
 abstract class RewardedListener {
-  void Function()? onAdLoaded;
-  void Function(String error)? onAdFailedToLoad;
-  void Function()? onAdShown;
-  void Function(String error)? onAdFailedToShow;
-  void Function()? onAdHidden;
-  void Function()? onAdClicked;
-  void Function(String rewardType, int rewardAmount)? onRewarded;
+  void Function(CLXAd? ad)? onAdLoaded;
+  void Function(String error, CLXAd? ad)? onAdFailedToLoad;
+  void Function(CLXAd? ad)? onAdShown;
+  void Function(String error, CLXAd? ad)? onAdFailedToShow;
+  void Function(CLXAd? ad)? onAdHidden;
+  void Function(CLXAd? ad)? onAdClicked;
+  void Function(CLXAd? ad)? onAdImpression;
+  void Function(CLXAd? ad)? onAdClosedByUser;
+  void Function(CLXAd? ad)? onRevenuePaid;
+  void Function(CLXAd? ad)? onRewarded;
+  void Function(CLXAd? ad)? onRewardedVideoStarted;
+  void Function(CLXAd? ad)? onRewardedVideoCompleted;
 }
 ```
 
 ### NativeListener
 ```dart
 abstract class NativeListener {
-  void Function()? onAdLoaded;
-  void Function(String error)? onAdFailedToLoad;
-  void Function()? onAdShown;
-  void Function(String error)? onAdFailedToShow;
-  void Function()? onAdHidden;
-  void Function()? onAdClicked;
+  void Function(CLXAd? ad)? onAdLoaded;
+  void Function(String error, CLXAd? ad)? onAdFailedToLoad;
+  void Function(CLXAd? ad)? onAdShown;
+  void Function(String error, CLXAd? ad)? onAdFailedToShow;
+  void Function(CLXAd? ad)? onAdHidden;
+  void Function(CLXAd? ad)? onAdClicked;
+  void Function(CLXAd? ad)? onAdImpression;
+  void Function(CLXAd? ad)? onAdClosedByUser;
+  void Function(CLXAd? ad)? onRevenuePaid;
 }
 ```
 
 ### MRECListener
 ```dart
 abstract class MRECListener {
-  void Function()? onAdLoaded;
-  void Function(String error)? onAdFailedToLoad;
-  void Function()? onAdShown;
-  void Function(String error)? onAdFailedToShow;
-  void Function()? onAdHidden;
-  void Function()? onAdClicked;
+  void Function(CLXAd? ad)? onAdLoaded;
+  void Function(String error, CLXAd? ad)? onAdFailedToLoad;
+  void Function(CLXAd? ad)? onAdShown;
+  void Function(String error, CLXAd? ad)? onAdFailedToShow;
+  void Function(CLXAd? ad)? onAdHidden;
+  void Function(CLXAd? ad)? onAdClicked;
+  void Function(CLXAd? ad)? onAdImpression;
+  void Function(CLXAd? ad)? onAdClosedByUser;
+  void Function(CLXAd? ad)? onRevenuePaid;
 }
 ```
 
@@ -253,7 +271,7 @@ try {
     placement: 'banner1',
     adId: 'banner_id',
     listener: BannerListener()
-      ..onAdFailedToLoad = (error) {
+      ..onAdFailedToLoad = (error, ad) {
         print('Banner failed to load: $error');
         // Handle the error appropriately
       },
@@ -295,7 +313,7 @@ await CloudX.setGPPSid([7, 8]); // US-National (7), US-CA (8)
 // Set hashed user ID
 await CloudX.provideUserDetailsWithHashedUserID('hashed-email-here');
 
-// Set single key-value pair
+// Set single key-value pair (generic)
 await CloudX.useHashedKeyValue('age', '25');
 
 // Set multiple key-values (more efficient)
@@ -304,6 +322,17 @@ await CloudX.useKeyValues({
   'location': 'US',
   'interests': 'gaming',
 });
+
+// Set user-level targeting (cleared when privacy regulations require removing personal data)
+await CloudX.setUserKeyValue('age', '25');
+await CloudX.setUserKeyValue('interests', 'gaming');
+
+// Set app-level targeting (NOT affected by privacy regulations)
+await CloudX.setAppKeyValue('app_version', '1.2.0');
+await CloudX.setAppKeyValue('build_type', 'release');
+
+// Clear all user and app-level key-value pairs
+await CloudX.clearAllKeyValues();
 ```
 
 ## Platform Support
