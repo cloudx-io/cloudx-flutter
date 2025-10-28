@@ -228,33 +228,6 @@ class CloudX {
   // MARK: - User Targeting APIs
   // ============================================================================
 
-  /// Use hashed key-value pair for targeting
-  ///
-  /// Sets a single key-value pair for ad targeting.
-  /// For multiple pairs, consider using [useKeyValues] for better performance.
-  static Future<void> useHashedKeyValue(String key, String value) async {
-    await _invokeMethod('useHashedKeyValue', {'key': key, 'value': value});
-  }
-
-  /// Use multiple key-value pairs for targeting (batch operation)
-  ///
-  /// More efficient than calling [useHashedKeyValue] multiple times.
-  /// All key-value pairs are sent in a single method channel call.
-  static Future<void> useKeyValues(Map<String, String> keyValues) async {
-    await _invokeMethod('useKeyValues', {'keyValues': keyValues});
-  }
-
-  /// Use bidder-specific key-value pair for targeting
-  ///
-  /// Sets targeting parameters specific to a particular bidder/ad network.
-  static Future<void> useBidderKeyValue(String bidder, String key, String value) async {
-    await _invokeMethod('useBidderKeyValue', {
-      'bidder': bidder,
-      'key': key,
-      'value': value,
-    });
-  }
-
   /// Set user-level key-value pair for targeting
   ///
   /// User-level key-values are injected into bid requests at server-configured paths.

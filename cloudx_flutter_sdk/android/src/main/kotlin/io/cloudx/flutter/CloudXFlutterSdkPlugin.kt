@@ -159,36 +159,6 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
             "getGPPSid" -> getGPPSid(call, result)
 
             // Targeting Methods
-            "useHashedKeyValue" -> {
-                val key = call.argument<String>("key")
-                val value = call.argument<String>("value")
-                if (key != null && value != null) {
-                    CloudX.setUserKeyValue(key, value)
-                    result.success(true)
-                } else {
-                    result.error("INVALID_ARGUMENTS", "key and value are required", null)
-                }
-            }
-            "useKeyValues" -> {
-                val keyValues = call.argument<Map<String, String>>("keyValues")
-                keyValues?.forEach { (key, value) ->
-                    CloudX.setUserKeyValue(key, value)
-                }
-                result.success(true)
-            }
-            "useBidderKeyValue" -> {
-                // Android SDK doesn't have bidder-specific key-value API
-                // Map to regular key-value with bidder prefix
-                val bidder = call.argument<String>("bidder")
-                val key = call.argument<String>("key")
-                val value = call.argument<String>("value")
-                if (bidder != null && key != null && value != null) {
-                    CloudX.setUserKeyValue("${bidder}_$key", value)
-                    result.success(true)
-                } else {
-                    result.error("INVALID_ARGUMENTS", "bidder, key, and value are required", null)
-                }
-            }
             "setUserKeyValue" -> {
                 val key = call.argument<String>("key")
                 val value = call.argument<String>("value")

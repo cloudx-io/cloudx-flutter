@@ -344,19 +344,7 @@
         result([CloudXCore getGPPSid]);
     }
     // Targeting Methods
-    else if ([call.method isEqualToString:@"useHashedKeyValue"]) {
-        [[CloudXCore shared] setHashedKeyValue:call.arguments[@"key"] 
-                                          value:call.arguments[@"value"]];
-        result(@YES);
-    } else if ([call.method isEqualToString:@"useKeyValues"]) {
-        [[CloudXCore shared] setKeyValueDictionary:call.arguments[@"keyValues"]];
-        result(@YES);
-    } else if ([call.method isEqualToString:@"useBidderKeyValue"]) {
-        [[CloudXCore shared] setBidderKeyValue:call.arguments[@"bidder"]
-                                           key:call.arguments[@"key"]
-                                         value:call.arguments[@"value"]];
-        result(@YES);
-    } else if ([call.method isEqualToString:@"setUserKeyValue"]) {
+    else if ([call.method isEqualToString:@"setUserKeyValue"]) {
         [[CloudXCore shared] setUserKeyValue:call.arguments[@"key"]
                                        value:call.arguments[@"value"]];
         result(@YES);
