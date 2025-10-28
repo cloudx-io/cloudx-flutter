@@ -197,7 +197,11 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
             "hideAd" -> hideAd(call, result)
             "isAdReady" -> isAdReady(call, result)
             "destroyAd" -> destroyAd(call, result)
-            
+
+            // Auto-refresh Methods
+            "startAutoRefresh" -> startAutoRefresh(call, result)
+            "stopAutoRefresh" -> stopAutoRefresh(call, result)
+
             else -> result.notImplemented()
         }
     }
@@ -542,16 +546,48 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
             result.error("INVALID_ARGUMENTS", "adId is required", null)
             return
         }
-        
+
         val adInstance = adInstances[adId]
         when (adInstance) {
             is CloudXInterstitialAd -> adInstance.destroy()
             is CloudXRewardedInterstitialAd -> adInstance.destroy()
             is CloudXAdView -> adInstance.destroy()
         }
-        
+
         adInstances.remove(adId)
         result.success(true)
+    }
+
+    private fun startAutoRefresh(call: MethodCall, result: Result) {
+        val adId = call.argument<String>("adId")
+        if (adId == null) {
+            result.error("INVALID_ARGUMENTS", "adId is required", null)
+            return
+        }
+
+        val adInstance = adInstances[adId]
+        if (adInstance is CloudXAdView) {
+            adInstance.startAutoRefresh()
+            result.success(true)
+        } else {
+            result.error("INVALID_AD_TYPE", "Ad is not a banner/MREC (only CloudXAdView supports auto-refresh)", null)
+        }
+    }
+
+    private fun stopAutoRefresh(call: MethodCall, result: Result) {
+        val adId = call.argument<String>("adId")
+        if (adId == null) {
+            result.error("INVALID_ARGUMENTS", "adId is required", null)
+            return
+        }
+
+        val adInstance = adInstances[adId]
+        if (adInstance is CloudXAdView) {
+            adInstance.stopAutoRefresh()
+            result.success(true)
+        } else {
+            result.error("INVALID_AD_TYPE", "Ad is not a banner/MREC (only CloudXAdView supports auto-refresh)", null)
+        }
     }
 
     // ============================================================================

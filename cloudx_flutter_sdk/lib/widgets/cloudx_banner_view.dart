@@ -10,13 +10,27 @@ import '../cloudx.dart';
 /// - Displays the ad using platform views (AndroidView/UiKitView)
 /// - Cleans up resources on disposal
 ///
-/// Example:
+/// Basic usage:
 /// ```dart
 /// CloudXBannerView(
 ///   placement: 'home_banner',
 ///   listener: BannerListener()
 ///     ..onAdLoaded = (ad) => print('Banner loaded'),
 /// )
+/// ```
+///
+/// With controller for auto-refresh control:
+/// ```dart
+/// final controller = CloudXBannerController();
+///
+/// CloudXBannerView(
+///   placement: 'home_banner',
+///   controller: controller,
+/// )
+///
+/// // Control auto-refresh:
+/// controller.startAutoRefresh();
+/// controller.stopAutoRefresh();
 /// ```
 class CloudXBannerView extends StatefulWidget {
   /// The placement name from your CloudX dashboard
@@ -31,12 +45,17 @@ class CloudXBannerView extends StatefulWidget {
   /// Optional height for the banner (defaults to 50)
   final double? height;
 
+  /// Optional controller for programmatic control over the banner ad.
+  /// Use this to start/stop auto-refresh.
+  final CloudXBannerController? controller;
+
   const CloudXBannerView({
     super.key,
     required this.placement,
     this.listener,
     this.width,
     this.height,
+    this.controller,
   });
 
   @override
@@ -51,6 +70,10 @@ class _CloudXBannerViewState extends State<CloudXBannerView> {
   void initState() {
     super.initState();
     _adId = 'banner_${widget.placement}_${DateTime.now().millisecondsSinceEpoch}';
+
+    // Attach controller if provided
+    widget.controller?.attach(_adId);
+
     _loadAd();
   }
 
@@ -82,6 +105,8 @@ class _CloudXBannerViewState extends State<CloudXBannerView> {
 
   @override
   void dispose() {
+    // Detach controller if provided
+    widget.controller?.detach();
     CloudX.destroyAd(adId: _adId);
     super.dispose();
   }

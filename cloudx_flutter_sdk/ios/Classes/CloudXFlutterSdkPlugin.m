@@ -379,6 +379,10 @@
         [self isAdReady:call.arguments result:result];
     } else if ([call.method isEqualToString:@"destroyAd"]) {
         [self destroyAd:call.arguments result:result];
+    } else if ([call.method isEqualToString:@"startAutoRefresh"]) {
+        [self startAutoRefresh:call.arguments result:result];
+    } else if ([call.method isEqualToString:@"stopAutoRefresh"]) {
+        [self stopAutoRefresh:call.arguments result:result];
     }
     // Unknown method
     else {
@@ -744,19 +748,19 @@
 
 - (void)destroyAd:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *adId = arguments[@"adId"];
-    
+
     if (!adId) {
-        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
-                                  message:@"adId is required" 
+        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
+                                  message:@"adId is required"
                                   details:nil]);
         return;
     }
-    
+
     id adInstance = self.adInstances[adId];
-    
+
     if (adInstance) {
         objc_setAssociatedObject(adInstance, "adId", nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        
+
         @try {
             id innerAd = [adInstance valueForKey:@"ad"];
             if (innerAd) {
@@ -765,16 +769,62 @@
         } @catch (NSException *exception) {
             // No inner ad, that's fine
         }
-        
+
         if ([adInstance respondsToSelector:@selector(destroy)]) {
             [adInstance destroy];
         }
-        
+
         [self.adInstances removeObjectForKey:adId];
         [self.pendingResults removeObjectForKey:adId];
     }
-    
+
     result(@YES);
+}
+
+- (void)startAutoRefresh:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSString *adId = arguments[@"adId"];
+
+    if (!adId) {
+        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
+                                  message:@"adId is required"
+                                  details:nil]);
+        return;
+    }
+
+    id adInstance = self.adInstances[adId];
+
+    if ([adInstance isKindOfClass:[CLXBannerAdView class]]) {
+        CLXBannerAdView *bannerAd = (CLXBannerAdView *)adInstance;
+        [bannerAd startAutoRefresh];
+        result(@YES);
+    } else {
+        result([FlutterError errorWithCode:@"INVALID_AD_TYPE"
+                                  message:@"Ad is not a banner/MREC (only CLXBannerAdView supports auto-refresh)"
+                                  details:nil]);
+    }
+}
+
+- (void)stopAutoRefresh:(NSDictionary *)arguments result:(FlutterResult)result {
+    NSString *adId = arguments[@"adId"];
+
+    if (!adId) {
+        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
+                                  message:@"adId is required"
+                                  details:nil]);
+        return;
+    }
+
+    id adInstance = self.adInstances[adId];
+
+    if ([adInstance isKindOfClass:[CLXBannerAdView class]]) {
+        CLXBannerAdView *bannerAd = (CLXBannerAdView *)adInstance;
+        [bannerAd stopAutoRefresh];
+        result(@YES);
+    } else {
+        result([FlutterError errorWithCode:@"INVALID_AD_TYPE"
+                                  message:@"Ad is not a banner/MREC (only CLXBannerAdView supports auto-refresh)"
+                                  details:nil]);
+    }
 }
 
 #pragma mark - Helper Methods
