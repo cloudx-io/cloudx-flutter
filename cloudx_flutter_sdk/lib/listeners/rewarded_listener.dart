@@ -1,7 +1,7 @@
 /// Rewarded ad listener
 library;
 
-import '../models/clx_ad.dart';
+import '../models/cloudx_ad.dart';
 import 'base_ad_listener.dart';
 
 /// Listener for rewarded ad events
@@ -13,16 +13,16 @@ class RewardedListener extends BaseAdListener {
   /// Reward details should be managed on your backend for security.
   /// 
   /// [ad] - Ad metadata including revenue information
-  void Function(CLXAd? ad)? onRewarded;
+  void Function(CloudXAd? ad)? onRewarded;
 
   /// Called when rewarded video starts playing
   /// 
   /// [ad] - Ad metadata
-  void Function(CLXAd? ad)? onRewardedVideoStarted;
+  void Function(CloudXAd? ad)? onRewardedVideoStarted;
 
   /// Called when rewarded video completes playback
   /// 
   /// [ad] - Ad metadata
-  void Function(CLXAd? ad)? onRewardedVideoCompleted;
+  void Function(CloudXAd? ad)? onRewardedVideoCompleted;
 }
 

@@ -6,6 +6,15 @@
 *.swp
 .buildlog/
 .history
+.DS_Store
+**/.DS_Store
+
+# IDE/Editor related
+.idea/
+**/.idea/
+*.iml
+.vscode/
+*.code-workspace
 
 
 

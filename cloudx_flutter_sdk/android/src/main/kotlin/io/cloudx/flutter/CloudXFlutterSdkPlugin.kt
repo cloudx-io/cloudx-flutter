@@ -153,7 +153,6 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
             "setCCPAPrivacyString" -> setCCPAPrivacyString(call, result)
             "setIsUserConsent" -> setIsUserConsent(call, result)
             "setIsAgeRestrictedUser" -> setIsAgeRestrictedUser(call, result)
-            "setIsDoNotSell" -> setIsDoNotSell(call, result)
             "setGPPString" -> setGPPString(call, result)
             "getGPPString" -> getGPPString(call, result)
             "setGPPSid" -> setGPPSid(call, result)
@@ -247,19 +246,17 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
 
     private fun initSDK(call: MethodCall, result: Result) {
         val appKey = call.argument<String>("appKey")
-        val hashedUserID = call.argument<String>("hashedUserID")
-        
+
         if (appKey == null) {
             result.error("INVALID_ARGUMENTS", "appKey is required", null)
             return
         }
-        
-        Log.d(TAG, "Initializing CloudX SDK with appKey: $appKey, server: $initializationServer, hashedUserID: $hashedUserID")
-        
+
+        Log.d(TAG, "Initializing CloudX SDK with appKey: $appKey, server: $initializationServer")
+
         val initParams = CloudXInitializationParams(
             appKey = appKey,
-            initServer = initializationServer,
-            hashedUserId = hashedUserID
+            initServer = initializationServer
         )
         
         CloudX.initialize(initParams, object : CloudXInitializationListener {
@@ -309,12 +306,6 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     private fun setIsAgeRestrictedUser(call: MethodCall, result: Result) {
         val isAgeRestricted = call.argument<Boolean>("isAgeRestrictedUser") ?: false
         CloudX.setPrivacy(CloudXPrivacy(isAgeRestrictedUser = isAgeRestricted))
-        result.success(true)
-    }
-
-    private fun setIsDoNotSell(call: MethodCall, result: Result) {
-        val isDoNotSell = call.argument<Boolean>("isDoNotSell") ?: false
-        CloudX.setPrivacy(CloudXPrivacy(isDoNotSell = isDoNotSell))
         result.success(true)
     }
 

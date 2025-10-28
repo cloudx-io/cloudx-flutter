@@ -332,9 +332,6 @@
     } else if ([call.method isEqualToString:@"setIsAgeRestrictedUser"]) {
         [CloudXCore setIsAgeRestrictedUser:[call.arguments[@"isAgeRestrictedUser"] boolValue]];
         result(@YES);
-    } else if ([call.method isEqualToString:@"setIsDoNotSell"]) {
-        [CloudXCore setIsDoNotSell:[call.arguments[@"isDoNotSell"] boolValue]];
-        result(@YES);
     } else if ([call.method isEqualToString:@"setGPPString"]) {
         [CloudXCore setGPPString:call.arguments[@"gppString"]];
         result(@YES);
@@ -408,29 +405,20 @@
 
 - (void)initSDK:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *appKey = arguments[@"appKey"];
-    NSString *hashedUserID = arguments[@"hashedUserID"];
-    
+
     [self.logger info:[NSString stringWithFormat:@"Initializing SDK with appKey: %@", appKey]];
-    
+
     if (!appKey) {
-        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
-                                  message:@"appKey is required" 
+        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
+                                  message:@"appKey is required"
                                   details:nil]);
         return;
     }
-    
-    if (hashedUserID) {
-        [[CloudXCore shared] initializeSDKWithAppKey:appKey 
-                                        hashedUserID:hashedUserID 
-                                          completion:^(BOOL success, NSError * _Nullable error) {
-            [self handleInitResult:success error:error result:result];
-        }];
-    } else {
-        [[CloudXCore shared] initializeSDKWithAppKey:appKey 
-                                          completion:^(BOOL success, NSError * _Nullable error) {
-            [self handleInitResult:success error:error result:result];
-        }];
-    }
+
+    [[CloudXCore shared] initializeSDKWithAppKey:appKey
+                                      completion:^(BOOL success, NSError * _Nullable error) {
+        [self handleInitResult:success error:error result:result];
+    }];
 }
 
 - (void)handleInitResult:(BOOL)success error:(NSError *)error result:(FlutterResult)result {

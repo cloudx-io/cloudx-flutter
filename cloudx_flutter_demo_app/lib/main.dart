@@ -165,8 +165,7 @@ class _InitScreenState extends State<InitScreen> {
       await CloudX.setEnvironment(config.name.toLowerCase());
       
       final success = await CloudX.initialize(
-        appKey: config.appKey,
-        hashedUserID: config.hashedUserId,
+        appKey: config.appKey
       );
       
       setState(() {

@@ -51,7 +51,7 @@ class DemoAppLogger {
   }
   
   /// Log an ad event with ad details
-  void logAdEvent(String eventName, CLXAd? ad) {
+  void logAdEvent(String eventName, CloudXAd? ad) {
     final adDetails = _formatAdDetails(ad);
     final fullMessage = '$eventName$adDetails';
     logMessage(fullMessage);
@@ -72,7 +72,7 @@ class DemoAppLogger {
   int get logCount => _logs.length;
   
   /// Format ad details for logging (mirrors ObjC DemoAppLogger formatAdDetails)
-  String _formatAdDetails(CLXAd? ad) {
+  String _formatAdDetails(CloudXAd? ad) {
     if (ad == null) {
       return ' - Ad: (null)';
     }

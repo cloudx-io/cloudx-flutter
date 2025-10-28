@@ -180,80 +180,80 @@ final version = await CloudX.getVersion();
 ### BannerListener
 ```dart
 abstract class BannerListener {
-  void Function(CLXAd? ad)? onAdLoaded;
-  void Function(String error, CLXAd? ad)? onAdFailedToLoad;
-  void Function(CLXAd? ad)? onAdShown;
-  void Function(String error, CLXAd? ad)? onAdFailedToShow;
-  void Function(CLXAd? ad)? onAdHidden;
-  void Function(CLXAd? ad)? onAdClicked;
-  void Function(CLXAd? ad)? onAdImpression;
-  void Function(CLXAd? ad)? onAdClosedByUser;
-  void Function(CLXAd? ad)? onRevenuePaid;
-  void Function(CLXAd? ad)? onAdExpanded;
-  void Function(CLXAd? ad)? onAdCollapsed;
+  void Function(CloudXAd? ad)? onAdLoaded;
+  void Function(String error, CloudXAd? ad)? onAdFailedToLoad;
+  void Function(CloudXAd? ad)? onAdShown;
+  void Function(String error, CloudXAd? ad)? onAdFailedToShow;
+  void Function(CloudXAd? ad)? onAdHidden;
+  void Function(CloudXAd? ad)? onAdClicked;
+  void Function(CloudXAd? ad)? onAdImpression;
+  void Function(CloudXAd? ad)? onAdClosedByUser;
+  void Function(CloudXAd? ad)? onRevenuePaid;
+  void Function(CloudXAd? ad)? onAdExpanded;
+  void Function(CloudXAd? ad)? onAdCollapsed;
 }
 ```
 
 ### InterstitialListener
 ```dart
 abstract class InterstitialListener {
-  void Function(CLXAd? ad)? onAdLoaded;
-  void Function(String error, CLXAd? ad)? onAdFailedToLoad;
-  void Function(CLXAd? ad)? onAdShown;
-  void Function(String error, CLXAd? ad)? onAdFailedToShow;
-  void Function(CLXAd? ad)? onAdHidden;
-  void Function(CLXAd? ad)? onAdClicked;
-  void Function(CLXAd? ad)? onAdImpression;
-  void Function(CLXAd? ad)? onAdClosedByUser;
-  void Function(CLXAd? ad)? onRevenuePaid;
+  void Function(CloudXAd? ad)? onAdLoaded;
+  void Function(String error, CloudXAd? ad)? onAdFailedToLoad;
+  void Function(CloudXAd? ad)? onAdShown;
+  void Function(String error, CloudXAd? ad)? onAdFailedToShow;
+  void Function(CloudXAd? ad)? onAdHidden;
+  void Function(CloudXAd? ad)? onAdClicked;
+  void Function(CloudXAd? ad)? onAdImpression;
+  void Function(CloudXAd? ad)? onAdClosedByUser;
+  void Function(CloudXAd? ad)? onRevenuePaid;
 }
 ```
 
 ### RewardedListener
 ```dart
 abstract class RewardedListener {
-  void Function(CLXAd? ad)? onAdLoaded;
-  void Function(String error, CLXAd? ad)? onAdFailedToLoad;
-  void Function(CLXAd? ad)? onAdShown;
-  void Function(String error, CLXAd? ad)? onAdFailedToShow;
-  void Function(CLXAd? ad)? onAdHidden;
-  void Function(CLXAd? ad)? onAdClicked;
-  void Function(CLXAd? ad)? onAdImpression;
-  void Function(CLXAd? ad)? onAdClosedByUser;
-  void Function(CLXAd? ad)? onRevenuePaid;
-  void Function(CLXAd? ad)? onRewarded;
-  void Function(CLXAd? ad)? onRewardedVideoStarted;
-  void Function(CLXAd? ad)? onRewardedVideoCompleted;
+  void Function(CloudXAd? ad)? onAdLoaded;
+  void Function(String error, CloudXAd? ad)? onAdFailedToLoad;
+  void Function(CloudXAd? ad)? onAdShown;
+  void Function(String error, CloudXAd? ad)? onAdFailedToShow;
+  void Function(CloudXAd? ad)? onAdHidden;
+  void Function(CloudXAd? ad)? onAdClicked;
+  void Function(CloudXAd? ad)? onAdImpression;
+  void Function(CloudXAd? ad)? onAdClosedByUser;
+  void Function(CloudXAd? ad)? onRevenuePaid;
+  void Function(CloudXAd? ad)? onRewarded;
+  void Function(CloudXAd? ad)? onRewardedVideoStarted;
+  void Function(CloudXAd? ad)? onRewardedVideoCompleted;
 }
 ```
 
 ### NativeListener
 ```dart
 abstract class NativeListener {
-  void Function(CLXAd? ad)? onAdLoaded;
-  void Function(String error, CLXAd? ad)? onAdFailedToLoad;
-  void Function(CLXAd? ad)? onAdShown;
-  void Function(String error, CLXAd? ad)? onAdFailedToShow;
-  void Function(CLXAd? ad)? onAdHidden;
-  void Function(CLXAd? ad)? onAdClicked;
-  void Function(CLXAd? ad)? onAdImpression;
-  void Function(CLXAd? ad)? onAdClosedByUser;
-  void Function(CLXAd? ad)? onRevenuePaid;
+  void Function(CloudXAd? ad)? onAdLoaded;
+  void Function(String error, CloudXAd? ad)? onAdFailedToLoad;
+  void Function(CloudXAd? ad)? onAdShown;
+  void Function(String error, CloudXAd? ad)? onAdFailedToShow;
+  void Function(CloudXAd? ad)? onAdHidden;
+  void Function(CloudXAd? ad)? onAdClicked;
+  void Function(CloudXAd? ad)? onAdImpression;
+  void Function(CloudXAd? ad)? onAdClosedByUser;
+  void Function(CloudXAd? ad)? onRevenuePaid;
 }
 ```
 
 ### MRECListener
 ```dart
 abstract class MRECListener {
-  void Function(CLXAd? ad)? onAdLoaded;
-  void Function(String error, CLXAd? ad)? onAdFailedToLoad;
-  void Function(CLXAd? ad)? onAdShown;
-  void Function(String error, CLXAd? ad)? onAdFailedToShow;
-  void Function(CLXAd? ad)? onAdHidden;
-  void Function(CLXAd? ad)? onAdClicked;
-  void Function(CLXAd? ad)? onAdImpression;
-  void Function(CLXAd? ad)? onAdClosedByUser;
-  void Function(CLXAd? ad)? onRevenuePaid;
+  void Function(CloudXAd? ad)? onAdLoaded;
+  void Function(String error, CloudXAd? ad)? onAdFailedToLoad;
+  void Function(CloudXAd? ad)? onAdShown;
+  void Function(String error, CloudXAd? ad)? onAdFailedToShow;
+  void Function(CloudXAd? ad)? onAdHidden;
+  void Function(CloudXAd? ad)? onAdClicked;
+  void Function(CloudXAd? ad)? onAdImpression;
+  void Function(CloudXAd? ad)? onAdClosedByUser;
+  void Function(CloudXAd? ad)? onRevenuePaid;
 }
 ```
 

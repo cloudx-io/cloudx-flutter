@@ -11,11 +11,7 @@ class MainActivity : FlutterActivity() {
         // Verbose logging for SDK debugging
         CloudX.setLoggingEnabled(true)
         CloudX.setMinLogLevel(CloudXLogLevel.VERBOSE)
-        
-        // Force test mode. Demo apps need this because Flutter builds in release mode by default.
-        // Without this: no test:1 → no test ads → confused developers.
-        CloudX.setTestMode(true)
-        
+
         // Meta SDK test mode (separate from CloudX test mode)
         enableMetaAudienceNetworkTestMode(true)
         

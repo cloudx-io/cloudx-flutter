@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 // MARK: - Internal Imports
 // ==============================================================================
 
-import 'models/clx_ad.dart';
+import 'models/cloudx_ad.dart';
 import 'listeners/base_ad_listener.dart';
 import 'listeners/banner_listener.dart';
 import 'listeners/interstitial_listener.dart';
@@ -20,7 +20,7 @@ import 'listeners/mrec_listener.dart';
 // ==============================================================================
 
 // Models
-export 'models/clx_ad.dart';
+export 'models/cloudx_ad.dart';
 
 // Listeners
 export 'listeners/base_ad_listener.dart';
@@ -66,17 +66,14 @@ class CloudX {
   /// Initialize the CloudX SDK
   ///
   /// [appKey] - Your CloudX app key
-  /// [hashedUserID] - Optional hashed user ID for targeting
   ///
   /// Returns `true` if initialization was successful
   /// Throws [CloudXException] if initialization fails
   static Future<bool> initialize({
     required String appKey,
-    String? hashedUserID,
   }) async {
     final arguments = <String, dynamic>{
       'appKey': appKey,
-      if (hashedUserID != null) 'hashedUserID': hashedUserID,
     };
 
     try {
@@ -185,14 +182,6 @@ class CloudX {
     });
   }
 
-  /// Set "do not sell" preference (CCPA)
-  ///
-  /// Sets the CCPA "do not sell my personal information" flag.
-  /// This is converted to CCPA privacy string format internally.
-  static Future<void> setIsDoNotSell(bool doNotSell) async {
-    await _invokeMethod('setIsDoNotSell', {'isDoNotSell': doNotSell});
-  }
-
   /// Set GPP (Global Privacy Platform) consent string
   ///
   /// IAB Global Privacy Platform compliance string for comprehensive
@@ -236,8 +225,6 @@ class CloudX {
   // MARK: - User Targeting APIs
   // ============================================================================
 
-  /// Provide user details with hashed user ID
-  ///
   /// Sets the hashed user ID for ad targeting after initialization.
   /// Can be called multiple times to update the user ID.
   static Future<void> provideUserDetailsWithHashedUserID(String hashedUserID) async {
@@ -632,7 +619,7 @@ class CloudX {
   static void _dispatchEventToListener(BaseAdListener listener, String eventType, Map<Object?, Object?>? data) {
     // Parse ad data if present
     final adMap = data?['ad'] as Map<Object?, Object?>?;
-    final ad = CLXAd.fromMap(adMap);
+    final ad = CloudXAd.fromMap(adMap);
     
     switch (eventType) {
       case 'didLoad':

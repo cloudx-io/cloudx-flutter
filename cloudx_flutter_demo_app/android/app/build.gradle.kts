@@ -24,7 +24,7 @@ android {
         applicationId = "com.example.cloudxFlutterHostApp"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 21  // Required by CloudX Android SDK
+        minSdk = flutter.minSdkVersion  // Required by CloudX Android SDK
         targetSdk = 34
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -44,8 +44,7 @@ flutter {
 }
 
 dependencies {
-    // CloudX SDK via mavenLocal() for demo app development.
-    // Keeps demo app in sync with SDK changes without publishing to remote Maven.
-    implementation("io.cloudx:sdk:0.0.1.42-LOCAL")
-    implementation("io.cloudx:adapter-meta:0.0.1.42-LOCAL")
+    // CloudX SDK from Maven Central
+    implementation("io.cloudx:sdk:0.5.0")
+    implementation("io.cloudx:adapter-meta:0.5.0")
 }

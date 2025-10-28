@@ -219,7 +219,7 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> with AutomaticKeepA
   // MARK: - MREC Delegate Callbacks
   // ============================================================================
 
-  void _handleAdLoaded(CLXAd? ad) {
+  void _handleAdLoaded(CloudXAd? ad) {
     DemoAppLogger.sharedInstance.logAdEvent('✅ MREC didLoadWithAd', ad);
     _log('✅ didLoadWithAd - MREC loaded successfully');
     setLoadingState(false);
@@ -230,7 +230,7 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> with AutomaticKeepA
     });
   }
 
-  void _handleAdFailedToLoad(String error, CLXAd? ad) {
+  void _handleAdFailedToLoad(String error, CloudXAd? ad) {
     DemoAppLogger.sharedInstance.logAdEvent('❌ MREC failToLoadWithAd', ad);
     DemoAppLogger.sharedInstance.logMessage('  Error: $error');
     _log('❌ failToLoadWithAd - Error: $error');
@@ -247,25 +247,25 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> with AutomaticKeepA
     });
   }
 
-  void _handleAdShown(CLXAd? ad) {
+  void _handleAdShown(CloudXAd? ad) {
     DemoAppLogger.sharedInstance.logAdEvent('👀 MREC didShowWithAd', ad);
     _log('👀 didShowWithAd - MREC shown to user');
     setCustomStatus(text: 'MREC Ad Shown', color: Colors.green);
   }
 
-  void _handleAdClicked(CLXAd? ad) {
+  void _handleAdClicked(CloudXAd? ad) {
     DemoAppLogger.sharedInstance.logAdEvent('👆 MREC didClickWithAd', ad);
     _log('👆 didClickWithAd - MREC clicked');
     setCustomStatus(text: 'MREC Ad Clicked', color: Colors.blue);
   }
 
-  void _handleAdImpression(CLXAd? ad) {
+  void _handleAdImpression(CloudXAd? ad) {
     DemoAppLogger.sharedInstance.logAdEvent('👁️ MREC impressionOn', ad);
     _log('👁️ impressionOn - MREC impression recorded');
     setCustomStatus(text: 'MREC Impression', color: Colors.green);
   }
 
-  void _handleAdExpanded(CLXAd? ad) {
+  void _handleAdExpanded(CloudXAd? ad) {
     DemoAppLogger.sharedInstance.logAdEvent('🔍 MREC didExpandAd', ad);
     _log('🔍 didExpandAd - MREC expanded to fullscreen');
     setCustomStatus(text: 'MREC Expanded', color: Colors.purple);
@@ -276,7 +276,7 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> with AutomaticKeepA
     });
   }
 
-  void _handleAdCollapsed(CLXAd? ad) {
+  void _handleAdCollapsed(CloudXAd? ad) {
     DemoAppLogger.sharedInstance.logAdEvent('🔍 MREC didCollapseAd', ad);
     _log('🔍 didCollapseAd - MREC collapsed from fullscreen');
     setCustomStatus(text: 'MREC Collapsed', color: Colors.green);
@@ -287,7 +287,7 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> with AutomaticKeepA
     });
   }
 
-  void _handleAdClosedByUser(CLXAd? ad) {
+  void _handleAdClosedByUser(CloudXAd? ad) {
     DemoAppLogger.sharedInstance.logAdEvent('✋ MREC closedByUserActionWithAd', ad);
     _log('✋ closedByUserActionWithAd - MREC closed by user');
     setCustomStatus(text: 'MREC Closed', color: Colors.orange);
