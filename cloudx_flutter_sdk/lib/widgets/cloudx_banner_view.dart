@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,9 +25,6 @@ class CloudXBannerView extends StatefulWidget {
   /// Optional listener for ad lifecycle events
   final BannerListener? listener;
 
-  /// Optional timeout in milliseconds for bid requests
-  final int? tmax;
-
   /// Optional width for the banner (defaults to 320)
   final double? width;
 
@@ -39,7 +35,6 @@ class CloudXBannerView extends StatefulWidget {
     super.key,
     required this.placement,
     this.listener,
-    this.tmax,
     this.width,
     this.height,
   });
@@ -65,7 +60,6 @@ class _CloudXBannerViewState extends State<CloudXBannerView> {
         placement: widget.placement,
         adId: _adId,
         listener: widget.listener,
-        tmax: widget.tmax,
       );
 
       if (!success) {
@@ -115,8 +109,6 @@ class _CloudXBannerViewState extends State<CloudXBannerView> {
   Widget _buildPlatformView() {
     final creationParams = {
       'adId': _adId,
-      'width': widget.width ?? 320.0,
-      'height': widget.height ?? 50.0,
     };
 
     if (defaultTargetPlatform == TargetPlatform.android) {

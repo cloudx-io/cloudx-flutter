@@ -296,19 +296,16 @@ class CloudX {
   /// [placement] - The placement name from your CloudX dashboard
   /// [adId] - Unique identifier for this ad instance
   /// [listener] - Optional callback listener for ad events
-  /// [tmax] - Optional timeout in milliseconds for bid requests
   static Future<bool> createBanner({
     required String placement,
     required String adId,
     BannerListener? listener,
-    int? tmax,
   }) async {
     await _ensureEventStreamInitialized();
-    
+
     final success = await _invokeMethod<bool>('createBanner', {
       'placement': placement,
       'adId': adId,
-      if (tmax != null) 'tmax': tmax,
     });
 
     if (success == true && listener != null) {

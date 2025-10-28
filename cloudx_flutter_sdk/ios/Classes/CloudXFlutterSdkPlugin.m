@@ -466,31 +466,30 @@
 - (void)createBanner:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *adId = arguments[@"adId"];
     NSString *placement = arguments[@"placement"];
-    NSNumber *tmax = arguments[@"tmax"];  // NEW: Support tmax parameter
-    
+
     if (!placement || !adId) {
-        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
-                                  message:@"placement and adId are required" 
+        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
+                                  message:@"placement and adId are required"
                                   details:nil]);
         return;
     }
-    
+
     UIViewController *viewController = [self getTopViewController];
-    
-    // Create banner with optional tmax parameter
+
+    // Create banner (tmax configured server-side)
     CLXBannerAdView *bannerAd = [[CloudXCore shared] createBannerWithPlacement:placement
                                                                   viewController:viewController
                                                                         delegate:self
-                                                                            tmax:tmax];
-    
+                                                                            tmax:nil];
+
     if (bannerAd) {
         self.adInstances[adId] = bannerAd;
         [self setAdId:adId forInstance:bannerAd];
         [self storePlacementIdMappingForAdInstance:bannerAd withAdId:adId adType:@"banner"];
         result(@YES);
     } else {
-        result([FlutterError errorWithCode:@"AD_CREATION_FAILED" 
-                                  message:@"Failed to create banner ad" 
+        result([FlutterError errorWithCode:@"AD_CREATION_FAILED"
+                                  message:@"Failed to create banner ad"
                                   details:nil]);
     }
 }
