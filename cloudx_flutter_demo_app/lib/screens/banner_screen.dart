@@ -1,6 +1,4 @@
-import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:cloudx_flutter_sdk/cloudx.dart';
 import 'base_ad_screen.dart';
 import '../config/demo_config.dart';
@@ -8,7 +6,7 @@ import '../utils/demo_app_logger.dart';
 
 class BannerScreen extends BaseAdScreen {
   final DemoEnvironmentConfig environment;
-  
+
   const BannerScreen({
     super.key,
     required super.isSDKInitialized,
@@ -20,12 +18,7 @@ class BannerScreen extends BaseAdScreen {
 }
 
 class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticKeepAliveClientMixin {
-  String? _currentAdId;
-  String? _currentPlacement;
-  double? _bannerWidth;
-  double? _bannerHeight;
-  bool _isBannerLoaded = false;
-  BannerListener? _bannerListener;
+  bool _showBanner = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -38,62 +31,6 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticK
 
   @override
   String getAdIdPrefix() => 'banner';
-
-  void _log(String message) {
-    print('🔵 BANNER: $message');
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _bannerListener = BannerListener()
-      ..onAdLoaded = (ad) {
-        DemoAppLogger.sharedInstance.logAdEvent('✅ Banner didLoadWithAd', ad);
-        print('[BannerScreen] onAdLoaded callback received');
-        setLoadingState(false); // Clear loading state
-        setAdState(AdState.ready);
-        setCustomStatus(text: 'Banner Ad Loaded', color: Colors.green);
-        setState(() {
-          _isBannerLoaded = true; // NOW show the banner
-        });
-        print('[BannerScreen] Status set to READY, banner will render');
-      }
-      ..onAdFailedToLoad = (error, ad) {
-        DemoAppLogger.sharedInstance.logAdEvent('❌ Banner failToLoadWithAd', ad);
-        DemoAppLogger.sharedInstance.logMessage('  Error: $error');
-        print('[BannerScreen] onAdFailedToLoad callback received: $error');
-        setLoadingState(false); // Clear loading state
-        setAdState(AdState.noAd);
-        setCustomStatus(text: 'Failed to load: $error', color: Colors.red);
-        setState(() {
-          _isBannerLoaded = false;
-        });
-        print('[BannerScreen] Status set to NO_AD');
-      }
-      ..onAdShown = (ad) {
-        DemoAppLogger.sharedInstance.logAdEvent('👀 Banner didShowWithAd', ad);
-        print('🔍 [BannerScreen] onAdShown callback START');
-        setAdState(AdState.ready);
-        setCustomStatus(text: 'Banner Ad Shown', color: Colors.green);
-        print('🔍 [BannerScreen] State updated - READY');
-        print('🔍 [BannerScreen] onAdShown callback END');
-      }
-      ..onAdClicked = (ad) {
-        DemoAppLogger.sharedInstance.logAdEvent('👆 Banner didClickWithAd', ad);
-        print('🔍 [BannerScreen] onAdClicked callback START');
-        setCustomStatus(text: 'Banner Ad Clicked', color: Colors.blue);
-        print('🔍 [BannerScreen] onAdClicked callback END');
-      }
-      ..onAdImpression = (ad) {
-        DemoAppLogger.sharedInstance.logAdEvent('👁️ Banner impressionOn', ad);
-        print('🔍 [BannerScreen] onAdImpression callback START');
-        setAdState(AdState.ready);
-        setCustomStatus(text: 'Banner Ad Impression', color: Colors.green);
-        print('🔍 [BannerScreen] State updated - READY');
-        print('🔍 [BannerScreen] onAdImpression callback END');
-      };
-    print('[BannerScreen] initState - BannerListener created');
-  }
 
   @override
   Widget buildMainContent() {
@@ -110,45 +47,25 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticK
     );
   }
 
-
   Widget _buildLoadButton() {
     return Center(
       child: ElevatedButton(
-        onPressed: _isBannerLoaded ? _destroyBanner : _loadBanner,
-        child: Text(_isBannerLoaded ? 'Stop' : 'Load / Show'),
+        onPressed: () {
+          setState(() {
+            _showBanner = !_showBanner;
+          });
+          if (!_showBanner) {
+            setAdState(AdState.noAd);
+            setCustomStatus(text: 'Banner stopped', color: Colors.grey);
+          }
+        },
+        child: Text(_showBanner ? 'Stop' : 'Load / Show'),
       ),
     );
   }
 
   Widget _buildBannerContainer() {
-    if (_isBannerLoaded && _currentAdId != null) {
-      final width = _bannerWidth ?? 320.0;
-      final height = _bannerHeight ?? 50.0;
-      
-      return Center(
-        child: SizedBox(
-          width: width,
-          height: height,
-          child: Platform.isAndroid
-              ? AndroidView(
-                  viewType: 'cloudx_banner_view',
-                  creationParams: {
-                    'adId': _currentAdId!,
-                    'width': width,
-                    'height': height,
-                  },
-                  creationParamsCodec: const StandardMessageCodec(),
-                )
-              : UiKitView(
-                  viewType: 'cloudx_banner_view',
-                  creationParams: {
-                    'adId': _currentAdId!,
-                  },
-                  creationParamsCodec: const StandardMessageCodec(),
-                ),
-        ),
-      );
-    } else {
+    if (!_showBanner) {
       return Container(
         height: 200,
         color: Colors.grey[200],
@@ -160,99 +77,42 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticK
         ),
       );
     }
-  }
 
-  Future<void> _loadBanner() async {
-    DemoAppLogger.sharedInstance.logMessage('🔄 Banner load initiated');
-    print('🔍 [BannerScreen] _loadBanner START');
-    // Set loading state immediately when user taps the button
-    print('🔍 [BannerScreen] Setting loading state...');
-    setLoadingState(true);
-    setCustomStatus(text: 'Loading...', color: Colors.orange);
-    setState(() {
-      _isBannerLoaded = false;
-    });
-    print('🔍 [BannerScreen] Loading state set');
-    // Set up the placement and dimensions for banner (320x50)
-    _currentPlacement = widget.environment.bannerPlacement;
-    _bannerWidth = 320.0;
-    _bannerHeight = 50.0;
-    print('🔍 [BannerScreen] Banner placement: $_currentPlacement, width: $_bannerWidth, height: $_bannerHeight');
-    // Generate a unique adId
-    _currentAdId = '${getAdIdPrefix()}_${DateTime.now().millisecondsSinceEpoch}';
-    print('🔍 [BannerScreen] Generated adId: $_currentAdId');
-    print('🔍 [BannerScreen] Calling CloudX.createBanner with adId: $_currentAdId, placement: $_currentPlacement');
-    final success = await CloudX.createBanner(
-      adId: _currentAdId!,
-      placement: _currentPlacement!,
-      listener: _bannerListener,
+    return Center(
+      child: CloudXBannerView(
+        placement: widget.environment.bannerPlacement,
+        width: 320,
+        height: 50,
+        listener: BannerListener()
+          ..onAdLoaded = (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('✅ Banner Loaded', ad);
+            setAdState(AdState.ready);
+            setCustomStatus(text: 'Banner Ad Loaded', color: Colors.green);
+          }
+          ..onAdFailedToLoad = (error, ad) {
+            DemoAppLogger.sharedInstance.logMessage('❌ Banner Failed: $error');
+            setAdState(AdState.noAd);
+            setCustomStatus(text: 'Failed to load: $error', color: Colors.red);
+          }
+          ..onAdClicked = (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('👆 Banner Clicked', ad);
+            setCustomStatus(text: 'Banner Ad Clicked', color: Colors.blue);
+          }
+          ..onAdImpression = (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('👁️ Banner Impression', ad);
+            setCustomStatus(text: 'Banner Ad Impression', color: Colors.green);
+          },
+      ),
     );
-    print('🔍 [BannerScreen] CloudX.createBanner returned: $success');
-    if (!success) {
-      DemoAppLogger.sharedInstance.logMessage('❌ Failed to create banner ad');
-      print('🔍 [BannerScreen] createBanner failed, setting error state');
-      setAdState(AdState.noAd);
-      setCustomStatus(text: 'Failed to create banner ad.', color: Colors.red);
-      setState(() {
-        _isBannerLoaded = false;
-      });
-      setLoadingState(false);
-      return;
-    }
-    print('🔍 [BannerScreen] createBanner succeeded, now loading banner');
-    
-    // Now load the banner (similar to Objective-C demo: create -> add to view -> load)
-    print('🔍 [BannerScreen] Calling CloudX.loadBanner with adId: $_currentAdId');
-    final loadSuccess = await CloudX.loadBanner(adId: _currentAdId!);
-    print('🔍 [BannerScreen] CloudX.loadBanner returned: $loadSuccess');
-    
-    if (!loadSuccess) {
-      DemoAppLogger.sharedInstance.logMessage('❌ Failed to load banner ad');
-      print('🔍 [BannerScreen] loadBanner failed, setting error state');
-      setAdState(AdState.noAd);
-      setCustomStatus(text: 'Failed to load banner ad.', color: Colors.red);
-      setLoadingState(false);
-      return;
-    }
-    
-    print('🔍 [BannerScreen] loadBanner called successfully, waiting for delegate callbacks');
-    print('🔍 [BannerScreen] _loadBanner END - banner will show when onAdLoaded fires');
-  }
-
-  void _destroyBanner() {
-    if (_currentAdId != null) {
-      DemoAppLogger.sharedInstance.logMessage('🗑️ Destroying banner ad');
-      _log('🗑️ Destroying banner ad with adId: $_currentAdId');
-      CloudX.destroyAd(adId: _currentAdId!);
-    } else {
-      _log('⚠️ No adId to destroy');
-    }
-    setAdState(AdState.noAd);
-    setCustomStatus(text: 'No Ad Loaded', color: Colors.red);
-    setState(() {
-      _isBannerLoaded = false;
-      _currentAdId = null;
-    });
-    _log('✅ Banner destroyed and state reset');
   }
 
   @override
   Future<void> loadAd() async {
-    await _loadBanner();
+    // Widget handles loading automatically
   }
 
   @override
   Future<void> showAd() async {
-    // Banner ads are automatically shown when loaded, no explicit show needed
-  }
-
-  @override
-  void dispose() {
-    print('[BannerScreen] dispose called');
-    if (_currentAdId != null) {
-      print('[BannerScreen] Destroying banner ad with adId: $_currentAdId');
-      CloudX.destroyAd(adId: _currentAdId!);
-    }
-    super.dispose();
+    // Widget handles showing automatically
   }
 }

@@ -30,6 +30,9 @@ export 'listeners/rewarded_listener.dart';
 export 'listeners/native_listener.dart';
 export 'listeners/mrec_listener.dart';
 
+// Widgets
+export 'widgets/cloudx_banner_view.dart';
+
 /// Custom exception for CloudX SDK errors
 class CloudXException implements Exception {
   final String code;
