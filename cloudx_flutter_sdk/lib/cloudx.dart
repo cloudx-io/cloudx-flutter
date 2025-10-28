@@ -228,12 +228,6 @@ class CloudX {
   // MARK: - User Targeting APIs
   // ============================================================================
 
-  /// Sets the hashed user ID for ad targeting after initialization.
-  /// Can be called multiple times to update the user ID.
-  static Future<void> provideUserDetailsWithHashedUserID(String hashedUserID) async {
-    await _invokeMethod('provideUserDetails', {'hashedUserID': hashedUserID});
-  }
-
   /// Use hashed key-value pair for targeting
   ///
   /// Sets a single key-value pair for ad targeting.

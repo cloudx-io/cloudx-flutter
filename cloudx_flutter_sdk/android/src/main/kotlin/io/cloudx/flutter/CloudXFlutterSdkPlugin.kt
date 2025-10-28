@@ -157,13 +157,8 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
             "getGPPString" -> getGPPString(call, result)
             "setGPPSid" -> setGPPSid(call, result)
             "getGPPSid" -> getGPPSid(call, result)
-            
+
             // Targeting Methods
-            "provideUserDetails" -> {
-                val hashedUserID = call.argument<String>("hashedUserID")
-                hashedUserID?.let { CloudX.setHashedUserId(it) }
-                result.success(true)
-            }
             "useHashedKeyValue" -> {
                 val key = call.argument<String>("key")
                 val value = call.argument<String>("value")

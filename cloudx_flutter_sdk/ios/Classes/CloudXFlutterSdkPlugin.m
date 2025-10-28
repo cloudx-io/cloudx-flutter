@@ -305,7 +305,7 @@
     } else if ([call.method isEqualToString:@"getUserID"]) {
         result([[CloudXCore shared] userID]);
     } else if ([call.method isEqualToString:@"setUserID"]) {
-        [CloudXCore shared].userID = call.arguments[@"userID"];
+        [[CloudXCore shared] setHashedUserID:call.arguments[@"userID"]];
         result(@YES);
     } else if ([call.method isEqualToString:@"trackSDKError"]) {
         NSString *errorMsg = call.arguments[@"error"];
@@ -344,10 +344,7 @@
         result([CloudXCore getGPPSid]);
     }
     // Targeting Methods
-    else if ([call.method isEqualToString:@"provideUserDetails"]) {
-        [[CloudXCore shared] setHashedUserID:call.arguments[@"hashedUserID"]];
-        result(@YES);
-    } else if ([call.method isEqualToString:@"useHashedKeyValue"]) {
+    else if ([call.method isEqualToString:@"useHashedKeyValue"]) {
         [[CloudXCore shared] setHashedKeyValue:call.arguments[@"key"] 
                                           value:call.arguments[@"value"]];
         result(@YES);
