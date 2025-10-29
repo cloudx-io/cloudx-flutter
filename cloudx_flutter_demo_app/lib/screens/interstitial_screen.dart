@@ -102,10 +102,12 @@ class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> wit
 
       if (isReady) {
         _log('Ad is ready, showing interstitial');
+        DemoAppLogger.sharedInstance.logMessage('✅ Ad ready - showing interstitial');
         await showAd();
         return;
       } else {
         _log('Ad exists but not ready, loading new ad');
+        DemoAppLogger.sharedInstance.logMessage('⏳ Ad not ready - loading new interstitial');
       }
     }
 

@@ -1,6 +1,7 @@
 library cloudx;
 
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 // ==============================================================================
@@ -53,6 +54,9 @@ class CloudXException implements Exception {
 class CloudX {
   static const MethodChannel _channel = MethodChannel('cloudx_flutter_sdk');
   static const EventChannel _eventChannel = EventChannel('cloudx_flutter_sdk_events');
+
+  // Internal logging control (disabled by default for production)
+  static bool _loggingEnabled = false;
 
   // Listener storage (SRP: separated by type)
   static final Map<String, BaseAdListener> _listeners = {};
@@ -152,8 +156,22 @@ class CloudX {
   ///
   /// Controls verbose logging output from the SDK. Disabled by default in production.
   /// Call this method early in your app lifecycle, before SDK initialization, to see all logs.
+  ///
+  /// This controls both Dart-side and native-side logging.
   static Future<void> setLoggingEnabled(bool enabled) async {
-    await _invokeMethod('setLoggingEnabled', {'enabled': enabled});
+    _loggingEnabled = enabled;  // Control Dart-side logging
+    await _invokeMethod('setLoggingEnabled', {'enabled': enabled});  // Control native-side logging
+  }
+
+  /// Internal logging helper that respects the logging flag
+  ///
+  /// Only logs when _loggingEnabled is true. Use this instead of print()
+  /// to prevent log pollution in production builds.
+  static void _log(String message, {bool isError = false}) {
+    if (_loggingEnabled) {
+      final prefix = isError ? '❌ [CloudX]' : '🔵 [CloudX]';
+      debugPrint('$prefix $message');
+    }
   }
 
   // ============================================================================
@@ -539,7 +557,7 @@ class CloudX {
     try {
       return await _channel.invokeMethod<T>(method, arguments);
     } on PlatformException catch (e) {
-      print('CloudX SDK method "$method" failed: ${e.message}');
+      _log('SDK method "$method" failed: ${e.message}', isError: true);
       rethrow;
     }
   }
@@ -548,26 +566,25 @@ class CloudX {
   static Completer<void>? _eventChannelReadyCompleter;
 
   /// Ensure event stream is initialized (lazy initialization)
-  /// 
+  ///
   /// Returns a Future that completes when the event stream subscription is fully established.
   /// Uses a test event to confirm the native side is ready instead of arbitrary delays.
   static Future<void> _ensureEventStreamInitialized() async {
     if (_eventStreamInitialized) {
-      print('🔵 [CloudX] Event stream already initialized');
+      _log('Event stream already initialized');
       return;
     }
 
-    print('🔵 [CloudX] Initializing event stream...');
+    _log('Initializing event stream...');
     _eventChannelReadyCompleter = Completer<void>();
-    
+
     _eventSubscription = _eventChannel.receiveBroadcastStream().listen(
       (dynamic event) {
-        print('🔵 [CloudX] Event received from platform: $event');
         if (event is Map) {
           // Check for ready confirmation
           final eventType = event['event'] as String?;
           if (eventType == '__eventChannelReady__' && _eventChannelReadyCompleter != null && !_eventChannelReadyCompleter!.isCompleted) {
-            print('🔵 [CloudX] EventChannel ready confirmation received from native');
+            _log('EventChannel ready confirmation received');
             _eventChannelReadyCompleter!.complete();
           } else {
             _handleEvent(event);
@@ -575,25 +592,25 @@ class CloudX {
         }
       },
       onError: (error) {
-        print('CloudX event stream error: $error');
+        _log('Event stream error: $error', isError: true);
       },
     );
 
     _eventStreamInitialized = true;
-    print('🔵 [CloudX] Event stream subscription created');
-    
+    _log('Event stream subscription created');
+
     // Wait with timeout for the native side to be ready
     // If the completer isn't completed within 500ms, proceed anyway
     try {
       await _eventChannelReadyCompleter!.future.timeout(
         const Duration(milliseconds: 500),
         onTimeout: () {
-          print('⚠️ [CloudX] EventChannel ready timeout - proceeding anyway');
+          _log('EventChannel ready timeout - proceeding anyway', isError: true);
         },
       );
-      print('🔵 [CloudX] Event stream fully initialized (confirmed by native)');
+      _log('Event stream fully initialized');
     } catch (e) {
-      print('⚠️ [CloudX] EventChannel initialization warning: $e');
+      _log('EventChannel initialization warning: $e', isError: true);
     } finally {
       _eventChannelReadyCompleter = null;
     }
@@ -602,32 +619,26 @@ class CloudX {
   /// Centralized event handling (DRY)
   static void _handleEvent(Map<Object?, Object?> event) {
     try {
-      print('🔵 [CloudX] _handleEvent called with: $event');
       final adId = event['adId'] as String?;
       final eventType = event['event'] as String?;
       final data = event['data'] as Map<Object?, Object?>?;
 
-      print('🔵 [CloudX] Parsed - adId: $adId, eventType: $eventType, data: $data');
-
       if (adId == null || eventType == null) {
-        print('🔵 [CloudX] ERROR - adId or eventType is null, ignoring event');
+        _log('Event missing adId or eventType, ignoring: $event', isError: true);
         return;
       }
 
       final listener = _listeners[adId];
-      print('🔵 [CloudX] Looking up listener for adId: $adId, found: ${listener != null}');
-      print('🔵 [CloudX] All registered listeners: ${_listeners.keys.toList()}');
-      
+
       if (listener == null) {
-        print('🔵 [CloudX] ERROR - No listener found for adId: $adId');
+        _log('No listener found for adId: $adId (event: $eventType). Registered listeners: ${_listeners.keys.toList()}', isError: true);
         return;
       }
 
-      print('🔵 [CloudX] Dispatching event: $eventType to listener');
+      _log('Dispatching $eventType event for adId: $adId');
       _dispatchEventToListener(listener, eventType, data);
-      print('🔵 [CloudX] Event dispatched successfully');
     } catch (e) {
-      print('CloudX event handling error: $e');
+      _log('Event handling error: $e', isError: true);
     }
   }
 
