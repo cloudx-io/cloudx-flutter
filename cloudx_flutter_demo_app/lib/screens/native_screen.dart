@@ -104,10 +104,10 @@ class _NativeScreenState extends BaseAdScreenState<NativeScreen> with AutomaticK
     });
     
     try {
-      _currentAdId = '${getAdIdPrefix()}_${DateTime.now().millisecondsSinceEpoch}';
-      final success = await CloudX.createNative(
+      // adId is now auto-generated - no need to create manually!
+      _currentAdId = await CloudX.createNative(
         placement: widget.environment.nativePlacement,
-        adId: _currentAdId!,
+        // adId is optional - will be auto-generated as 'native_<placement>_<timestamp>'
         listener: NativeListener()
           ..onAdLoaded = (ad) {
             DemoAppLogger.sharedInstance.logAdEvent('✅ Native didLoadWithAd', ad);
@@ -149,10 +149,10 @@ class _NativeScreenState extends BaseAdScreenState<NativeScreen> with AutomaticK
             setCustomStatus(text: 'Native Ad Clicked', color: Colors.blue);
           },
       );
-      if (!success) {
+      if (_currentAdId == null) {
         DemoAppLogger.sharedInstance.logMessage('❌ Failed to create native ad');
         setAdState(AdState.noAd);
-        setCustomStatus(text: 'Failed to create native ad.', color: Colors.red);
+        setCustomStatus(text: 'Failed to create native ad', color: Colors.red);
         setState(() {
           _isNativeLoaded = false;
         });

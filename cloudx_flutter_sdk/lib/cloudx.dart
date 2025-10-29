@@ -264,24 +264,34 @@ class CloudX {
   ///
   /// [placement] - The placement name from your CloudX dashboard
   /// [adId] - Unique identifier for this ad instance
+  /// Create a banner ad
+  ///
+  /// If [adId] is not provided, one will be automatically generated.
+  /// Returns the adId (either provided or generated) for use with other methods.
   /// [listener] - Optional callback listener for ad events
-  static Future<bool> createBanner({
+  static Future<String?> createBanner({
     required String placement,
-    required String adId,
+    String? adId,
     BannerListener? listener,
   }) async {
     await _ensureEventStreamInitialized();
 
+    // Auto-generate adId if not provided
+    final id = adId ?? 'banner_${placement}_${DateTime.now().millisecondsSinceEpoch}';
+
     final success = await _invokeMethod<bool>('createBanner', {
       'placement': placement,
-      'adId': adId,
+      'adId': id,
     });
 
-    if (success == true && listener != null) {
-      _listeners[adId] = listener;
+    if (success == true) {
+      if (listener != null) {
+        _listeners[id] = listener;
+      }
+      return id;
     }
 
-    return success ?? false;
+    return null;
   }
 
   /// Load a banner ad
@@ -304,23 +314,32 @@ class CloudX {
   // ============================================================================
 
   /// Create an interstitial ad
-  static Future<bool> createInterstitial({
+  ///
+  /// If [adId] is not provided, one will be automatically generated.
+  /// Returns the adId (either provided or generated) for use with other methods.
+  static Future<String?> createInterstitial({
     required String placement,
-    required String adId,
+    String? adId,
     InterstitialListener? listener,
   }) async {
     await _ensureEventStreamInitialized();
-    
+
+    // Auto-generate adId if not provided
+    final id = adId ?? 'interstitial_${placement}_${DateTime.now().millisecondsSinceEpoch}';
+
     final success = await _invokeMethod<bool>('createInterstitial', {
       'placement': placement,
-      'adId': adId,
+      'adId': id,
     });
 
-    if (success == true && listener != null) {
-      _listeners[adId] = listener;
+    if (success == true) {
+      if (listener != null) {
+        _listeners[id] = listener;
+      }
+      return id;
     }
 
-    return success ?? false;
+    return null;
   }
 
   /// Load an interstitial ad
@@ -343,23 +362,32 @@ class CloudX {
   // ============================================================================
 
   /// Create a rewarded ad
-  static Future<bool> createRewarded({
+  ///
+  /// If [adId] is not provided, one will be automatically generated.
+  /// Returns the adId (either provided or generated) for use with other methods.
+  static Future<String?> createRewarded({
     required String placement,
-    required String adId,
+    String? adId,
     RewardedListener? listener,
   }) async {
     await _ensureEventStreamInitialized();
-    
+
+    // Auto-generate adId if not provided
+    final id = adId ?? 'rewarded_${placement}_${DateTime.now().millisecondsSinceEpoch}';
+
     final success = await _invokeMethod<bool>('createRewarded', {
       'placement': placement,
-      'adId': adId,
+      'adId': id,
     });
 
-    if (success == true && listener != null) {
-      _listeners[adId] = listener;
+    if (success == true) {
+      if (listener != null) {
+        _listeners[id] = listener;
+      }
+      return id;
     }
 
-    return success ?? false;
+    return null;
   }
 
   /// Load a rewarded ad
@@ -382,23 +410,32 @@ class CloudX {
   // ============================================================================
 
   /// Create a native ad
-  static Future<bool> createNative({
+  ///
+  /// If [adId] is not provided, one will be automatically generated.
+  /// Returns the adId (either provided or generated) for use with other methods.
+  static Future<String?> createNative({
     required String placement,
-    required String adId,
+    String? adId,
     NativeListener? listener,
   }) async {
     await _ensureEventStreamInitialized();
-    
+
+    // Auto-generate adId if not provided
+    final id = adId ?? 'native_${placement}_${DateTime.now().millisecondsSinceEpoch}';
+
     final success = await _invokeMethod<bool>('createNative', {
       'placement': placement,
-      'adId': adId,
+      'adId': id,
     });
 
-    if (success == true && listener != null) {
-      _listeners[adId] = listener;
+    if (success == true) {
+      if (listener != null) {
+        _listeners[id] = listener;
+      }
+      return id;
     }
 
-    return success ?? false;
+    return null;
   }
 
   /// Load a native ad
@@ -421,23 +458,32 @@ class CloudX {
   // ============================================================================
 
   /// Create an MREC (Medium Rectangle) ad
-  static Future<bool> createMREC({
+  ///
+  /// If [adId] is not provided, one will be automatically generated.
+  /// Returns the adId (either provided or generated) for use with other methods.
+  static Future<String?> createMREC({
     required String placement,
-    required String adId,
+    String? adId,
     MRECListener? listener,
   }) async {
     await _ensureEventStreamInitialized();
-    
+
+    // Auto-generate adId if not provided
+    final id = adId ?? 'mrec_${placement}_${DateTime.now().millisecondsSinceEpoch}';
+
     final success = await _invokeMethod<bool>('createMREC', {
       'placement': placement,
-      'adId': adId,
+      'adId': id,
     });
 
-    if (success == true && listener != null) {
-      _listeners[adId] = listener;
+    if (success == true) {
+      if (listener != null) {
+        _listeners[id] = listener;
+      }
+      return id;
     }
 
-    return success ?? false;
+    return null;
   }
 
   /// Load an MREC ad

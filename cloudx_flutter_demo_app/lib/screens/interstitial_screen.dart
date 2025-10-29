@@ -121,12 +121,12 @@ class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> wit
     setCustomStatus(text: 'Loading...', color: Colors.orange);
 
     try {
-      _currentAdId = '${getAdIdPrefix()}_${DateTime.now().millisecondsSinceEpoch}';
-      _log('Creating interstitial with adId: $_currentAdId, placement: ${widget.environment.interstitialPlacement}');
+      // adId is now auto-generated - no need to create manually!
+      _log('Creating interstitial with placement: ${widget.environment.interstitialPlacement}');
 
-      final success = await CloudX.createInterstitial(
+      _currentAdId = await CloudX.createInterstitial(
         placement: widget.environment.interstitialPlacement,
-        adId: _currentAdId!,
+        // adId is optional - will be auto-generated as 'interstitial_<placement>_<timestamp>'
         listener: InterstitialListener()
           ..onAdLoaded = (ad) {
             DemoAppLogger.sharedInstance.logAdEvent('✅ Interstitial loaded', ad);
@@ -162,7 +162,7 @@ class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> wit
           },
       );
 
-      if (!success) {
+      if (_currentAdId == null) {
         DemoAppLogger.sharedInstance.logMessage('❌ Failed to create interstitial ad');
         setAdState(AdState.noAd);
         setCustomStatus(text: 'Failed to create interstitial ad', color: Colors.red);

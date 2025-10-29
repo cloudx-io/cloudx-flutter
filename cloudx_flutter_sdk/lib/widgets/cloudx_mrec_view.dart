@@ -79,13 +79,13 @@ class _CloudXMRECViewState extends State<CloudXMRECView> {
 
   Future<void> _loadAd() async {
     try {
-      final success = await CloudX.createMREC(
+      final createdAdId = await CloudX.createMREC(
         placement: widget.placement,
         adId: _adId,
         listener: widget.listener,
       );
 
-      if (!success) {
+      if (createdAdId == null) {
         // Error will be reported via listener callback
         return;
       }

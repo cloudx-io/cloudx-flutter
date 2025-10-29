@@ -79,13 +79,13 @@ class _CloudXBannerViewState extends State<CloudXBannerView> {
 
   Future<void> _loadAd() async {
     try {
-      final success = await CloudX.createBanner(
+      final createdAdId = await CloudX.createBanner(
         placement: widget.placement,
         adId: _adId,
         listener: widget.listener,
       );
 
-      if (!success) {
+      if (createdAdId == null) {
         // Error will be reported via listener callback
         return;
       }

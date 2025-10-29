@@ -122,10 +122,10 @@ class _RewardedScreenState extends BaseAdScreenState<RewardedScreen> with Automa
     });
     
     try {
-      _currentAdId = '${getAdIdPrefix()}_${DateTime.now().millisecondsSinceEpoch}';
-      final success = await CloudX.createRewarded(
+      // adId is now auto-generated - no need to create manually!
+      _currentAdId = await CloudX.createRewarded(
         placement: widget.environment.rewardedPlacement,
-        adId: _currentAdId!,
+        // adId is optional - will be auto-generated as 'rewarded_<placement>_<timestamp>'
         listener: RewardedListener()
           ..onAdLoaded = (ad) {
             DemoAppLogger.sharedInstance.logAdEvent('✅ Rewarded didLoadWithAd', ad);
@@ -171,10 +171,10 @@ class _RewardedScreenState extends BaseAdScreenState<RewardedScreen> with Automa
             setCustomStatus(text: 'User rewarded!', color: Colors.purple);
           },
       );
-      if (!success) {
+      if (_currentAdId == null) {
         DemoAppLogger.sharedInstance.logMessage('❌ Failed to create rewarded ad');
         setAdState(AdState.noAd);
-        setCustomStatus(text: 'Failed to create rewarded ad.', color: Colors.red);
+        setCustomStatus(text: 'Failed to create rewarded ad', color: Colors.red);
         setState(() {
           _isRewardedLoaded = false;
         });
