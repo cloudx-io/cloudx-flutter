@@ -38,10 +38,16 @@ abstract class CloudXAdListener {
   /// [ad] - Ad metadata
   final void Function(CloudXAd ad) onAdHidden;
 
+  /// Called when revenue is paid for the ad (optional)
+  ///
+  /// Use this callback to track ad revenue for analytics and reporting.
+  /// [ad] - Ad metadata including revenue information
+  final void Function(CloudXAd ad)? onAdRevenuePaid;
+
   /// Creates a CloudX ad listener with required core callbacks
   ///
-  /// All 6 callbacks are required to ensure developers handle all critical
-  /// ad lifecycle events.
+  /// All 6 core callbacks are required to ensure developers handle all critical
+  /// ad lifecycle events. Revenue tracking is optional.
   const CloudXAdListener({
     required this.onAdLoaded,
     required this.onAdLoadFailed,
@@ -49,5 +55,6 @@ abstract class CloudXAdListener {
     required this.onAdDisplayFailed,
     required this.onAdClicked,
     required this.onAdHidden,
+    this.onAdRevenuePaid,
   });
 }

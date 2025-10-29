@@ -367,6 +367,7 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
         try {
             val interstitialAd = CloudX.createInterstitial(placement)
             interstitialAd.listener = createInterstitialListener(adId)
+            interstitialAd.revenueListener = createRevenueListener(adId)
             adInstances[adId] = interstitialAd
             result.success(true)
         } catch (e: Exception) {
@@ -387,6 +388,7 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
         try {
             val rewardedAd = CloudX.createRewardedInterstitial(placement)
             rewardedAd.listener = createRewardedListener(adId)
+            rewardedAd.revenueListener = createRevenueListener(adId)
             adInstances[adId] = rewardedAd
             result.success(true)
         } catch (e: Exception) {
@@ -741,6 +743,15 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
             override fun onUserRewarded(cloudXAd: CloudXAd) {
                 Log.d(TAG, "User rewarded: $adId")
                 sendEventToFlutter("userRewarded", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
+            }
+        }
+    }
+
+    private fun createRevenueListener(adId: String): CloudXAdRevenueListener {
+        return object : CloudXAdRevenueListener {
+            override fun onAdRevenuePaid(cloudXAd: CloudXAd) {
+                Log.d(TAG, "Revenue paid: $adId")
+                sendEventToFlutter("revenuePaid", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
         }
     }

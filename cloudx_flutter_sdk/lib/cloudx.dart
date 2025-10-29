@@ -665,6 +665,9 @@ class CloudX {
       case 'didClick':
         listener.onAdClicked(ad);
         break;
+      case 'revenuePaid':
+        listener.onAdRevenuePaid?.call(ad);
+        break;
 
       // Banner/MREC/Native-specific events
       case 'didExpandAd':
