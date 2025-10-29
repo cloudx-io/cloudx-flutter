@@ -33,7 +33,7 @@ class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> wit
   String getAdIdPrefix() => 'interstitial';
 
   void _log(String message) {
-    print('🟡 INTERSTITIAL: $message');
+    debugPrint('🟡 INTERSTITIAL: $message');
   }
 
   @override
@@ -70,23 +70,23 @@ class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> wit
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey[300]!),
       ),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Interstitial Ads',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 8),
-          const Text(
+          SizedBox(height: 8),
+          Text(
             '• Full-screen ads that cover the entire app',
             style: TextStyle(fontSize: 14),
           ),
-          const Text(
+          Text(
             '• Shown modally by the native SDK',
             style: TextStyle(fontSize: 14),
           ),
-          const Text(
+          Text(
             '• No UiKitView needed in Flutter',
             style: TextStyle(fontSize: 14),
           ),
@@ -212,7 +212,7 @@ class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> wit
   @override
   void dispose() {
     if (_currentAdId != null) {
-      print('🟡 INTERSTITIAL: 🗑️ Disposing interstitial ad with adId: $_currentAdId');
+      debugPrint('🟡 INTERSTITIAL: 🗑️ Disposing interstitial ad with adId: $_currentAdId');
       CloudX.destroyAd(adId: _currentAdId!);
     }
     super.dispose();

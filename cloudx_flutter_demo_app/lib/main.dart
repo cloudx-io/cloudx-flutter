@@ -128,7 +128,7 @@ class _InitScreenState extends State<InitScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
           foregroundColor: Colors.white,
-          disabledBackgroundColor: color.withOpacity(0.5),
+          disabledBackgroundColor: color.withValues(alpha: 0.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),

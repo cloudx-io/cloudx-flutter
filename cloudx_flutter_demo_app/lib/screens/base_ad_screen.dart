@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../utils/demo_app_logger.dart';
-import 'logs_modal_screen.dart';
 
 /// Base screen that provides common functionality for all ad screens
 abstract class BaseAdScreen extends StatefulWidget {

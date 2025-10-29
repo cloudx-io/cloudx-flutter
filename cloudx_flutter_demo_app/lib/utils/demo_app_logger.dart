@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:cloudx_flutter_sdk/cloudx.dart';
 
@@ -38,10 +39,10 @@ class DemoAppLogger {
     
     final entry = DemoAppLogEntry(message: message);
     _logs.add(entry);
-    
+
     // Also log to console for debugging
-    print('📱 [DemoApp] $message');
-    
+    debugPrint('📱 [DemoApp] $message');
+
     // Keep only the last 500 logs to prevent memory issues
     if (_logs.length > 500) {
       _logs.removeAt(0);

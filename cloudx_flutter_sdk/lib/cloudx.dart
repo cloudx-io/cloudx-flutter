@@ -58,7 +58,8 @@ class CloudX {
   static final Map<String, BaseAdListener> _listeners = {};
 
   // Event stream (initialized lazily)
-  static StreamSubscription? _eventSubscription;
+  // ignore: unused_field
+  static StreamSubscription? _eventSubscription; // Stored to keep subscription alive
   static bool _eventStreamInitialized = false;
 
   /// Flutter plugin registration (required for some plugin registration scenarios)

@@ -21,8 +21,8 @@ class NativeScreen extends BaseAdScreen {
 class _NativeScreenState extends BaseAdScreenState<NativeScreen> with AutomaticKeepAliveClientMixin {
   String? _currentAdId;
   bool _isNativeLoaded = false;
-  double _nativeWidth = 320.0;
-  double _nativeHeight = 200.0;
+  final double _nativeWidth = 320.0;
+  final double _nativeHeight = 200.0;
 
   @override
   bool get wantKeepAlive => true;
@@ -37,7 +37,7 @@ class _NativeScreenState extends BaseAdScreenState<NativeScreen> with AutomaticK
   String getAdIdPrefix() => 'native';
 
   void _log(String message) {
-    print('🟣 NATIVE: $message');
+    debugPrint('🟣 NATIVE: $message');
   }
 
   @override
@@ -210,7 +210,7 @@ class _NativeScreenState extends BaseAdScreenState<NativeScreen> with AutomaticK
   @override
   void dispose() {
     if (_currentAdId != null) {
-      print('🟣 NATIVE: 🗑️ Disposing native ad with adId: $_currentAdId');
+      debugPrint('🟣 NATIVE: 🗑️ Disposing native ad with adId: $_currentAdId');
       CloudX.destroyAd(adId: _currentAdId!);
     }
     super.dispose();

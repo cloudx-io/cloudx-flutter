@@ -34,7 +34,7 @@ class _RewardedScreenState extends BaseAdScreenState<RewardedScreen> with Automa
   String getAdIdPrefix() => 'rewarded';
 
   void _log(String message) {
-    print('🟢 REWARDED: $message');
+    debugPrint('🟢 REWARDED: $message');
   }
 
   @override
@@ -82,27 +82,27 @@ class _RewardedScreenState extends BaseAdScreenState<RewardedScreen> with Automa
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey[300]!),
       ),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Rewarded Ads',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 8),
-          const Text(
+          SizedBox(height: 8),
+          Text(
             '• Full-screen ads that reward users',
             style: TextStyle(fontSize: 14),
           ),
-          const Text(
+          Text(
             '• Shown modally by the native SDK',
             style: TextStyle(fontSize: 14),
           ),
-          const Text(
+          Text(
             '• No UiKitView needed in Flutter',
             style: TextStyle(fontSize: 14),
           ),
-          const Text(
+          Text(
             '• User must watch the full ad to get reward',
             style: TextStyle(fontSize: 14),
           ),
@@ -229,7 +229,7 @@ class _RewardedScreenState extends BaseAdScreenState<RewardedScreen> with Automa
   @override
   void dispose() {
     if (_currentAdId != null) {
-      print('🟢 REWARDED: 🗑️ Disposing rewarded ad with adId: $_currentAdId');
+      debugPrint('🟢 REWARDED: 🗑️ Disposing rewarded ad with adId: $_currentAdId');
       CloudX.destroyAd(adId: _currentAdId!);
     }
     super.dispose();
