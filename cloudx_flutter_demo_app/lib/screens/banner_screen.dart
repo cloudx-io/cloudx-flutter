@@ -20,7 +20,7 @@ class BannerScreen extends BaseAdScreen {
 class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticKeepAliveClientMixin {
   bool _showBanner = false;
   bool _isAutoRefreshEnabled = true;
-  final _bannerController = CloudXBannerController();
+  final _bannerController = CloudXAdViewController();
 
   @override
   bool get wantKeepAlive => true;

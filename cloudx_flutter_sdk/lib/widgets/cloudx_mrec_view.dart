@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../cloudx.dart';
 
-/// A Flutter widget that displays a CloudX banner ad.
+/// A Flutter widget that displays a CloudX MREC (Medium Rectangle) ad.
 ///
 /// This widget handles the entire ad lifecycle automatically:
 /// - Creates and loads the ad on initialization
@@ -12,10 +12,10 @@ import '../cloudx.dart';
 ///
 /// Basic usage:
 /// ```dart
-/// CloudXBannerView(
-///   placement: 'home_banner',
-///   listener: BannerListener()
-///     ..onAdLoaded = (ad) => print('Banner loaded'),
+/// CloudXMRECView(
+///   placement: 'home_mrec',
+///   listener: MRECListener()
+///     ..onAdLoaded = (ad) => print('MREC loaded'),
 /// )
 /// ```
 ///
@@ -23,8 +23,8 @@ import '../cloudx.dart';
 /// ```dart
 /// final controller = CloudXAdViewController();
 ///
-/// CloudXBannerView(
-///   placement: 'home_banner',
+/// CloudXMRECView(
+///   placement: 'home_mrec',
 ///   controller: controller,
 /// )
 ///
@@ -32,24 +32,24 @@ import '../cloudx.dart';
 /// controller.startAutoRefresh();
 /// controller.stopAutoRefresh();
 /// ```
-class CloudXBannerView extends StatefulWidget {
+class CloudXMRECView extends StatefulWidget {
   /// The placement name from your CloudX dashboard
   final String placement;
 
   /// Optional listener for ad lifecycle events
-  final BannerListener? listener;
+  final MRECListener? listener;
 
-  /// Optional width for the banner (defaults to 320)
+  /// Optional width for the MREC (defaults to 300)
   final double? width;
 
-  /// Optional height for the banner (defaults to 50)
+  /// Optional height for the MREC (defaults to 250)
   final double? height;
 
-  /// Optional controller for programmatic control over the banner ad.
+  /// Optional controller for programmatic control over the MREC ad.
   /// Use this to start/stop auto-refresh.
   final CloudXAdViewController? controller;
 
-  const CloudXBannerView({
+  const CloudXMRECView({
     super.key,
     required this.placement,
     this.listener,
@@ -59,17 +59,17 @@ class CloudXBannerView extends StatefulWidget {
   });
 
   @override
-  State<CloudXBannerView> createState() => _CloudXBannerViewState();
+  State<CloudXMRECView> createState() => _CloudXMRECViewState();
 }
 
-class _CloudXBannerViewState extends State<CloudXBannerView> {
+class _CloudXMRECViewState extends State<CloudXMRECView> {
   late String _adId;
   bool _isCreated = false;
 
   @override
   void initState() {
     super.initState();
-    _adId = 'banner_${widget.placement}_${DateTime.now().millisecondsSinceEpoch}';
+    _adId = 'mrec_${widget.placement}_${DateTime.now().millisecondsSinceEpoch}';
 
     // Attach controller if provided
     widget.controller?.attach(_adId);
@@ -79,7 +79,7 @@ class _CloudXBannerViewState extends State<CloudXBannerView> {
 
   Future<void> _loadAd() async {
     try {
-      final success = await CloudX.createBanner(
+      final success = await CloudX.createMREC(
         placement: widget.placement,
         adId: _adId,
         listener: widget.listener,
@@ -97,7 +97,7 @@ class _CloudXBannerViewState extends State<CloudXBannerView> {
         });
       }
 
-      await CloudX.loadBanner(adId: _adId);
+      await CloudX.loadMREC(adId: _adId);
     } catch (e) {
       // Error will be reported via listener callback
     }
@@ -113,10 +113,10 @@ class _CloudXBannerViewState extends State<CloudXBannerView> {
 
   @override
   Widget build(BuildContext context) {
-    final width = widget.width ?? 320.0;
-    final height = widget.height ?? 50.0;
+    final width = widget.width ?? 300.0;
+    final height = widget.height ?? 250.0;
 
-    // Wait until banner is created before showing the platform view
+    // Wait until MREC is created before showing the platform view
     if (!_isCreated) {
       return SizedBox(
         width: width,
@@ -138,13 +138,13 @@ class _CloudXBannerViewState extends State<CloudXBannerView> {
 
     if (defaultTargetPlatform == TargetPlatform.android) {
       return AndroidView(
-        viewType: 'cloudx_banner_view',
+        viewType: 'cloudx_mrec_view',
         creationParams: creationParams,
         creationParamsCodec: const StandardMessageCodec(),
       );
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       return UiKitView(
-        viewType: 'cloudx_banner_view',
+        viewType: 'cloudx_mrec_view',
         creationParams: creationParams,
         creationParamsCodec: const StandardMessageCodec(),
       );

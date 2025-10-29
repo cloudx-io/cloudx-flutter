@@ -32,7 +32,8 @@ export 'listeners/mrec_listener.dart';
 
 // Widgets
 export 'widgets/cloudx_banner_view.dart';
-export 'widgets/cloudx_banner_controller.dart';
+export 'widgets/cloudx_mrec_view.dart';
+export 'widgets/cloudx_ad_view_controller.dart';
 
 /// Custom exception for CloudX SDK errors
 class CloudXException implements Exception {
