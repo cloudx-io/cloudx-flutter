@@ -9,12 +9,10 @@ import 'package:flutter/services.dart';
 // ==============================================================================
 
 import 'models/cloudx_ad.dart';
-import 'listeners/base_ad_listener.dart';
-import 'listeners/banner_listener.dart';
-import 'listeners/interstitial_listener.dart';
-import 'listeners/rewarded_listener.dart';
-import 'listeners/native_listener.dart';
-import 'listeners/mrec_listener.dart';
+import 'listeners/cloudx_ad_listener.dart';
+import 'listeners/cloudx_ad_view_listener.dart';
+import 'listeners/cloudx_interstitial_listener.dart';
+import 'listeners/cloudx_rewarded_interstitial_listener.dart';
 
 // ==============================================================================
 // MARK: - Public API Exports
@@ -23,13 +21,11 @@ import 'listeners/mrec_listener.dart';
 // Models
 export 'models/cloudx_ad.dart';
 
-// Listeners
-export 'listeners/base_ad_listener.dart';
-export 'listeners/banner_listener.dart';
-export 'listeners/interstitial_listener.dart';
-export 'listeners/rewarded_listener.dart';
-export 'listeners/native_listener.dart';
-export 'listeners/mrec_listener.dart';
+// Listeners (matching Android SDK naming)
+export 'listeners/cloudx_ad_listener.dart';
+export 'listeners/cloudx_ad_view_listener.dart';
+export 'listeners/cloudx_interstitial_listener.dart';
+export 'listeners/cloudx_rewarded_interstitial_listener.dart';
 
 // Widgets
 export 'widgets/cloudx_banner_view.dart';
@@ -59,7 +55,7 @@ class CloudX {
   static bool _loggingEnabled = false;
 
   // Listener storage (SRP: separated by type)
-  static final Map<String, BaseAdListener> _listeners = {};
+  static final Map<String, CloudXAdListener> _listeners = {};
 
   // Event stream (initialized lazily)
   // ignore: unused_field
@@ -291,7 +287,7 @@ class CloudX {
   static Future<String?> createBanner({
     required String placement,
     String? adId,
-    BannerListener? listener,
+    CloudXAdViewListener? listener,
   }) async {
     await _ensureEventStreamInitialized();
 
@@ -339,7 +335,7 @@ class CloudX {
   static Future<String?> createInterstitial({
     required String placement,
     String? adId,
-    InterstitialListener? listener,
+    CloudXInterstitialListener? listener,
   }) async {
     await _ensureEventStreamInitialized();
 
@@ -387,7 +383,7 @@ class CloudX {
   static Future<String?> createRewarded({
     required String placement,
     String? adId,
-    RewardedListener? listener,
+    CloudXRewardedInterstitialListener? listener,
   }) async {
     await _ensureEventStreamInitialized();
 
@@ -435,7 +431,7 @@ class CloudX {
   static Future<String?> createNative({
     required String placement,
     String? adId,
-    NativeListener? listener,
+    CloudXAdViewListener? listener,
   }) async {
     await _ensureEventStreamInitialized();
 
@@ -483,7 +479,7 @@ class CloudX {
   static Future<String?> createMREC({
     required String placement,
     String? adId,
-    MRECListener? listener,
+    CloudXAdViewListener? listener,
   }) async {
     await _ensureEventStreamInitialized();
 
@@ -643,68 +639,49 @@ class CloudX {
   }
 
   /// Dispatch events to appropriate listener callbacks (DRY)
-  static void _dispatchEventToListener(BaseAdListener listener, String eventType, Map<Object?, Object?>? data) {
+  static void _dispatchEventToListener(CloudXAdListener listener, String eventType, Map<Object?, Object?>? data) {
     // Parse ad data if present
     final adMap = data?['ad'] as Map<Object?, Object?>?;
     final ad = CloudXAd.fromMap(adMap);
-    
+
     switch (eventType) {
       case 'didLoad':
-        listener.onAdLoaded?.call(ad);
+        listener.onAdLoaded(ad);
         break;
       case 'failToLoad':
         final error = data?['error'] as String? ?? 'Unknown error';
-        listener.onAdFailedToLoad?.call(error, ad);
+        listener.onAdLoadFailed(error);
         break;
       case 'didShow':
-        listener.onAdShown?.call(ad);
+        listener.onAdDisplayed(ad);
         break;
       case 'failToShow':
         final error = data?['error'] as String? ?? 'Unknown error';
-        listener.onAdFailedToShow?.call(error, ad);
+        listener.onAdDisplayFailed(error);
         break;
       case 'didHide':
-        listener.onAdHidden?.call(ad);
+        listener.onAdHidden(ad);
         break;
       case 'didClick':
-        listener.onAdClicked?.call(ad);
+        listener.onAdClicked(ad);
         break;
-      case 'impression':
-        listener.onAdImpression?.call(ad);
-        break;
-      case 'closedByUserAction':
-        listener.onAdClosedByUser?.call(ad);
-        break;
-      case 'revenuePaid':
-        listener.onRevenuePaid?.call(ad);
-        break;
-      
-      // Banner-specific events
+
+      // Banner/MREC/Native-specific events
       case 'didExpandAd':
-        if (listener is BannerListener) {
-          listener.onAdExpanded?.call(ad);
+        if (listener is CloudXAdViewListener) {
+          listener.onAdExpanded(ad);
         }
         break;
       case 'didCollapseAd':
-        if (listener is BannerListener) {
-          listener.onAdCollapsed?.call(ad);
+        if (listener is CloudXAdViewListener) {
+          listener.onAdCollapsed(ad);
         }
         break;
 
       // Rewarded-specific events
       case 'userRewarded':
-        if (listener is RewardedListener) {
-          listener.onRewarded?.call(ad);
-        }
-        break;
-      case 'rewardedVideoStarted':
-        if (listener is RewardedListener) {
-          listener.onRewardedVideoStarted?.call(ad);
-        }
-        break;
-      case 'rewardedVideoCompleted':
-        if (listener is RewardedListener) {
-          listener.onRewardedVideoCompleted?.call(ad);
+        if (listener is CloudXRewardedInterstitialListener) {
+          listener.onUserRewarded(ad);
         }
         break;
     }

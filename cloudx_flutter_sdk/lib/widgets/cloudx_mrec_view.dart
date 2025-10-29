@@ -14,8 +14,16 @@ import '../cloudx.dart';
 /// ```dart
 /// CloudXMRECView(
 ///   placement: 'home_mrec',
-///   listener: MRECListener()
-///     ..onAdLoaded = (ad) => print('MREC loaded'),
+///   listener: CloudXAdViewListener(
+///     onAdLoaded: (ad) => print('MREC loaded'),
+///     onAdDisplayed: (ad) => print('MREC displayed'),
+///     onAdHidden: (ad) => print('MREC hidden'),
+///     onAdClicked: (ad) => print('MREC clicked'),
+///     onAdLoadFailed: (error, ad) => print('MREC load failed: $error'),
+///     onAdDisplayFailed: (error, ad) => print('MREC display failed: $error'),
+///     onAdExpanded: (ad) => print('MREC expanded'),
+///     onAdCollapsed: (ad) => print('MREC collapsed'),
+///   ),
 /// )
 /// ```
 ///
@@ -37,7 +45,7 @@ class CloudXMRECView extends StatefulWidget {
   final String placement;
 
   /// Optional listener for ad lifecycle events
-  final MRECListener? listener;
+  final CloudXAdViewListener? listener;
 
   /// Optional width for the MREC (defaults to 300)
   final double? width;

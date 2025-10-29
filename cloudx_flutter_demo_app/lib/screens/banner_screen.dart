@@ -140,25 +140,42 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticK
         width: 320,
         height: 50,
         controller: _bannerController,
-        listener: BannerListener()
-          ..onAdLoaded = (ad) {
+        listener: CloudXAdViewListener(
+          onAdLoaded: (ad) {
             DemoAppLogger.sharedInstance.logAdEvent('✅ Banner Loaded', ad);
             setAdState(AdState.ready);
             setCustomStatus(text: 'Banner Ad Loaded', color: Colors.green);
-          }
-          ..onAdFailedToLoad = (error, ad) {
+          },
+          onAdLoadFailed: (error) {
             DemoAppLogger.sharedInstance.logMessage('❌ Banner Failed: $error');
             setAdState(AdState.noAd);
             setCustomStatus(text: 'Failed to load: $error', color: Colors.red);
-          }
-          ..onAdClicked = (ad) {
+          },
+          onAdDisplayed: (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('📺 Banner Displayed', ad);
+            setCustomStatus(text: 'Banner Ad Displayed', color: Colors.green);
+          },
+          onAdDisplayFailed: (error) {
+            DemoAppLogger.sharedInstance.logMessage('❌ Banner Display Failed: $error');
+            setCustomStatus(text: 'Failed to display: $error', color: Colors.red);
+          },
+          onAdClicked: (ad) {
             DemoAppLogger.sharedInstance.logAdEvent('👆 Banner Clicked', ad);
             setCustomStatus(text: 'Banner Ad Clicked', color: Colors.blue);
-          }
-          ..onAdImpression = (ad) {
-            DemoAppLogger.sharedInstance.logAdEvent('👁️ Banner Impression', ad);
-            setCustomStatus(text: 'Banner Ad Impression', color: Colors.green);
           },
+          onAdHidden: (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('👋 Banner Hidden', ad);
+            setCustomStatus(text: 'Banner Ad Hidden', color: Colors.grey);
+          },
+          onAdExpanded: (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('📏 Banner Expanded', ad);
+            setCustomStatus(text: 'Banner Ad Expanded', color: Colors.purple);
+          },
+          onAdCollapsed: (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('📐 Banner Collapsed', ad);
+            setCustomStatus(text: 'Banner Ad Collapsed', color: Colors.purple);
+          },
+        ),
       ),
     );
   }

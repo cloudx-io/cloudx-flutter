@@ -143,25 +143,42 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> with AutomaticKeepA
         width: 300,
         height: 250,
         controller: _mrecController,
-        listener: MRECListener()
-          ..onAdLoaded = (ad) {
+        listener: CloudXAdViewListener(
+          onAdLoaded: (ad) {
             DemoAppLogger.sharedInstance.logAdEvent('✅ MREC Loaded', ad);
             setAdState(AdState.ready);
             setCustomStatus(text: 'MREC Ad Loaded', color: Colors.green);
-          }
-          ..onAdFailedToLoad = (error, ad) {
+          },
+          onAdLoadFailed: (error) {
             DemoAppLogger.sharedInstance.logMessage('❌ MREC Failed: $error');
             setAdState(AdState.noAd);
             setCustomStatus(text: 'Failed to load: $error', color: Colors.red);
-          }
-          ..onAdClicked = (ad) {
+          },
+          onAdDisplayed: (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('📺 MREC Displayed', ad);
+            setCustomStatus(text: 'MREC Ad Displayed', color: Colors.green);
+          },
+          onAdDisplayFailed: (error) {
+            DemoAppLogger.sharedInstance.logMessage('❌ MREC Display Failed: $error');
+            setCustomStatus(text: 'Failed to display: $error', color: Colors.red);
+          },
+          onAdClicked: (ad) {
             DemoAppLogger.sharedInstance.logAdEvent('👆 MREC Clicked', ad);
             setCustomStatus(text: 'MREC Ad Clicked', color: Colors.blue);
-          }
-          ..onAdImpression = (ad) {
-            DemoAppLogger.sharedInstance.logAdEvent('👁️ MREC Impression', ad);
-            setCustomStatus(text: 'MREC Ad Impression', color: Colors.green);
           },
+          onAdHidden: (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('👋 MREC Hidden', ad);
+            setCustomStatus(text: 'MREC Ad Hidden', color: Colors.grey);
+          },
+          onAdExpanded: (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('📏 MREC Expanded', ad);
+            setCustomStatus(text: 'MREC Ad Expanded', color: Colors.purple);
+          },
+          onAdCollapsed: (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('📐 MREC Collapsed', ad);
+            setCustomStatus(text: 'MREC Ad Collapsed', color: Colors.purple);
+          },
+        ),
       ),
     );
   }

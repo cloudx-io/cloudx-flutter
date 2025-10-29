@@ -129,39 +129,38 @@ class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> wit
       _currentAdId = await CloudX.createInterstitial(
         placement: widget.environment.interstitialPlacement,
         // adId is optional - will be auto-generated as 'interstitial_<placement>_<timestamp>'
-        listener: InterstitialListener()
-          ..onAdLoaded = (ad) {
+        listener: CloudXInterstitialListener(
+          onAdLoaded: (ad) {
             DemoAppLogger.sharedInstance.logAdEvent('✅ Interstitial loaded', ad);
             setAdState(AdState.ready);
             setCustomStatus(text: 'Interstitial Ad Loaded - Tap to show', color: Colors.green);
             setLoadingState(false);
-          }
-          ..onAdFailedToLoad = (error, ad) {
-            DemoAppLogger.sharedInstance.logAdEvent('❌ Interstitial failed to load', ad);
-            DemoAppLogger.sharedInstance.logMessage('  Error: $error');
+          },
+          onAdLoadFailed: (error) {
+            DemoAppLogger.sharedInstance.logMessage('❌ Interstitial failed to load: $error');
             setAdState(AdState.noAd);
             setCustomStatus(text: 'Failed to load: $error', color: Colors.red);
             setLoadingState(false);
-          }
-          ..onAdShown = (ad) {
-            DemoAppLogger.sharedInstance.logAdEvent('👀 Interstitial shown', ad);
-            setCustomStatus(text: 'Interstitial Ad Shown', color: Colors.green);
-          }
-          ..onAdFailedToShow = (error, ad) {
-            DemoAppLogger.sharedInstance.logAdEvent('❌ Interstitial failed to show', ad);
-            DemoAppLogger.sharedInstance.logMessage('  Error: $error');
-            setCustomStatus(text: 'Failed to show: $error', color: Colors.red);
-          }
-          ..onAdHidden = (ad) {
+          },
+          onAdDisplayed: (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('👀 Interstitial displayed', ad);
+            setCustomStatus(text: 'Interstitial Ad Displayed', color: Colors.green);
+          },
+          onAdDisplayFailed: (error) {
+            DemoAppLogger.sharedInstance.logMessage('❌ Interstitial failed to display: $error');
+            setCustomStatus(text: 'Failed to display: $error', color: Colors.red);
+          },
+          onAdClicked: (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('👆 Interstitial clicked', ad);
+            setCustomStatus(text: 'Interstitial Ad Clicked', color: Colors.blue);
+          },
+          onAdHidden: (ad) {
             DemoAppLogger.sharedInstance.logAdEvent('🔚 Interstitial hidden', ad);
             setAdState(AdState.noAd);
             setCustomStatus(text: 'Interstitial dismissed', color: Colors.grey);
             _currentAdId = null; // Clear the ad ID since it's been consumed
-          }
-          ..onAdClicked = (ad) {
-            DemoAppLogger.sharedInstance.logAdEvent('👆 Interstitial clicked', ad);
-            setCustomStatus(text: 'Interstitial Ad Clicked', color: Colors.blue);
           },
+        ),
       );
 
       if (_currentAdId == null) {

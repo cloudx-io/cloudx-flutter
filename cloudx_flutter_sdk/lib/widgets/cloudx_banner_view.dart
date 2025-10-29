@@ -14,8 +14,16 @@ import '../cloudx.dart';
 /// ```dart
 /// CloudXBannerView(
 ///   placement: 'home_banner',
-///   listener: BannerListener()
-///     ..onAdLoaded = (ad) => print('Banner loaded'),
+///   listener: CloudXAdViewListener(
+///     onAdLoaded: (ad) => print('Banner loaded'),
+///     onAdDisplayed: (ad) => print('Banner displayed'),
+///     onAdHidden: (ad) => print('Banner hidden'),
+///     onAdClicked: (ad) => print('Banner clicked'),
+///     onAdLoadFailed: (error, ad) => print('Banner load failed: $error'),
+///     onAdDisplayFailed: (error, ad) => print('Banner display failed: $error'),
+///     onAdExpanded: (ad) => print('Banner expanded'),
+///     onAdCollapsed: (ad) => print('Banner collapsed'),
+///   ),
 /// )
 /// ```
 ///
@@ -37,7 +45,7 @@ class CloudXBannerView extends StatefulWidget {
   final String placement;
 
   /// Optional listener for ad lifecycle events
-  final BannerListener? listener;
+  final CloudXAdViewListener? listener;
 
   /// Optional width for the banner (defaults to 320)
   final double? width;

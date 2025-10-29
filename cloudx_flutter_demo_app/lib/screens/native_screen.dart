@@ -108,46 +108,53 @@ class _NativeScreenState extends BaseAdScreenState<NativeScreen> with AutomaticK
       _currentAdId = await CloudX.createNative(
         placement: widget.environment.nativePlacement,
         // adId is optional - will be auto-generated as 'native_<placement>_<timestamp>'
-        listener: NativeListener()
-          ..onAdLoaded = (ad) {
+        listener: CloudXAdViewListener(
+          onAdLoaded: (ad) {
             DemoAppLogger.sharedInstance.logAdEvent('✅ Native didLoadWithAd', ad);
             setAdState(AdState.ready);
             setCustomStatus(text: 'Native Ad Loaded', color: Colors.green);
             setState(() {
               _isNativeLoaded = true;
             });
-          }
-          ..onAdFailedToLoad = (error, ad) {
-            DemoAppLogger.sharedInstance.logAdEvent('❌ Native failToLoadWithAd', ad);
-            DemoAppLogger.sharedInstance.logMessage('  Error: $error');
+          },
+          onAdLoadFailed: (error) {
+            DemoAppLogger.sharedInstance.logMessage('❌ Native failed to load: $error');
             setAdState(AdState.noAd);
             setCustomStatus(text: 'Failed to load native ad: $error', color: Colors.red);
             setState(() {
               _isNativeLoaded = false;
             });
-          }
-          ..onAdShown = (ad) {
-            DemoAppLogger.sharedInstance.logAdEvent('👀 Native didShowWithAd', ad);
+          },
+          onAdDisplayed: (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('👀 Native didDisplayWithAd', ad);
             setAdState(AdState.ready);
-            setCustomStatus(text: 'Native Ad Shown', color: Colors.green);
-          }
-          ..onAdFailedToShow = (error, ad) {
-            DemoAppLogger.sharedInstance.logAdEvent('❌ Native failToShowWithAd', ad);
-            DemoAppLogger.sharedInstance.logMessage('  Error: $error');
-            setCustomStatus(text: 'Failed to show native ad: $error', color: Colors.red);
-          }
-          ..onAdHidden = (ad) {
+            setCustomStatus(text: 'Native Ad Displayed', color: Colors.green);
+          },
+          onAdDisplayFailed: (error) {
+            DemoAppLogger.sharedInstance.logMessage('❌ Native failed to display: $error');
+            setCustomStatus(text: 'Failed to display native ad: $error', color: Colors.red);
+          },
+          onAdClicked: (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('👆 Native didClickWithAd', ad);
+            setCustomStatus(text: 'Native Ad Clicked', color: Colors.blue);
+          },
+          onAdHidden: (ad) {
             DemoAppLogger.sharedInstance.logAdEvent('🔚 Native didHideWithAd', ad);
             setAdState(AdState.noAd);
             setCustomStatus(text: 'No Ad Loaded', color: Colors.red);
             setState(() {
               _isNativeLoaded = false;
             });
-          }
-          ..onAdClicked = (ad) {
-            DemoAppLogger.sharedInstance.logAdEvent('👆 Native didClickWithAd', ad);
-            setCustomStatus(text: 'Native Ad Clicked', color: Colors.blue);
           },
+          onAdExpanded: (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('📏 Native Expanded', ad);
+            setCustomStatus(text: 'Native Ad Expanded', color: Colors.purple);
+          },
+          onAdCollapsed: (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('📐 Native Collapsed', ad);
+            setCustomStatus(text: 'Native Ad Collapsed', color: Colors.purple);
+          },
+        ),
       );
       if (_currentAdId == null) {
         DemoAppLogger.sharedInstance.logMessage('❌ Failed to create native ad');

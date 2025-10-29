@@ -126,50 +126,49 @@ class _RewardedScreenState extends BaseAdScreenState<RewardedScreen> with Automa
       _currentAdId = await CloudX.createRewarded(
         placement: widget.environment.rewardedPlacement,
         // adId is optional - will be auto-generated as 'rewarded_<placement>_<timestamp>'
-        listener: RewardedListener()
-          ..onAdLoaded = (ad) {
+        listener: CloudXRewardedInterstitialListener(
+          onAdLoaded: (ad) {
             DemoAppLogger.sharedInstance.logAdEvent('✅ Rewarded didLoadWithAd', ad);
             setAdState(AdState.ready);
             setCustomStatus(text: 'Rewarded Ad Loaded', color: Colors.green);
             setState(() {
               _isRewardedLoaded = true;
             });
-          }
-          ..onAdFailedToLoad = (error, ad) {
-            DemoAppLogger.sharedInstance.logAdEvent('❌ Rewarded failToLoadWithAd', ad);
-            DemoAppLogger.sharedInstance.logMessage('  Error: $error');
+          },
+          onAdLoadFailed: (error) {
+            DemoAppLogger.sharedInstance.logMessage('❌ Rewarded failed to load: $error');
             setAdState(AdState.noAd);
             setCustomStatus(text: 'Failed to load rewarded ad: $error', color: Colors.red);
             setState(() {
               _isRewardedLoaded = false;
             });
-          }
-          ..onAdShown = (ad) {
-            DemoAppLogger.sharedInstance.logAdEvent('👀 Rewarded didShowWithAd', ad);
+          },
+          onAdDisplayed: (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('👀 Rewarded didDisplayWithAd', ad);
             setAdState(AdState.ready);
-            setCustomStatus(text: 'Rewarded Ad Shown', color: Colors.green);
-          }
-          ..onAdFailedToShow = (error, ad) {
-            DemoAppLogger.sharedInstance.logAdEvent('❌ Rewarded failToShowWithAd', ad);
-            DemoAppLogger.sharedInstance.logMessage('  Error: $error');
-            setCustomStatus(text: 'Failed to show rewarded ad: $error', color: Colors.red);
-          }
-          ..onAdHidden = (ad) {
+            setCustomStatus(text: 'Rewarded Ad Displayed', color: Colors.green);
+          },
+          onAdDisplayFailed: (error) {
+            DemoAppLogger.sharedInstance.logMessage('❌ Rewarded failed to display: $error');
+            setCustomStatus(text: 'Failed to display rewarded ad: $error', color: Colors.red);
+          },
+          onAdClicked: (ad) {
+            DemoAppLogger.sharedInstance.logAdEvent('👆 Rewarded didClickWithAd', ad);
+            setCustomStatus(text: 'Rewarded Ad Clicked', color: Colors.blue);
+          },
+          onAdHidden: (ad) {
             DemoAppLogger.sharedInstance.logAdEvent('🔚 Rewarded didHideWithAd', ad);
             setAdState(AdState.noAd);
             setCustomStatus(text: 'No Ad Loaded', color: Colors.red);
             setState(() {
               _isRewardedLoaded = false;
             });
-          }
-          ..onAdClicked = (ad) {
-            DemoAppLogger.sharedInstance.logAdEvent('👆 Rewarded didClickWithAd', ad);
-            setCustomStatus(text: 'Rewarded Ad Clicked', color: Colors.blue);
-          }
-          ..onRewarded = (ad) {
+          },
+          onUserRewarded: (ad) {
             DemoAppLogger.sharedInstance.logAdEvent('🎁 Rewarded - User rewarded!', ad);
             setCustomStatus(text: 'User rewarded!', color: Colors.purple);
           },
+        ),
       );
       if (_currentAdId == null) {
         DemoAppLogger.sharedInstance.logMessage('❌ Failed to create rewarded ad');
