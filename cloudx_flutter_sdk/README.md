@@ -17,7 +17,7 @@ A Flutter plugin for the CloudX Mobile Ads platform. Monetize your Flutter apps 
 | Platform | Status | Minimum Version |
 |----------|--------|-----------------|
 | **Android** | ✅ Production Ready | API 21 (Android 5.0) |
-| **iOS** | ⚠️ Beta/Experimental | iOS 14.0 |
+| **iOS** | ⚠️ Alpha/Experimental | iOS 14.0 |
 
 **Note:** iOS support requires setting `allowIosExperimental: true` during initialization.
 
@@ -721,7 +721,6 @@ The following features are planned for future releases:
 For questions, issues, or feature requests:
 - Contact the CloudX team
 - Check the demo app for implementation examples
-- Review the `CLAUDE.md` file for development guidance
 
 ## License
 
@@ -729,6 +728,6 @@ This project is licensed under the Business Source License 1.1. See the LICENSE 
 
 ---
 
-**Version:** 0.1.0 (Beta)
+**Version:** 0.1.0 (Alpha)
 
 **Last Updated:** 2025

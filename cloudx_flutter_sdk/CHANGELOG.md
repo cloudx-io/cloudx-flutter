@@ -5,10 +5,10 @@ All notable changes to the CloudX Flutter SDK will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.0] - 2025-01-XX
+## [0.1.0] - 2025-10-30
 
 ### Added
-- **Initial beta release** of CloudX Flutter SDK
+- **Initial alpha release** of CloudX Flutter SDK
 - **Banner Ads** (320x50) with both widget-based and programmatic positioning
 - **MREC Ads** (300x250) with both widget-based and programmatic positioning
 - **Interstitial Ads** with full lifecycle management
@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `CloudXInterstitialListener` for interstitial ads
 - **Platform Support**:
   - ✅ Android: Production-ready (API 21+)
-  - ⚠️ iOS: Beta/Experimental (iOS 14.0+, requires `allowIosExperimental: true`)
+  - ⚠️ iOS: Alpha/Experimental (iOS 14.0+, requires `allowIosExperimental: true`)
 - **Ad Positioning**: 8 position options for programmatic ad placement
 - **Widget Controllers**: `CloudXAdViewController` for programmatic control of widget-based ads
 
@@ -41,8 +41,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Known Limitations
 - iOS support is experimental and requires explicit opt-in
-- Rewarded ads not yet available (planned for v0.2.0)
-- Native ads not yet available (planned for future release)
 - GDPR consent is not yet supported by CloudX servers
 - COPPA flags clear user data but are not yet included in bid requests
 

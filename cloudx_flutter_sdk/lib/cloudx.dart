@@ -63,14 +63,14 @@ class CloudX {
   /// Initialize the CloudX SDK
   ///
   /// [appKey] - Your CloudX app key
-  /// [allowIosExperimental] - Set to `true` to enable iOS SDK (beta/development only)
+  /// [allowIosExperimental] - Set to `true` to enable iOS SDK (alpha/development only)
   ///
   /// Returns `true` if initialization was successful
   /// Returns `false` if initialization fails or platform is not supported
   ///
   /// **Platform Support:**
   /// - Android: ✅ Production-ready
-  /// - iOS: ⚠️ Beta/Development only - requires `allowIosExperimental: true`
+  /// - iOS: ⚠️ Alpha/Development only - requires `allowIosExperimental: true`
   static Future<bool> initialize({
     required String appKey,
     bool allowIosExperimental = false,
@@ -79,7 +79,7 @@ class CloudX {
     if (Platform.isIOS && !allowIosExperimental) {
       debugPrint('⚠️ CloudX iOS SDK is not yet production-ready.');
       debugPrint('⚠️ Currently only Android is fully supported.');
-      debugPrint('⚠️ For iOS beta testing, use: CloudX.initialize(appKey: "...", allowIosExperimental: true)');
+      debugPrint('⚠️ For iOS alpha testing, use: CloudX.initialize(appKey: "...", allowIosExperimental: true)');
       debugPrint('⚠️ For production iOS access, contact the CloudX team.');
       debugPrint('⚠️ SDK initialization skipped on iOS.');
       return false;
@@ -109,7 +109,7 @@ class CloudX {
   ///
   /// Currently:
   /// - Android: Production-ready ✅
-  /// - iOS: Beta/Development only ⚠️
+  /// - iOS: Alpha/Development only ⚠️
   static bool isPlatformSupported() {
     return !Platform.isIOS;
   }
