@@ -1,5 +1,5 @@
 group 'io.cloudx.flutter'
-version '1.0-SNAPSHOT'
+version '0.1.0'
 
 buildscript {
     ext.kotlin_version = '1.9.22'
@@ -18,7 +18,6 @@ rootProject.allprojects {
     repositories {
         google()
         mavenCentral()
-        mavenLocal()
         // Add mbridge repository required by CloudX SDK
         maven { url 'https://dl-maven-android.mintegral.com/repository/mbridge_android_sdk_oversea' }
     }
