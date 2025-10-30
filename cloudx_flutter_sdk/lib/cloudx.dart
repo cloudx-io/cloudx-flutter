@@ -417,11 +417,11 @@ class CloudX {
   // MARK: - Rewarded Ad Methods
   // ============================================================================
 
-  /// Create a rewarded ad
+  /// Create a rewarded ad (NOT READY - Internal use only)
   ///
   /// If [adId] is not provided, one will be automatically generated.
   /// Returns the adId (either provided or generated) for use with other methods.
-  static Future<String?> createRewarded({
+  static Future<String?> _createRewarded({
     required String placement,
     String? adId,
     CloudXRewardedInterstitialListener? listener,
@@ -446,18 +446,18 @@ class CloudX {
     return null;
   }
 
-  /// Load a rewarded ad
-  static Future<bool> loadRewarded({required String adId}) async {
+  /// Load a rewarded ad (NOT READY - Internal use only)
+  static Future<bool> _loadRewarded({required String adId}) async {
     return await _invokeMethod<bool>('loadAd', {'adId': adId}) ?? false;
   }
 
-  /// Show a rewarded ad
-  static Future<bool> showRewarded({required String adId}) async {
+  /// Show a rewarded ad (NOT READY - Internal use only)
+  static Future<bool> _showRewarded({required String adId}) async {
     return await _invokeMethod<bool>('showAd', {'adId': adId}) ?? false;
   }
 
-  /// Check if rewarded ad is ready to show
-  static Future<bool> isRewardedReady({required String adId}) async {
+  /// Check if rewarded ad is ready to show (NOT READY - Internal use only)
+  static Future<bool> _isRewardedReady({required String adId}) async {
     return await _invokeMethod<bool>('isAdReady', {'adId': adId}) ?? false;
   }
 
@@ -465,11 +465,11 @@ class CloudX {
   // MARK: - Native Ad Methods
   // ============================================================================
 
-  /// Create a native ad
+  /// Create a native ad (NOT READY - Internal use only)
   ///
   /// If [adId] is not provided, one will be automatically generated.
   /// Returns the adId (either provided or generated) for use with other methods.
-  static Future<String?> createNative({
+  static Future<String?> _createNative({
     required String placement,
     String? adId,
     CloudXAdViewListener? listener,
@@ -495,17 +495,23 @@ class CloudX {
   }
 
   /// Load a native ad
-  static Future<bool> loadNative({required String adId}) async {
+  ///
+  /// NOT READY - Internal use only. Native ads are not ready for public use.
+  static Future<bool> _loadNative({required String adId}) async {
     return await _invokeMethod<bool>('loadAd', {'adId': adId}) ?? false;
   }
 
   /// Show a native ad
-  static Future<bool> showNative({required String adId}) async {
+  ///
+  /// NOT READY - Internal use only. Native ads are not ready for public use.
+  static Future<bool> _showNative({required String adId}) async {
     return await _invokeMethod<bool>('showAd', {'adId': adId}) ?? false;
   }
 
   /// Check if native ad is ready to show
-  static Future<bool> isNativeReady({required String adId}) async {
+  ///
+  /// NOT READY - Internal use only. Native ads are not ready for public use.
+  static Future<bool> _isNativeReady({required String adId}) async {
     return await _invokeMethod<bool>('isAdReady', {'adId': adId}) ?? false;
   }
 
