@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 // ==============================================================================
 
 import 'models/cloudx_ad.dart';
+import 'models/banner_position.dart';
 import 'listeners/cloudx_ad_listener.dart';
 import 'listeners/cloudx_ad_view_listener.dart';
 import 'listeners/cloudx_interstitial_listener.dart';
@@ -21,6 +22,7 @@ import 'listeners/cloudx_rewarded_interstitial_listener.dart';
 
 // Models
 export 'models/cloudx_ad.dart';
+export 'models/banner_position.dart';
 
 // Listeners (matching Android SDK naming)
 export 'listeners/cloudx_ad_listener.dart';
@@ -306,27 +308,37 @@ class CloudX {
 
   /// Create a banner ad
   ///
-  /// [placement] - The placement name from your CloudX dashboard
-  /// [adId] - Unique identifier for this ad instance
-  /// Create a banner ad
-  ///
   /// If [adId] is not provided, one will be automatically generated.
   /// Returns the adId (either provided or generated) for use with other methods.
+  ///
+  /// [placement] - Ad placement name
+  /// [adId] - Optional custom ad identifier
   /// [listener] - Optional callback listener for ad events
+  /// [position] - Optional position for programmatic banner placement.
+  ///   If provided, creates a native overlay banner at the specified position.
+  ///   If null, creates a widget-based banner for use with CloudXBannerView.
   static Future<String?> createBanner({
     required String placement,
     String? adId,
     CloudXAdViewListener? listener,
+    AdViewPosition? position,
   }) async {
     await _ensureEventStreamInitialized();
 
     // Auto-generate adId if not provided
     final id = adId ?? 'banner_${placement}_${DateTime.now().millisecondsSinceEpoch}';
 
-    final success = await _invokeMethod<bool>('createBanner', {
+    final arguments = <String, dynamic>{
       'placement': placement,
       'adId': id,
-    });
+    };
+
+    // Add position if programmatic banner
+    if (position != null) {
+      arguments['position'] = position.value;
+    }
+
+    final success = await _invokeMethod<bool>('createBanner', arguments);
 
     if (success == true) {
       if (listener != null) {

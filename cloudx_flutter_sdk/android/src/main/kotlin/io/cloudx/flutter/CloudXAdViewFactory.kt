@@ -29,7 +29,7 @@ class CloudXAdViewFactory(
         val creationParams = args as? Map<*, *>
         val adId = creationParams?.get("adId") as? String
 
-        CloudXLogger.debug(TAG, "Creating ${adViewType.name} view for adId: $adId")
+        CloudXLogger.d(TAG, "Creating ${adViewType.name} view for adId: $adId")
 
         return CloudXAdPlatformView(context, plugin, adId, adViewType)
     }
@@ -50,13 +50,13 @@ class CloudXAdPlatformView(
     private val containerView: FrameLayout = FrameLayout(context)
 
     init {
-        CloudXLogger.debug(TAG, "Initializing ${adViewType.name} view for adId: $adId")
+        CloudXLogger.d(TAG, "Initializing ${adViewType.name} view for adId: $adId")
 
         if (adId != null) {
             val adInstance = plugin.getAdInstance(adId)
 
             if (adInstance is CloudXAdView) {
-                CloudXLogger.debug(TAG, "Found CloudXAdView instance for adId: $adId")
+                CloudXLogger.d(TAG, "Found CloudXAdView instance for adId: $adId")
 
                 // Remove from any existing parent
                 (adInstance.parent as? android.view.ViewGroup)?.removeView(adInstance)
@@ -70,12 +70,12 @@ class CloudXAdPlatformView(
                     )
                 )
 
-                CloudXLogger.debug(TAG, "Successfully added CloudXAdView to container")
+                CloudXLogger.d(TAG, "Successfully added CloudXAdView to container")
             } else {
-                CloudXLogger.error(TAG, "Ad instance not found or wrong type for adId: $adId")
+                CloudXLogger.e(TAG, "Ad instance not found or wrong type for adId: $adId")
             }
         } else {
-            CloudXLogger.error(TAG, "adId is null")
+            CloudXLogger.e(TAG, "adId is null")
         }
     }
 
@@ -84,7 +84,7 @@ class CloudXAdPlatformView(
     }
 
     override fun dispose() {
-        CloudXLogger.debug(TAG, "Disposing ${adViewType.name} view for adId: $adId")
+        CloudXLogger.d(TAG, "Disposing ${adViewType.name} view for adId: $adId")
         containerView.removeAllViews()
     }
 }

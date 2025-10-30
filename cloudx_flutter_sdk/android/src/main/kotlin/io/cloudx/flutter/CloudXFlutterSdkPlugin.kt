@@ -4,7 +4,10 @@ import android.app.Activity
 import android.content.Context
 import android.preference.PreferenceManager
 import android.util.Log
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import io.cloudx.sdk.*
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -27,7 +30,10 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     
     // Storage for ad instances
     private val adInstances = mutableMapOf<String, Any>()
-    
+
+    // Storage for programmatic banner containers (overlays)
+    private val programmaticBannerContainers = mutableMapOf<String, FrameLayout>()
+
     // Storage for pending results (for async operations)
     private val pendingResults = mutableMapOf<String, Result>()
 
@@ -41,10 +47,10 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     }
 
     // Logging helpers
-    private fun logDebug(message: String) = CloudXLogger.debug(TAG, message)
-    private fun logError(message: String) = CloudXLogger.error(TAG, message)
-    private fun logError(message: String, throwable: Throwable) = CloudXLogger.error(TAG, message, throwable)
-    private fun logWarning(message: String) = CloudXLogger.warning(TAG, message)
+    private fun logDebug(message: String) = CloudXLogger.d(TAG, message)
+    private fun logError(message: String) = CloudXLogger.e(TAG, message)
+    private fun logError(message: String, throwable: Throwable) = CloudXLogger.e(TAG, message, throwable)
+    private fun logWarning(message: String) = CloudXLogger.w(TAG, message)
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         context = binding.applicationContext
@@ -343,22 +349,102 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     // MARK: - Ad Creation
     // ============================================================================
 
+    /**
+     * Convert position string to Android Gravity flags
+     */
+    private fun getGravityFromPosition(position: String): Int {
+        return when (position) {
+            "top_center" -> Gravity.TOP or Gravity.CENTER_HORIZONTAL
+            "top_right" -> Gravity.TOP or Gravity.END
+            "centered" -> Gravity.CENTER
+            "center_left" -> Gravity.CENTER_VERTICAL or Gravity.START
+            "center_right" -> Gravity.CENTER_VERTICAL or Gravity.END
+            "bottom_left" -> Gravity.BOTTOM or Gravity.START
+            "bottom_center" -> Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+            "bottom_right" -> Gravity.BOTTOM or Gravity.END
+            else -> Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL // Default to bottom center
+        }
+    }
+
     private fun createBanner(call: MethodCall, result: Result) {
         val placement = call.argument<String>("placement")
         val adId = call.argument<String>("adId")
-        
+        val position = call.argument<String>("position")
+
         if (placement == null || adId == null) {
             result.error("INVALID_ARGUMENTS", "placement and adId are required", null)
             return
         }
-        
+
         try {
             val bannerAd = CloudX.createBanner(placement)
             bannerAd.listener = createAdViewListener(adId)
             adInstances[adId] = bannerAd
-            result.success(true)
+
+            // If position is specified, create programmatic banner overlay
+            if (position != null) {
+                val activity = activityRef?.get()
+                if (activity == null) {
+                    result.error("NO_ACTIVITY", "Activity not available for programmatic banner", null)
+                    return
+                }
+
+                logDebug("Creating programmatic banner at position: $position")
+
+                // Run on UI thread to add view to activity
+                activity.runOnUiThread {
+                    try {
+                        // Create container layout that will overlay the Flutter view
+                        // Using FrameLayout because it supports gravity directly
+                        val containerLayout = FrameLayout(activity)
+
+                        // Get gravity for positioning
+                        val gravity = getGravityFromPosition(position)
+
+                        logDebug("Creating programmatic banner with gravity: $gravity for position: $position")
+
+                        // Create layout params with gravity for the banner
+                        val bannerLayoutParams = FrameLayout.LayoutParams(
+                            FrameLayout.LayoutParams.WRAP_CONTENT,
+                            FrameLayout.LayoutParams.WRAP_CONTENT,
+                            gravity  // Apply gravity directly to FrameLayout.LayoutParams
+                        )
+
+                        // Remove banner from any existing parent
+                        (bannerAd.parent as? ViewGroup)?.removeView(bannerAd)
+
+                        // Add banner to container with gravity-based positioning
+                        containerLayout.addView(bannerAd, bannerLayoutParams)
+
+                        // Set initial visibility to GONE (will be shown with showAd)
+                        containerLayout.visibility = View.GONE
+
+                        // Add container to activity's content view
+                        activity.addContentView(
+                            containerLayout,
+                            FrameLayout.LayoutParams(
+                                FrameLayout.LayoutParams.MATCH_PARENT,
+                                FrameLayout.LayoutParams.MATCH_PARENT
+                            )
+                        )
+
+                        // Store container for show/hide operations
+                        programmaticBannerContainers[adId] = containerLayout
+
+                        logDebug("Successfully created programmatic banner: $adId at position: $position")
+                        result.success(true)
+                    } catch (e: Exception) {
+                        logError("Failed to create programmatic banner layout", e)
+                        result.error("AD_CREATION_FAILED", "Failed to create programmatic banner: ${e.message}", null)
+                    }
+                }
+            } else {
+                // Widget-based banner (will be embedded via PlatformView)
+                logDebug("Created widget-based banner: $adId")
+                result.success(true)
+            }
         } catch (e: Exception) {
-            logError( "Failed to create banner", e)
+            logError("Failed to create banner", e)
             result.error("AD_CREATION_FAILED", "Failed to create banner: ${e.message}", null)
         }
     }
@@ -487,19 +573,19 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
             result.error("INVALID_ARGUMENTS", "adId is required", null)
             return
         }
-        
+
         val adInstance = adInstances[adId]
         if (adInstance == null) {
             result.error("AD_NOT_FOUND", "Ad instance not found", null)
             return
         }
-        
+
         val activity = activityRef?.get()
         if (activity == null) {
             result.error("NO_ACTIVITY", "Activity not available", null)
             return
         }
-        
+
         when (adInstance) {
             is CloudXInterstitialAd -> {
                 adInstance.show()
@@ -510,7 +596,18 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
                 result.success(true)
             }
             is CloudXAdView -> {
-                adInstance.visibility = View.VISIBLE
+                // Check if this is a programmatic banner with container
+                val container = programmaticBannerContainers[adId]
+                if (container != null) {
+                    // Show programmatic banner container
+                    activity.runOnUiThread {
+                        container.visibility = View.VISIBLE
+                        logDebug("Showing programmatic banner: $adId")
+                    }
+                } else {
+                    // Widget-based banner (visibility controlled by PlatformView)
+                    adInstance.visibility = View.VISIBLE
+                }
                 result.success(true)
             }
             else -> {
@@ -525,10 +622,21 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
             result.error("INVALID_ARGUMENTS", "adId is required", null)
             return
         }
-        
+
         val adInstance = adInstances[adId]
         if (adInstance is CloudXAdView) {
-            adInstance.visibility = View.GONE
+            // Check if this is a programmatic banner with container
+            val container = programmaticBannerContainers[adId]
+            if (container != null) {
+                // Hide programmatic banner container
+                activityRef?.get()?.runOnUiThread {
+                    container.visibility = View.GONE
+                    logDebug("Hiding programmatic banner: $adId")
+                }
+            } else {
+                // Widget-based banner
+                adInstance.visibility = View.GONE
+            }
             result.success(true)
         } else {
             result.success(true)
@@ -561,7 +669,21 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
         when (adInstance) {
             is CloudXInterstitialAd -> adInstance.destroy()
             is CloudXRewardedInterstitialAd -> adInstance.destroy()
-            is CloudXAdView -> adInstance.destroy()
+            is CloudXAdView -> {
+                adInstance.destroy()
+
+                // Clean up programmatic banner container if exists
+                val container = programmaticBannerContainers[adId]
+                if (container != null) {
+                    activityRef?.get()?.runOnUiThread {
+                        // Remove container from activity
+                        val parent = container.parent as? ViewGroup
+                        parent?.removeView(container)
+                        logDebug("Removed programmatic banner container: $adId")
+                    }
+                    programmaticBannerContainers.remove(adId)
+                }
+            }
         }
 
         adInstances.remove(adId)
