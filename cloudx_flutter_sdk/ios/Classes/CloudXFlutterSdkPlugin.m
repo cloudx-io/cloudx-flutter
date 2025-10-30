@@ -302,16 +302,8 @@
         result(@([[CloudXCore shared] isInitialized]));
     } else if ([call.method isEqualToString:@"getSDKVersion"]) {
         result([[CloudXCore shared] sdkVersion]);
-    } else if ([call.method isEqualToString:@"getUserID"]) {
-        result([[CloudXCore shared] userID]);
     } else if ([call.method isEqualToString:@"setUserID"]) {
         [[CloudXCore shared] setHashedUserID:call.arguments[@"userID"]];
-        result(@YES);
-    } else if ([call.method isEqualToString:@"trackSDKError"]) {
-        NSString *errorMsg = call.arguments[@"error"];
-        NSError *error = [NSError errorWithDomain:@"com.cloudx.flutter" code:-1 
-            userInfo:@{NSLocalizedDescriptionKey: errorMsg ?: @"Unknown error"}];
-        [CloudXCore trackSDKError:error];
         result(@YES);
     } else if ([call.method isEqualToString:@"setEnvironment"]) {
         NSString *environment = call.arguments[@"environment"];
@@ -320,6 +312,13 @@
     } else if ([call.method isEqualToString:@"setLoggingEnabled"]) {
         BOOL enabled = [call.arguments[@"enabled"] boolValue];
         [CloudXCore setLoggingEnabled:enabled];
+        result(@YES);
+    } else if ([call.method isEqualToString:@"setMinLogLevel"]) {
+        NSInteger minLogLevel = [call.arguments[@"minLogLevel"] integerValue];
+        [CloudXCore setMinLogLevel:minLogLevel];
+        result(@YES);
+    } else if ([call.method isEqualToString:@"deinitialize"]) {
+        [[CloudXCore shared] deinitialize];
         result(@YES);
     }
     // Privacy & Compliance Methods
@@ -332,16 +331,6 @@
     } else if ([call.method isEqualToString:@"setIsAgeRestrictedUser"]) {
         [CloudXCore setIsAgeRestrictedUser:[call.arguments[@"isAgeRestrictedUser"] boolValue]];
         result(@YES);
-    } else if ([call.method isEqualToString:@"setGPPString"]) {
-        [CloudXCore setGPPString:call.arguments[@"gppString"]];
-        result(@YES);
-    } else if ([call.method isEqualToString:@"getGPPString"]) {
-        result([CloudXCore getGPPString]);
-    } else if ([call.method isEqualToString:@"setGPPSid"]) {
-        [CloudXCore setGPPSid:call.arguments[@"gppSid"]];
-        result(@YES);
-    } else if ([call.method isEqualToString:@"getGPPSid"]) {
-        result([CloudXCore getGPPSid]);
     }
     // Targeting Methods
     else if ([call.method isEqualToString:@"setUserKeyValue"]) {
@@ -494,8 +483,8 @@
         return;
     }
     
-    CLXPublisherFullscreenAd *interstitialAd = [[CloudXCore shared] createInterstitialWithPlacement:placement
-                                                                                              delegate:self];
+    CLXInterstitial *interstitialAd = [[CloudXCore shared] createInterstitialWithPlacement:placement
+                                                                                 delegate:self];
     
     if (interstitialAd) {
         self.adInstances[adId] = interstitialAd;
@@ -521,8 +510,8 @@
         return;
     }
     
-    CLXPublisherFullscreenAd *rewardedAd = [[CloudXCore shared] createRewardedWithPlacement:placement
-                                                                                     delegate:self];
+    CLXRewarded *rewardedAd = [[CloudXCore shared] createRewardedWithPlacement:placement
+                                                                     delegate:self];
     
     if (rewardedAd) {
         self.adInstances[adId] = rewardedAd;
@@ -1086,13 +1075,6 @@
     }
 }
 
-- (void)closedByUserActionWithAd:(CLXAd *)ad {
-    NSString *adId = [self getAdIdForCLXAd:ad];
-    if (adId) {
-        [self sendEventToFlutter:@"closedByUserAction" adId:adId data:@{@"ad": [self serializeCLXAd:ad]}];
-    }
-}
-
 - (void)revenuePaid:(CLXAd *)ad {
     NSString *adId = [self getAdIdForCLXAd:ad];
     if (adId) {
@@ -1126,20 +1108,6 @@
     NSString *adId = [self getAdIdForCLXAd:ad];
     if (adId) {
         [self sendEventToFlutter:@"userRewarded" adId:adId data:@{@"ad": [self serializeCLXAd:ad]}];
-    }
-}
-
-- (void)rewardedVideoStarted:(CLXAd *)ad {
-    NSString *adId = [self getAdIdForCLXAd:ad];
-    if (adId) {
-        [self sendEventToFlutter:@"rewardedVideoStarted" adId:adId data:nil];
-    }
-}
-
-- (void)rewardedVideoCompleted:(CLXAd *)ad {
-    NSString *adId = [self getAdIdForCLXAd:ad];
-    if (adId) {
-        [self sendEventToFlutter:@"rewardedVideoCompleted" adId:adId data:nil];
     }
 }
 
