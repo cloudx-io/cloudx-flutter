@@ -35,18 +35,6 @@ export 'widgets/cloudx_banner_view.dart';
 export 'widgets/cloudx_mrec_view.dart';
 export 'widgets/cloudx_ad_view_controller.dart';
 
-/// Custom exception for CloudX SDK errors
-class CloudXException implements Exception {
-  final String code;
-  final String message;
-  final dynamic details;
-
-  CloudXException(this.code, this.message, [this.details]);
-
-  @override
-  String toString() => 'CloudXException($code): $message';
-}
-
 /// The main CloudX Flutter SDK class.
 ///
 /// Provides a comprehensive Flutter wrapper for the CloudX Core Objective-C SDK.
@@ -78,8 +66,7 @@ class CloudX {
   /// [allowIosExperimental] - Set to `true` to enable iOS SDK (beta/development only)
   ///
   /// Returns `true` if initialization was successful
-  /// Returns `false` if platform is not supported (e.g., iOS without experimental flag)
-  /// Throws [CloudXException] if initialization fails
+  /// Returns `false` if initialization fails or platform is not supported
   ///
   /// **Platform Support:**
   /// - Android: ✅ Production-ready
@@ -107,11 +94,12 @@ class CloudX {
       await _ensureEventStreamInitialized();
       return result ?? false;
     } on PlatformException catch (e) {
-      throw CloudXException(
-        e.code,
-        e.message ?? 'Failed to initialize SDK',
-        e.details,
-      );
+      debugPrint('❌ CloudX initialization failed: ${e.message}');
+      debugPrint('   Error code: ${e.code}');
+      if (e.details != null) {
+        debugPrint('   Details: ${e.details}');
+      }
+      return false;
     }
   }
 

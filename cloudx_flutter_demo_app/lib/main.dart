@@ -158,34 +158,26 @@ class _InitScreenState extends State<InitScreen> {
       _currentEnvironment = config;
     });
 
-    try {
-      // Set environment (iOS only, Android uses CloudXInitializationServer)
-      await CloudX.setEnvironment(config.name.toLowerCase());
+    // Set environment (iOS only, Android uses CloudXInitializationServer)
+    await CloudX.setEnvironment(config.name.toLowerCase());
 
-      final success = await CloudX.initialize(
-        appKey: config.appKey,
-        // Allow iOS experimental for demo/testing purposes
-        allowIosExperimental: true,
-      );
+    final success = await CloudX.initialize(
+      appKey: config.appKey,
+      // Allow iOS experimental for demo/testing purposes
+      allowIosExperimental: true,
+    );
 
-      setState(() {
-        _isSDKInitialized = success;
-        _isInitializing = false;
-        if (!success) {
-          if (Platform.isIOS) {
-            _initError = 'iOS SDK is not production-ready.\nOnly Android is currently supported.';
-          } else {
-            _initError = 'Failed to initialize CloudX SDK.';
-          }
+    setState(() {
+      _isSDKInitialized = success;
+      _isInitializing = false;
+      if (!success) {
+        if (Platform.isIOS) {
+          _initError = 'iOS SDK is not production-ready.\nOnly Android is currently supported.';
+        } else {
+          _initError = 'Failed to initialize CloudX SDK.';
         }
-      });
-    } catch (e) {
-      setState(() {
-        _isSDKInitialized = false;
-        _isInitializing = false;
-        _initError = 'Error: $e';
-      });
-    }
+      }
+    });
   }
 }
 
