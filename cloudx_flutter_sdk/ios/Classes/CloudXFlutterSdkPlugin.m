@@ -18,6 +18,8 @@
 @property (nonatomic, strong) NSMutableDictionary<NSString *, FlutterResult> *pendingResults;
 // Map CloudX internal placement IDs to Flutter adIds
 @property (nonatomic, strong) NSMutableDictionary<NSString *, NSString *> *placementToAdIdMap;
+// Map adId to position for programmatic ads
+@property (nonatomic, strong) NSMutableDictionary<NSString *, NSString *> *adPositions;
 @end
 
 @interface CloudXBannerPlatformView : NSObject <FlutterPlatformView>
@@ -290,6 +292,7 @@
         _adInstances = [NSMutableDictionary dictionary];
         _pendingResults = [NSMutableDictionary dictionary];
         _placementToAdIdMap = [NSMutableDictionary dictionary];
+        _adPositions = [NSMutableDictionary dictionary];
     }
     return self;
 }
@@ -420,6 +423,7 @@
 - (void)createBanner:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *adId = arguments[@"adId"];
     NSString *placementName = arguments[@"placementName"];
+    NSString *position = arguments[@"position"];  // Optional: for programmatic banners
 
     if (!placementName || !adId) {
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
@@ -440,6 +444,13 @@
         self.adInstances[adId] = bannerAd;
         [self setAdId:adId forInstance:bannerAd];
         [self storePlacementIdMappingForAdInstance:bannerAd withAdId:adId adType:@"banner"];
+
+        // Store position for programmatic banners
+        if (position) {
+            self.adPositions[adId] = position;
+            [self.logger debug:[NSString stringWithFormat:@"Created programmatic banner with position: %@", position]];
+        }
+
         result(@YES);
     } else {
         result([FlutterError errorWithCode:@"AD_CREATION_FAILED"
@@ -533,27 +544,35 @@
 - (void)createMREC:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *placementName = arguments[@"placementName"];
     NSString *adId = arguments[@"adId"];
-    
+    NSString *position = arguments[@"position"];  // Optional: for programmatic MRECs
+
     if (!placementName || !adId) {
-        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
-                                  message:@"placementName and adId are required" 
+        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
+                                  message:@"placementName and adId are required"
                                   details:nil]);
         return;
     }
-    
+
     UIViewController *viewController = [self getTopViewController];
     CLXBannerAdView *mrecAd = [[CloudXCore shared] createMRECWithPlacement:placementName
                                                               viewController:viewController
                                                                   delegate:self];
-    
+
     if (mrecAd) {
         self.adInstances[adId] = mrecAd;
         [self setAdId:adId forInstance:mrecAd];
         [self storePlacementIdMappingForAdInstance:mrecAd withAdId:adId adType:@"mrec"];
+
+        // Store position for programmatic MRECs
+        if (position) {
+            self.adPositions[adId] = position;
+            [self.logger debug:[NSString stringWithFormat:@"Created programmatic MREC with position: %@", position]];
+        }
+
         result(@YES);
     } else {
-        result([FlutterError errorWithCode:@"AD_CREATION_FAILED" 
-                                  message:@"Failed to create MREC ad" 
+        result([FlutterError errorWithCode:@"AD_CREATION_FAILED"
+                                  message:@"Failed to create MREC ad"
                                   details:nil]);
     }
 }
@@ -610,38 +629,88 @@
         result(@YES);
     } else {
         [self.logger error:@"Ad instance does not support loading"];
-        result([FlutterError errorWithCode:@"INVALID_AD_TYPE" 
-                                  message:@"Ad instance does not support loading" 
+        result([FlutterError errorWithCode:@"INVALID_AD_TYPE"
+                                  message:@"Ad instance does not support loading"
                                   details:nil]);
     }
 }
 
+/// Helper method to apply positioning constraints for programmatic ads
+- (void)applyPositionConstraints:(NSString *)position toView:(UIView *)adView inContainer:(UIView *)containerView {
+    // Position format matches Flutter AdViewPosition enum values
+    // e.g., "top_center", "bottom_left", "centered", etc.
+
+    NSMutableArray<NSLayoutConstraint *> *constraints = [NSMutableArray array];
+
+    // Horizontal positioning
+    if ([position containsString:@"left"]) {
+        [constraints addObject:[adView.leadingAnchor constraintEqualToAnchor:containerView.safeAreaLayoutGuide.leadingAnchor]];
+    } else if ([position containsString:@"right"]) {
+        [constraints addObject:[adView.trailingAnchor constraintEqualToAnchor:containerView.safeAreaLayoutGuide.trailingAnchor]];
+    } else {
+        // center (horizontal)
+        [constraints addObject:[adView.centerXAnchor constraintEqualToAnchor:containerView.centerXAnchor]];
+    }
+
+    // Vertical positioning
+    if ([position hasPrefix:@"top"]) {
+        [constraints addObject:[adView.topAnchor constraintEqualToAnchor:containerView.safeAreaLayoutGuide.topAnchor]];
+    } else if ([position hasPrefix:@"bottom"]) {
+        [constraints addObject:[adView.bottomAnchor constraintEqualToAnchor:containerView.safeAreaLayoutGuide.bottomAnchor]];
+    } else {
+        // centered (vertical)
+        [constraints addObject:[adView.centerYAnchor constraintEqualToAnchor:containerView.centerYAnchor]];
+    }
+
+    [NSLayoutConstraint activateConstraints:constraints];
+}
+
 - (void)showAd:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *adId = arguments[@"adId"];
-    
+
     if (!adId) {
-        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
-                                  message:@"adId is required" 
+        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
+                                  message:@"adId is required"
                                   details:nil]);
         return;
     }
-    
+
     id adInstance = self.adInstances[adId];
     if (!adInstance) {
-        result([FlutterError errorWithCode:@"AD_NOT_FOUND" 
-                                  message:@"Ad instance not found" 
+        result([FlutterError errorWithCode:@"AD_NOT_FOUND"
+                                  message:@"Ad instance not found"
                                   details:nil]);
         return;
     }
-    
-    UIViewController *viewController = [self getTopViewController];
-    
-    if ([adInstance respondsToSelector:@selector(showFromViewController:)]) {
+
+    // Check if this is a programmatic banner/MREC with position
+    NSString *position = self.adPositions[adId];
+    if (position && [adInstance isKindOfClass:[UIView class]]) {
+        // Programmatic banner/MREC - add to view hierarchy at specified position
+        UIView *adView = (UIView *)adInstance;
+        UIViewController *viewController = [self getTopViewController];
+        UIView *containerView = viewController.view;
+
+        // Remove from previous superview if any
+        [adView removeFromSuperview];
+
+        // Add to container
+        adView.translatesAutoresizingMaskIntoConstraints = NO;
+        [containerView addSubview:adView];
+
+        // Apply positioning constraints
+        [self applyPositionConstraints:position toView:adView inContainer:containerView];
+
+        [self.logger debug:[NSString stringWithFormat:@"Showing programmatic ad at position: %@", position]];
+        result(@YES);
+    } else if ([adInstance respondsToSelector:@selector(showFromViewController:)]) {
+        // Fullscreen ad (interstitial/rewarded)
+        UIViewController *viewController = [self getTopViewController];
         [adInstance showFromViewController:viewController];
         result(@YES);
     } else {
-        result([FlutterError errorWithCode:@"INVALID_AD_TYPE" 
-                                  message:@"Ad instance does not support showing" 
+        result([FlutterError errorWithCode:@"INVALID_AD_TYPE"
+                                  message:@"Ad instance does not support showing"
                                   details:nil]);
     }
 }
@@ -741,6 +810,7 @@
 
         [self.adInstances removeObjectForKey:adId];
         [self.pendingResults removeObjectForKey:adId];
+        [self.adPositions removeObjectForKey:adId];
     }
 
     result(@YES);

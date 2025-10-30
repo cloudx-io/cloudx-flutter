@@ -333,7 +333,31 @@ class CloudX {
     return await _invokeMethod<bool>('showAd', {'adId': adId}) ?? false;
   }
 
-  /// Hide a banner ad
+  /// Hide a banner ad temporarily without destroying it
+  ///
+  /// Use this method to temporarily remove a banner from view while keeping the ad instance alive.
+  /// This is useful when you want to hide ads during specific user interactions (e.g., during video playback,
+  /// in-app purchases, or other sensitive screens) and show them again later.
+  ///
+  /// To show the ad again, call [showBanner] with the same [adId].
+  ///
+  /// **Important**: This does NOT stop auto-refresh if enabled. The ad will continue to refresh in the background.
+  /// Call [stopAutoRefresh] if you want to pause refreshing while hidden.
+  ///
+  /// **When to use [hideBanner] vs [destroyAd]**:
+  /// - Use [hideBanner] when you plan to show the ad again later in the same session
+  /// - Use [destroyAd] when you're completely done with the ad (e.g., navigating away from the screen)
+  ///
+  /// Example:
+  /// ```dart
+  /// // Hide banner during video playback
+  /// await CloudX.stopAutoRefresh(adId: bannerId);
+  /// await CloudX.hideBanner(adId: bannerId);
+  ///
+  /// // Show banner again when video ends
+  /// await CloudX.showBanner(adId: bannerId);
+  /// await CloudX.startAutoRefresh(adId: bannerId);
+  /// ```
   static Future<bool> hideBanner({required String adId}) async {
     return await _invokeMethod<bool>('hideAd', {'adId': adId}) ?? false;
   }
