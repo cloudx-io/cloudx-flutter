@@ -1,6 +1,7 @@
 library cloudx;
 
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -72,12 +73,29 @@ class CloudX {
   /// Initialize the CloudX SDK
   ///
   /// [appKey] - Your CloudX app key
+  /// [allowIosExperimental] - Set to `true` to enable iOS SDK (beta/development only)
   ///
   /// Returns `true` if initialization was successful
+  /// Returns `false` if platform is not supported (e.g., iOS without experimental flag)
   /// Throws [CloudXException] if initialization fails
+  ///
+  /// **Platform Support:**
+  /// - Android: ✅ Production-ready
+  /// - iOS: ⚠️ Beta/Development only - requires `allowIosExperimental: true`
   static Future<bool> initialize({
     required String appKey,
+    bool allowIosExperimental = false,
   }) async {
+    // Platform guard: iOS SDK is not production-ready
+    if (Platform.isIOS && !allowIosExperimental) {
+      debugPrint('⚠️ CloudX iOS SDK is not yet production-ready.');
+      debugPrint('⚠️ Currently only Android is fully supported.');
+      debugPrint('⚠️ For iOS beta testing, use: CloudX.initialize(appKey: "...", allowIosExperimental: true)');
+      debugPrint('⚠️ For production iOS access, contact the CloudX team.');
+      debugPrint('⚠️ SDK initialization skipped on iOS.');
+      return false;
+    }
+
     final arguments = <String, dynamic>{
       'appKey': appKey,
     };
@@ -93,6 +111,17 @@ class CloudX {
         e.details,
       );
     }
+  }
+
+  /// Check if the current platform is supported by CloudX SDK
+  ///
+  /// Returns `true` if platform is production-ready, `false` otherwise
+  ///
+  /// Currently:
+  /// - Android: Production-ready ✅
+  /// - iOS: Beta/Development only ⚠️
+  static bool isPlatformSupported() {
+    return !Platform.isIOS;
   }
 
   /// Check if the SDK is initialized
