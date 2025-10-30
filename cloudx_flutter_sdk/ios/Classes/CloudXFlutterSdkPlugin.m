@@ -307,12 +307,6 @@
     } else if ([call.method isEqualToString:@"setUserID"]) {
         [[CloudXCore shared] setHashedUserID:call.arguments[@"userID"]];
         result(@YES);
-    } else if ([call.method isEqualToString:@"trackSDKError"]) {
-        NSString *errorMsg = call.arguments[@"error"];
-        NSError *error = [NSError errorWithDomain:@"com.cloudx.flutter" code:-1 
-            userInfo:@{NSLocalizedDescriptionKey: errorMsg ?: @"Unknown error"}];
-        [CloudXCore trackSDKError:error];
-        result(@YES);
     } else if ([call.method isEqualToString:@"setEnvironment"]) {
         NSString *environment = call.arguments[@"environment"];
         [CLXURLProvider setEnvironment:environment];
@@ -423,42 +417,13 @@
 
 #pragma mark - Ad Creation
 
-- (void)createAd:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *adType = arguments[@"adType"];
-    NSString *placementName = arguments[@"placementName"];
-    NSString *adId = arguments[@"adId"];
-    
-    if (!adType || !placement || !adId) {
-        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
-                                  message:@"adType, placement, and adId are required" 
-                                  details:nil]);
-        return;
-    }
-    
-    if ([adType isEqualToString:@"banner"]) {
-        [self createBanner:@{@"placement": placement, @"adId": adId} result:result];
-    } else if ([adType isEqualToString:@"interstitial"]) {
-        [self createInterstitial:@{@"placement": placement, @"adId": adId} result:result];
-    } else if ([adType isEqualToString:@"rewarded"]) {
-        [self createRewarded:@{@"placement": placement, @"adId": adId} result:result];
-    } else if ([adType isEqualToString:@"native"]) {
-        [self createNative:@{@"placement": placement, @"adId": adId} result:result];
-    } else if ([adType isEqualToString:@"mrec"]) {
-        [self createMREC:@{@"placement": placement, @"adId": adId} result:result];
-    } else {
-        result([FlutterError errorWithCode:@"INVALID_AD_TYPE" 
-                                  message:[NSString stringWithFormat:@"Unknown ad type: %@", adType] 
-                                  details:nil]);
-    }
-}
-
 - (void)createBanner:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *adId = arguments[@"adId"];
     NSString *placementName = arguments[@"placementName"];
 
     if (!placementName || !adId) {
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
-                                  message:@"placement and adId are required"
+                                  message:@"placementName and adId are required"
                                   details:nil]);
         return;
     }
@@ -489,7 +454,7 @@
     
     if (!placementName || !adId) {
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
-                                  message:@"placement and adId are required" 
+                                  message:@"placementName and adId are required" 
                                   details:nil]);
         return;
     }
@@ -516,7 +481,7 @@
     
     if (!placementName || !adId) {
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
-                                  message:@"placement and adId are required" 
+                                  message:@"placementName and adId are required" 
                                   details:nil]);
         return;
     }
@@ -543,7 +508,7 @@
     
     if (!placementName || !adId) {
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
-                                  message:@"placement and adId are required" 
+                                  message:@"placementName and adId are required" 
                                   details:nil]);
         return;
     }
@@ -571,7 +536,7 @@
     
     if (!placementName || !adId) {
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
-                                  message:@"placement and adId are required" 
+                                  message:@"placementName and adId are required" 
                                   details:nil]);
         return;
     }

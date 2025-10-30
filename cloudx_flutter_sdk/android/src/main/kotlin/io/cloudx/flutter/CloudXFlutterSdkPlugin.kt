@@ -130,12 +130,6 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
                 userID?.let { CloudX.setHashedUserId(it) }
                 result.success(true)
             }
-            "getLogsData" -> result.success(emptyMap<String, String>())
-            "trackSDKError" -> {
-                val error = call.argument<String>("error") ?: "Unknown error"
-                logError( "SDK Error tracked: $error")
-                result.success(true)
-            }
             "setEnvironment" -> {
                 val environment = call.argument<String>("environment")
                 logDebug( "setEnvironment called with: $environment")

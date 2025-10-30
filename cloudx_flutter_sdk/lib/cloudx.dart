@@ -146,21 +146,6 @@ class CloudX {
     await _invokeMethod('setUserID', {'userID': userID});
   }
 
-  /// Get logs data dictionary
-  static Future<Map<String, String>> getLogsData() async {
-    try {
-      final result = await _invokeMethod<Map>('getLogsData');
-      return result?.cast<String, String>() ?? {};
-    } catch (e) {
-      return {};
-    }
-  }
-
-  /// Track SDK errors for analytics
-  static Future<void> trackSDKError(String error) async {
-    await _invokeMethod('trackSDKError', {'error': error});
-  }
-
   /// Set the environment (dev, staging, production)
   /// Must be called BEFORE initialize()
   static Future<void> setEnvironment(String environment) async {
