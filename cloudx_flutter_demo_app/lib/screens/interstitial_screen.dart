@@ -124,10 +124,10 @@ class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> wit
 
     try {
       // adId is now auto-generated - no need to create manually!
-      _log('Creating interstitial with placement: ${widget.environment.interstitialPlacement}');
+      _log('Creating interstitial with placement: ${widget.environment.interstitialPlacementName}');
 
       _currentAdId = await CloudX.createInterstitial(
-        placement: widget.environment.interstitialPlacement,
+        placementName: widget.environment.interstitialPlacementName,
         // adId is optional - will be auto-generated as 'interstitial_<placement>_<timestamp>'
         listener: CloudXInterstitialListener(
           onAdLoaded: (ad) {

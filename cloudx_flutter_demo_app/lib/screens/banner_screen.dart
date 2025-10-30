@@ -188,7 +188,7 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticK
       try {
         // Create programmatic banner with position
         _programmaticAdId = await CloudX.createBanner(
-          placement: widget.environment.bannerPlacement,
+          placementName: widget.environment.bannerPlacementName,
           position: _selectedPosition,
           listener: _createBannerListener('Programmatic Banner'),
         );
@@ -374,7 +374,7 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticK
     // Widget-based banner
     return Center(
       child: CloudXBannerView(
-        placement: widget.environment.bannerPlacement,
+        placementName: widget.environment.bannerPlacementName,
         width: 320,
         height: 50,
         controller: _bannerController,

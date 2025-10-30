@@ -311,14 +311,14 @@ class CloudX {
   /// If [adId] is not provided, one will be automatically generated.
   /// Returns the adId (either provided or generated) for use with other methods.
   ///
-  /// [placement] - Ad placement name
+  /// [placementName] - Ad placement name
   /// [adId] - Optional custom ad identifier
   /// [listener] - Optional callback listener for ad events
   /// [position] - Optional position for programmatic banner placement.
   ///   If provided, creates a native overlay banner at the specified position.
   ///   If null, creates a widget-based banner for use with CloudXBannerView.
   static Future<String?> createBanner({
-    required String placement,
+    required String placementName,
     String? adId,
     CloudXAdViewListener? listener,
     AdViewPosition? position,
@@ -326,10 +326,10 @@ class CloudX {
     await _ensureEventStreamInitialized();
 
     // Auto-generate adId if not provided
-    final id = adId ?? 'banner_${placement}_${DateTime.now().millisecondsSinceEpoch}';
+    final id = adId ?? 'banner_${placementName}_${DateTime.now().millisecondsSinceEpoch}';
 
     final arguments = <String, dynamic>{
-      'placement': placement,
+      'placementName': placementName,
       'adId': id,
     };
 
@@ -374,17 +374,17 @@ class CloudX {
   /// If [adId] is not provided, one will be automatically generated.
   /// Returns the adId (either provided or generated) for use with other methods.
   static Future<String?> createInterstitial({
-    required String placement,
+    required String placementName,
     String? adId,
     CloudXInterstitialListener? listener,
   }) async {
     await _ensureEventStreamInitialized();
 
     // Auto-generate adId if not provided
-    final id = adId ?? 'interstitial_${placement}_${DateTime.now().millisecondsSinceEpoch}';
+    final id = adId ?? 'interstitial_${placementName}_${DateTime.now().millisecondsSinceEpoch}';
 
     final success = await _invokeMethod<bool>('createInterstitial', {
-      'placement': placement,
+      'placementName': placementName,
       'adId': id,
     });
 
@@ -422,17 +422,17 @@ class CloudX {
   /// If [adId] is not provided, one will be automatically generated.
   /// Returns the adId (either provided or generated) for use with other methods.
   static Future<String?> _createRewarded({
-    required String placement,
+    required String placementName,
     String? adId,
     CloudXRewardedInterstitialListener? listener,
   }) async {
     await _ensureEventStreamInitialized();
 
     // Auto-generate adId if not provided
-    final id = adId ?? 'rewarded_${placement}_${DateTime.now().millisecondsSinceEpoch}';
+    final id = adId ?? 'rewarded_${placementName}_${DateTime.now().millisecondsSinceEpoch}';
 
     final success = await _invokeMethod<bool>('createRewarded', {
-      'placement': placement,
+      'placementName': placementName,
       'adId': id,
     });
 
@@ -470,17 +470,17 @@ class CloudX {
   /// If [adId] is not provided, one will be automatically generated.
   /// Returns the adId (either provided or generated) for use with other methods.
   static Future<String?> _createNative({
-    required String placement,
+    required String placementName,
     String? adId,
     CloudXAdViewListener? listener,
   }) async {
     await _ensureEventStreamInitialized();
 
     // Auto-generate adId if not provided
-    final id = adId ?? 'native_${placement}_${DateTime.now().millisecondsSinceEpoch}';
+    final id = adId ?? 'native_${placementName}_${DateTime.now().millisecondsSinceEpoch}';
 
     final success = await _invokeMethod<bool>('createNative', {
-      'placement': placement,
+      'placementName': placementName,
       'adId': id,
     });
 
@@ -524,7 +524,7 @@ class CloudX {
   /// If [adId] is not provided, one will be automatically generated.
   /// Returns the adId (either provided or generated) for use with other methods.
   static Future<String?> createMREC({
-    required String placement,
+    required String placementName,
     String? adId,
     CloudXAdViewListener? listener,
     AdViewPosition? position,
@@ -532,10 +532,10 @@ class CloudX {
     await _ensureEventStreamInitialized();
 
     // Auto-generate adId if not provided
-    final id = adId ?? 'mrec_${placement}_${DateTime.now().millisecondsSinceEpoch}';
+    final id = adId ?? 'mrec_${placementName}_${DateTime.now().millisecondsSinceEpoch}';
 
     final success = await _invokeMethod<bool>('createMREC', {
-      'placement': placement,
+      'placementName': placementName,
       'adId': id,
       if (position != null) 'position': position.value,
     });

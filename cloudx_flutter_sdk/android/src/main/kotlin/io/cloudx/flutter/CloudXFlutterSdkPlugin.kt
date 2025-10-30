@@ -441,17 +441,17 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     }
 
     private fun createBanner(call: MethodCall, result: Result) {
-        val placement = call.argument<String>("placement")
+        val placementName = call.argument<String>("placementName")
         val adId = call.argument<String>("adId")
         val position = call.argument<String>("position")
 
-        if (placement == null || adId == null) {
-            result.error("INVALID_ARGUMENTS", "placement and adId are required", null)
+        if (placementName == null || adId == null) {
+            result.error("INVALID_ARGUMENTS", "placementName and adId are required", null)
             return
         }
 
         try {
-            val bannerAd = CloudX.createBanner(placement)
+            val bannerAd = CloudX.createBanner(placementName)
             bannerAd.listener = createAdViewListener(adId)
             adInstances[adId] = bannerAd
 
@@ -470,16 +470,16 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     }
 
     private fun createInterstitial(call: MethodCall, result: Result) {
-        val placement = call.argument<String>("placement")
+        val placementName = call.argument<String>("placementName")
         val adId = call.argument<String>("adId")
         
-        if (placement == null || adId == null) {
-            result.error("INVALID_ARGUMENTS", "placement and adId are required", null)
+        if (placementName == null || adId == null) {
+            result.error("INVALID_ARGUMENTS", "placementName and adId are required", null)
             return
         }
         
         try {
-            val interstitialAd = CloudX.createInterstitial(placement)
+            val interstitialAd = CloudX.createInterstitial(placementName)
             interstitialAd.listener = createInterstitialListener(adId)
             interstitialAd.revenueListener = createRevenueListener(adId)
             adInstances[adId] = interstitialAd
@@ -491,16 +491,16 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     }
 
     private fun createRewarded(call: MethodCall, result: Result) {
-        val placement = call.argument<String>("placement")
+        val placementName = call.argument<String>("placementName")
         val adId = call.argument<String>("adId")
         
-        if (placement == null || adId == null) {
-            result.error("INVALID_ARGUMENTS", "placement and adId are required", null)
+        if (placementName == null || adId == null) {
+            result.error("INVALID_ARGUMENTS", "placementName and adId are required", null)
             return
         }
         
         try {
-            val rewardedAd = CloudX.createRewardedInterstitial(placement)
+            val rewardedAd = CloudX.createRewardedInterstitial(placementName)
             rewardedAd.listener = createRewardedListener(adId)
             rewardedAd.revenueListener = createRevenueListener(adId)
             adInstances[adId] = rewardedAd
@@ -512,16 +512,16 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     }
 
     private fun createNative(call: MethodCall, result: Result) {
-        val placement = call.argument<String>("placement")
+        val placementName = call.argument<String>("placementName")
         val adId = call.argument<String>("adId")
         
-        if (placement == null || adId == null) {
-            result.error("INVALID_ARGUMENTS", "placement and adId are required", null)
+        if (placementName == null || adId == null) {
+            result.error("INVALID_ARGUMENTS", "placementName and adId are required", null)
             return
         }
         
         try {
-            val nativeAd = CloudX.createNativeAdSmall(placement)
+            val nativeAd = CloudX.createNativeAdSmall(placementName)
             nativeAd.listener = createAdViewListener(adId)
             adInstances[adId] = nativeAd
             result.success(true)
@@ -532,17 +532,17 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     }
 
     private fun createMREC(call: MethodCall, result: Result) {
-        val placement = call.argument<String>("placement")
+        val placementName = call.argument<String>("placementName")
         val adId = call.argument<String>("adId")
         val position = call.argument<String>("position")
 
-        if (placement == null || adId == null) {
-            result.error("INVALID_ARGUMENTS", "placement and adId are required", null)
+        if (placementName == null || adId == null) {
+            result.error("INVALID_ARGUMENTS", "placementName and adId are required", null)
             return
         }
 
         try {
-            val mrecAd = CloudX.createMREC(placement)
+            val mrecAd = CloudX.createMREC(placementName)
             mrecAd.listener = createAdViewListener(adId)
             adInstances[adId] = mrecAd
 

@@ -191,7 +191,7 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> with AutomaticKeepA
       try {
         // Create programmatic MREC with position
         _programmaticAdId = await CloudX.createMREC(
-          placement: widget.environment.mrecPlacement,
+          placementName: widget.environment.mrecPlacementName,
           position: _selectedPosition,
           listener: _createMRECListener('Programmatic MREC'),
         );
@@ -377,7 +377,7 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> with AutomaticKeepA
     // Widget-based MREC
     return Center(
       child: CloudXMRECView(
-        placement: widget.environment.mrecPlacement,
+        placementName: widget.environment.mrecPlacementName,
         width: 300,
         height: 250,
         controller: _mrecController,

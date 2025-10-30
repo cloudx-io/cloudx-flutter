@@ -425,7 +425,7 @@
 
 - (void)createAd:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *adType = arguments[@"adType"];
-    NSString *placement = arguments[@"placement"];
+    NSString *placementName = arguments[@"placementName"];
     NSString *adId = arguments[@"adId"];
     
     if (!adType || !placement || !adId) {
@@ -454,9 +454,9 @@
 
 - (void)createBanner:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *adId = arguments[@"adId"];
-    NSString *placement = arguments[@"placement"];
+    NSString *placementName = arguments[@"placementName"];
 
-    if (!placement || !adId) {
+    if (!placementName || !adId) {
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
                                   message:@"placement and adId are required"
                                   details:nil]);
@@ -466,7 +466,7 @@
     UIViewController *viewController = [self getTopViewController];
 
     // Create banner (tmax configured server-side)
-    CLXBannerAdView *bannerAd = [[CloudXCore shared] createBannerWithPlacement:placement
+    CLXBannerAdView *bannerAd = [[CloudXCore shared] createBannerWithPlacement:placementName
                                                                   viewController:viewController
                                                                         delegate:self
                                                                             tmax:nil];
@@ -484,17 +484,17 @@
 }
 
 - (void)createInterstitial:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *placement = arguments[@"placement"];
+    NSString *placementName = arguments[@"placementName"];
     NSString *adId = arguments[@"adId"];
     
-    if (!placement || !adId) {
+    if (!placementName || !adId) {
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
                                   message:@"placement and adId are required" 
                                   details:nil]);
         return;
     }
     
-    CLXPublisherFullscreenAd *interstitialAd = [[CloudXCore shared] createInterstitialWithPlacement:placement
+    CLXPublisherFullscreenAd *interstitialAd = [[CloudXCore shared] createInterstitialWithPlacement:placementName
                                                                                               delegate:self];
     
     if (interstitialAd) {
@@ -511,17 +511,17 @@
 }
 
 - (void)createRewarded:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *placement = arguments[@"placement"];
+    NSString *placementName = arguments[@"placementName"];
     NSString *adId = arguments[@"adId"];
     
-    if (!placement || !adId) {
+    if (!placementName || !adId) {
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
                                   message:@"placement and adId are required" 
                                   details:nil]);
         return;
     }
     
-    CLXPublisherFullscreenAd *rewardedAd = [[CloudXCore shared] createRewardedWithPlacement:placement
+    CLXPublisherFullscreenAd *rewardedAd = [[CloudXCore shared] createRewardedWithPlacement:placementName
                                                                                      delegate:self];
     
     if (rewardedAd) {
@@ -538,10 +538,10 @@
 }
 
 - (void)createNative:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *placement = arguments[@"placement"];
+    NSString *placementName = arguments[@"placementName"];
     NSString *adId = arguments[@"adId"];
     
-    if (!placement || !adId) {
+    if (!placementName || !adId) {
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
                                   message:@"placement and adId are required" 
                                   details:nil]);
@@ -549,7 +549,7 @@
     }
     
     UIViewController *viewController = [self getTopViewController];
-    CLXNativeAdView *nativeAd = [[CloudXCore shared] createNativeAdWithPlacement:placement
+    CLXNativeAdView *nativeAd = [[CloudXCore shared] createNativeAdWithPlacement:placementName
                                                                     viewController:viewController
                                                                         delegate:self];
     
@@ -566,10 +566,10 @@
 }
 
 - (void)createMREC:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *placement = arguments[@"placement"];
+    NSString *placementName = arguments[@"placementName"];
     NSString *adId = arguments[@"adId"];
     
-    if (!placement || !adId) {
+    if (!placementName || !adId) {
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
                                   message:@"placement and adId are required" 
                                   details:nil]);
@@ -577,7 +577,7 @@
     }
     
     UIViewController *viewController = [self getTopViewController];
-    CLXBannerAdView *mrecAd = [[CloudXCore shared] createMRECWithPlacement:placement
+    CLXBannerAdView *mrecAd = [[CloudXCore shared] createMRECWithPlacement:placementName
                                                               viewController:viewController
                                                                   delegate:self];
     
