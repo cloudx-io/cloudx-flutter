@@ -17,7 +17,7 @@ class BannerScreen extends BaseAdScreen {
   State<BannerScreen> createState() => _BannerScreenState();
 }
 
-class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticKeepAliveClientMixin {
+class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
   // UI Constants
   static const double _containerHeight = 180.0;
   static const double _containerBorderRadius = 12.0;
@@ -37,11 +37,7 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> with AutomaticK
   String? _programmaticAdId;
 
   @override
-  bool get wantKeepAlive => true;
-
-  @override
   Widget build(BuildContext context) {
-    super.build(context); // Required for AutomaticKeepAliveClientMixin
     return buildScreen(context);
   }
 

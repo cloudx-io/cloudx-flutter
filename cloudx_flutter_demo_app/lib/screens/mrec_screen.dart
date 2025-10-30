@@ -20,7 +20,7 @@ class MRECScreen extends BaseAdScreen {
   State<MRECScreen> createState() => _MRECScreenState();
 }
 
-class _MRECScreenState extends BaseAdScreenState<MRECScreen> with AutomaticKeepAliveClientMixin {
+class _MRECScreenState extends BaseAdScreenState<MRECScreen> {
   // UI Constants
   static const double _containerHeight = 250.0;
   static const double _containerBorderRadius = 12.0;
@@ -40,11 +40,7 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> with AutomaticKeepA
   String? _programmaticAdId;
 
   @override
-  bool get wantKeepAlive => true;
-
-  @override
   Widget build(BuildContext context) {
-    super.build(context); // Required for AutomaticKeepAliveClientMixin
     return buildScreen(context);
   }
 

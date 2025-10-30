@@ -17,15 +17,11 @@ class InterstitialScreen extends BaseAdScreen {
   State<InterstitialScreen> createState() => _InterstitialScreenState();
 }
 
-class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> with AutomaticKeepAliveClientMixin {
+class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> {
   String? _currentAdId;
 
   @override
-  bool get wantKeepAlive => true;
-
-  @override
   Widget build(BuildContext context) {
-    super.build(context); // Required for AutomaticKeepAliveClientMixin
     return buildScreen(context);
   }
 
