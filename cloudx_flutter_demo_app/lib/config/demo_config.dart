@@ -73,10 +73,10 @@ class DemoConfig {
 
   static const androidProduction = DemoEnvironmentConfig(
     name: 'Production',
-    appKey: 'Le01Sy3tmPjg8dlN0750r',
-    bannerPlacement: 'flutter-demo-banner-1',
-    mrecPlacement: 'flutter-demo-mrec-1',
-    interstitialPlacement: 'flutter-demo-interstitial-1',
+    appKey: 'QtGzyVf8AuffQIWC9jOUx',
+    bannerPlacement: 'FlutterDemoBanner',
+    mrecPlacement: 'FlutterDemoMrec',
+    interstitialPlacement: 'FlutterDemoInterstitial',
     nativePlacement: '-',
     rewardedPlacement: '-',
   );

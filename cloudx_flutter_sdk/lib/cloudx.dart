@@ -521,6 +521,7 @@ class CloudX {
     required String placement,
     String? adId,
     CloudXAdViewListener? listener,
+    AdViewPosition? position,
   }) async {
     await _ensureEventStreamInitialized();
 
@@ -530,6 +531,7 @@ class CloudX {
     final success = await _invokeMethod<bool>('createMREC', {
       'placement': placement,
       'adId': id,
+      if (position != null) 'position': position.value,
     });
 
     if (success == true) {

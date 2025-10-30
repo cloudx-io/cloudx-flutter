@@ -366,6 +366,80 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
         }
     }
 
+    /**
+     * Creates a programmatic ad view overlay at the specified position.
+     * This is shared logic used by both banners and MRECs.
+     *
+     * @param adView The CloudXAdView instance to position
+     * @param position The position string (e.g., "bottom_center")
+     * @param adId The unique identifier for this ad
+     * @param adType The type of ad (e.g., "banner", "MREC") for logging
+     * @param result The Flutter result callback
+     */
+    private fun createProgrammaticAdView(
+        adView: CloudXAdView,
+        position: String,
+        adId: String,
+        adType: String,
+        result: Result
+    ) {
+        val activity = activityRef?.get()
+        if (activity == null) {
+            result.error("NO_ACTIVITY", "Activity not available for programmatic $adType", null)
+            return
+        }
+
+        logDebug("Creating programmatic $adType at position: $position")
+
+        // Run on UI thread to add view to activity
+        activity.runOnUiThread {
+            try {
+                // Create container layout that will overlay the Flutter view
+                // Using FrameLayout because it supports gravity directly
+                val containerLayout = FrameLayout(activity)
+
+                // Get gravity for positioning
+                val gravity = getGravityFromPosition(position)
+
+                logDebug("Creating programmatic $adType with gravity: $gravity for position: $position")
+
+                // Create layout params with gravity for the ad view
+                val adViewLayoutParams = FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    gravity  // Apply gravity directly to FrameLayout.LayoutParams
+                )
+
+                // Remove ad view from any existing parent
+                (adView.parent as? ViewGroup)?.removeView(adView)
+
+                // Add ad view to container with gravity-based positioning
+                containerLayout.addView(adView, adViewLayoutParams)
+
+                // Set initial visibility to GONE (will be shown with showAd)
+                containerLayout.visibility = View.GONE
+
+                // Add container to activity's content view
+                activity.addContentView(
+                    containerLayout,
+                    FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.MATCH_PARENT
+                    )
+                )
+
+                // Store container for show/hide operations
+                programmaticBannerContainers[adId] = containerLayout
+
+                logDebug("Successfully created programmatic $adType: $adId at position: $position")
+                result.success(true)
+            } catch (e: Exception) {
+                logError("Failed to create programmatic $adType layout", e)
+                result.error("AD_CREATION_FAILED", "Failed to create programmatic $adType: ${e.message}", null)
+            }
+        }
+    }
+
     private fun createBanner(call: MethodCall, result: Result) {
         val placement = call.argument<String>("placement")
         val adId = call.argument<String>("adId")
@@ -383,61 +457,7 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
 
             // If position is specified, create programmatic banner overlay
             if (position != null) {
-                val activity = activityRef?.get()
-                if (activity == null) {
-                    result.error("NO_ACTIVITY", "Activity not available for programmatic banner", null)
-                    return
-                }
-
-                logDebug("Creating programmatic banner at position: $position")
-
-                // Run on UI thread to add view to activity
-                activity.runOnUiThread {
-                    try {
-                        // Create container layout that will overlay the Flutter view
-                        // Using FrameLayout because it supports gravity directly
-                        val containerLayout = FrameLayout(activity)
-
-                        // Get gravity for positioning
-                        val gravity = getGravityFromPosition(position)
-
-                        logDebug("Creating programmatic banner with gravity: $gravity for position: $position")
-
-                        // Create layout params with gravity for the banner
-                        val bannerLayoutParams = FrameLayout.LayoutParams(
-                            FrameLayout.LayoutParams.WRAP_CONTENT,
-                            FrameLayout.LayoutParams.WRAP_CONTENT,
-                            gravity  // Apply gravity directly to FrameLayout.LayoutParams
-                        )
-
-                        // Remove banner from any existing parent
-                        (bannerAd.parent as? ViewGroup)?.removeView(bannerAd)
-
-                        // Add banner to container with gravity-based positioning
-                        containerLayout.addView(bannerAd, bannerLayoutParams)
-
-                        // Set initial visibility to GONE (will be shown with showAd)
-                        containerLayout.visibility = View.GONE
-
-                        // Add container to activity's content view
-                        activity.addContentView(
-                            containerLayout,
-                            FrameLayout.LayoutParams(
-                                FrameLayout.LayoutParams.MATCH_PARENT,
-                                FrameLayout.LayoutParams.MATCH_PARENT
-                            )
-                        )
-
-                        // Store container for show/hide operations
-                        programmaticBannerContainers[adId] = containerLayout
-
-                        logDebug("Successfully created programmatic banner: $adId at position: $position")
-                        result.success(true)
-                    } catch (e: Exception) {
-                        logError("Failed to create programmatic banner layout", e)
-                        result.error("AD_CREATION_FAILED", "Failed to create programmatic banner: ${e.message}", null)
-                    }
-                }
+                createProgrammaticAdView(bannerAd, position, adId, "banner", result)
             } else {
                 // Widget-based banner (will be embedded via PlatformView)
                 logDebug("Created widget-based banner: $adId")
@@ -514,19 +534,28 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     private fun createMREC(call: MethodCall, result: Result) {
         val placement = call.argument<String>("placement")
         val adId = call.argument<String>("adId")
-        
+        val position = call.argument<String>("position")
+
         if (placement == null || adId == null) {
             result.error("INVALID_ARGUMENTS", "placement and adId are required", null)
             return
         }
-        
+
         try {
             val mrecAd = CloudX.createMREC(placement)
             mrecAd.listener = createAdViewListener(adId)
             adInstances[adId] = mrecAd
-            result.success(true)
+
+            // If position is specified, create programmatic MREC overlay
+            if (position != null) {
+                createProgrammaticAdView(mrecAd, position, adId, "MREC", result)
+            } else {
+                // Widget-based MREC (will be embedded via PlatformView)
+                logDebug("Created widget-based MREC: $adId")
+                result.success(true)
+            }
         } catch (e: Exception) {
-            logError( "Failed to create MREC", e)
+            logError("Failed to create MREC", e)
             result.error("AD_CREATION_FAILED", "Failed to create MREC: ${e.message}", null)
         }
     }
