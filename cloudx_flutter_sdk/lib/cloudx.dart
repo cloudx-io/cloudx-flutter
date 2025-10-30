@@ -418,6 +418,7 @@ class CloudX {
   ///
   /// If [adId] is not provided, one will be automatically generated.
   /// Returns the adId (either provided or generated) for use with other methods.
+  // ignore: unused_element
   static Future<String?> _createRewarded({
     required String placementName,
     String? adId,
@@ -444,16 +445,19 @@ class CloudX {
   }
 
   /// Load a rewarded ad (NOT READY - Internal use only)
+  // ignore: unused_element
   static Future<bool> _loadRewarded({required String adId}) async {
     return await _invokeMethod<bool>('loadAd', {'adId': adId}) ?? false;
   }
 
   /// Show a rewarded ad (NOT READY - Internal use only)
+  // ignore: unused_element
   static Future<bool> _showRewarded({required String adId}) async {
     return await _invokeMethod<bool>('showAd', {'adId': adId}) ?? false;
   }
 
   /// Check if rewarded ad is ready to show (NOT READY - Internal use only)
+  // ignore: unused_element
   static Future<bool> _isRewardedReady({required String adId}) async {
     return await _invokeMethod<bool>('isAdReady', {'adId': adId}) ?? false;
   }
@@ -466,6 +470,7 @@ class CloudX {
   ///
   /// If [adId] is not provided, one will be automatically generated.
   /// Returns the adId (either provided or generated) for use with other methods.
+  // ignore: unused_element
   static Future<String?> _createNative({
     required String placementName,
     String? adId,
@@ -494,6 +499,7 @@ class CloudX {
   /// Load a native ad
   ///
   /// NOT READY - Internal use only. Native ads are not ready for public use.
+  // ignore: unused_element
   static Future<bool> _loadNative({required String adId}) async {
     return await _invokeMethod<bool>('loadAd', {'adId': adId}) ?? false;
   }
@@ -501,6 +507,7 @@ class CloudX {
   /// Show a native ad
   ///
   /// NOT READY - Internal use only. Native ads are not ready for public use.
+  // ignore: unused_element
   static Future<bool> _showNative({required String adId}) async {
     return await _invokeMethod<bool>('showAd', {'adId': adId}) ?? false;
   }
@@ -508,6 +515,7 @@ class CloudX {
   /// Check if native ad is ready to show
   ///
   /// NOT READY - Internal use only. Native ads are not ready for public use.
+  // ignore: unused_element
   static Future<bool> _isNativeReady({required String adId}) async {
     return await _invokeMethod<bool>('isAdReady', {'adId': adId}) ?? false;
   }
