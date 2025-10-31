@@ -7,6 +7,10 @@
 #import <Flutter/Flutter.h>
 #import <objc/runtime.h>
 
+// Constants for ad sizing
+static const CGFloat kDefaultBannerWidth = 320.0;
+static const CGFloat kDefaultBannerHeight = 50.0;
+
 @interface CloudXFlutterSdkPlugin () <CLXInterstitialDelegate, CLXRewardedDelegate, CLXBannerDelegate, CLXNativeDelegate, FlutterStreamHandler>
 @property (nonatomic, strong) CLXLogger *logger;
 @property (nonatomic, strong) FlutterMethodChannel *channel;
@@ -447,6 +451,7 @@
         if (position) {
             self.adPositions[adId] = position;
             [self.logger debug:[NSString stringWithFormat:@"Created programmatic banner with position: %@", position]];
+            // Note: View will be added to hierarchy when showBanner is called
         }
 
         result(@YES);
@@ -565,6 +570,7 @@
         if (position) {
             self.adPositions[adId] = position;
             [self.logger debug:[NSString stringWithFormat:@"Created programmatic MREC with position: %@", position]];
+            // Note: View will be added to hierarchy when showMREC is called
         }
 
         result(@YES);
@@ -633,12 +639,38 @@
     }
 }
 
+/// Helper method to determine ad size with progressive fallback
+- (CGSize)determineSizeForAdView:(UIView *)adView {
+    // Try bounds first (set by CloudX SDK for standard sizes: Banner 320x50, MREC 300x250)
+    CGSize adSize = adView.bounds.size;
+    if (!CGSizeEqualToSize(adSize, CGSizeZero)) {
+        return adSize;
+    }
+
+    // Fallback to frame if bounds not set
+    [self.logger debug:@"Ad view bounds are zero, checking frame"];
+    adSize = adView.frame.size;
+    if (!CGSizeEqualToSize(adSize, CGSizeZero)) {
+        return adSize;
+    }
+
+    // Last resort: use default banner size
+    [self.logger debug:@"Ad view frame also zero, using default banner size"];
+    return CGSizeMake(kDefaultBannerWidth, kDefaultBannerHeight);
+}
+
 /// Helper method to apply positioning constraints for programmatic ads
 - (void)applyPositionConstraints:(NSString *)position toView:(UIView *)adView inContainer:(UIView *)containerView {
-    // Position format matches Flutter AdViewPosition enum values
-    // e.g., "top_center", "bottom_left", "centered", etc.
-
+    // Position format matches Flutter AdViewPosition enum values (e.g., "top_center", "bottom_left")
     NSMutableArray<NSLayoutConstraint *> *constraints = [NSMutableArray array];
+
+    // Determine ad size with progressive fallback (bounds → frame → default)
+    CGSize adSize = [self determineSizeForAdView:adView];
+
+    // Add explicit size constraints for Auto Layout
+    // Required because CloudX ad views may not have intrinsic content size
+    [constraints addObject:[adView.widthAnchor constraintEqualToConstant:adSize.width]];
+    [constraints addObject:[adView.heightAnchor constraintEqualToConstant:adSize.height]];
 
     // Horizontal positioning
     if ([position containsString:@"left"]) {
@@ -684,22 +716,25 @@
     // Check if this is a programmatic banner/MREC with position
     NSString *position = self.adPositions[adId];
     if (position && [adInstance isKindOfClass:[UIView class]]) {
-        // Programmatic banner/MREC - add to view hierarchy at specified position
+        // Programmatic banner/MREC - add to view hierarchy and show
         UIView *adView = (UIView *)adInstance;
         UIViewController *viewController = [self getTopViewController];
         UIView *containerView = viewController.view;
 
-        // Remove from previous superview if any
-        [adView removeFromSuperview];
+        // Only add to hierarchy if not already there
+        if (!adView.superview) {
+            adView.translatesAutoresizingMaskIntoConstraints = NO;
+            [containerView addSubview:adView];
 
-        // Add to container
-        adView.translatesAutoresizingMaskIntoConstraints = NO;
-        [containerView addSubview:adView];
+            // Apply positioning constraints
+            [self applyPositionConstraints:position toView:adView inContainer:containerView];
+            [self.logger debug:[NSString stringWithFormat:@"Added programmatic ad to view hierarchy at position: %@", position]];
+        } else {
+            // Already in hierarchy, just unhide
+            adView.hidden = NO;
+            [self.logger debug:[NSString stringWithFormat:@"Unhiding programmatic ad at position: %@", position]];
+        }
 
-        // Apply positioning constraints
-        [self applyPositionConstraints:position toView:adView inContainer:containerView];
-
-        [self.logger debug:[NSString stringWithFormat:@"Showing programmatic ad at position: %@", position]];
         result(@YES);
     } else if ([adInstance respondsToSelector:@selector(showFromViewController:)]) {
         // Fullscreen ad (interstitial/rewarded)
@@ -733,12 +768,21 @@
     
     // Handle different ad types according to CloudX SDK and industry standards
     if ([adInstance isKindOfClass:[UIView class]]) {
-        // Banner ads (UIView-based) - remove from superview or hide
+        // Banner/MREC ads (UIView-based) - just hide them (keep in hierarchy for programmatic)
         UIView *bannerView = (UIView *)adInstance;
-        if (bannerView.superview) {
-            [bannerView removeFromSuperview];
-        } else {
+        NSString *position = self.adPositions[adId];
+
+        if (position) {
+            // Programmatic ad - keep in hierarchy, just hide
             bannerView.hidden = YES;
+            [self.logger debug:@"Hiding programmatic ad (kept in hierarchy)"];
+        } else {
+            // Widget-based ad - can remove from hierarchy
+            if (bannerView.superview) {
+                [bannerView removeFromSuperview];
+            } else {
+                bannerView.hidden = YES;
+            }
         }
         result(@YES);
     } else if ([adInstance respondsToSelector:@selector(destroy)]) {
@@ -800,6 +844,15 @@
             }
         } @catch (NSException *exception) {
             // No inner ad, that's fine
+        }
+
+        // For programmatic banner/MREC views, explicitly remove from superview
+        if ([adInstance isKindOfClass:[UIView class]]) {
+            UIView *adView = (UIView *)adInstance;
+            if (adView.superview) {
+                [adView removeFromSuperview];
+                [self.logger debug:@"Removed programmatic ad view from hierarchy"];
+            }
         }
 
         if ([adInstance respondsToSelector:@selector(destroy)]) {
