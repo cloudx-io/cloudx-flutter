@@ -40,6 +40,9 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     // Track SDK initialization state
     private var isSDKInitialized = false
 
+    // Track privacy state to prevent overwriting when setting individual fields
+    private var currentPrivacy = CloudXPrivacy()
+
     companion object {
         private const val TAG = "CloudXFlutter"
         private const val METHOD_CHANNEL = "cloudx_flutter_sdk"
@@ -286,13 +289,23 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
 
     private fun setIsUserConsent(call: MethodCall, result: Result) {
         val isUserConsent = call.argument<Boolean>("isUserConsent") ?: false
-        CloudX.setPrivacy(CloudXPrivacy(isUserConsent = isUserConsent))
+        // Preserve existing isAgeRestrictedUser value
+        currentPrivacy = CloudXPrivacy(
+            isUserConsent = isUserConsent,
+            isAgeRestrictedUser = currentPrivacy.isAgeRestrictedUser
+        )
+        CloudX.setPrivacy(currentPrivacy)
         result.success(true)
     }
 
     private fun setIsAgeRestrictedUser(call: MethodCall, result: Result) {
         val isAgeRestricted = call.argument<Boolean>("isAgeRestrictedUser") ?: false
-        CloudX.setPrivacy(CloudXPrivacy(isAgeRestrictedUser = isAgeRestricted))
+        // Preserve existing isUserConsent value
+        currentPrivacy = CloudXPrivacy(
+            isUserConsent = currentPrivacy.isUserConsent,
+            isAgeRestrictedUser = isAgeRestricted
+        )
+        CloudX.setPrivacy(currentPrivacy)
         result.success(true)
     }
 
