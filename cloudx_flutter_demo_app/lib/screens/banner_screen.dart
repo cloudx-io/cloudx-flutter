@@ -212,6 +212,12 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
         DemoAppLogger.sharedInstance.logMessage(
             '🎯 Created programmatic banner at ${_selectedPosition.value}');
 
+        // Load the banner
+        if (_programmaticAdId != null) {
+          await CloudX.loadBanner(adId: _programmaticAdId!);
+          DemoAppLogger.sharedInstance.logMessage('📥 Loading programmatic banner');
+        }
+
         // Start auto-refresh (enabled by default)
         if (_isAutoRefreshEnabled && _programmaticAdId != null) {
           await CloudX.startAutoRefresh(adId: _programmaticAdId!);

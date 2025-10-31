@@ -214,6 +214,12 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> {
         DemoAppLogger.sharedInstance.logMessage(
             '🎯 Created programmatic MREC at ${_selectedPosition.value}');
 
+        // Load the MREC
+        if (_programmaticAdId != null) {
+          await CloudX.loadMREC(adId: _programmaticAdId!);
+          DemoAppLogger.sharedInstance.logMessage('📥 Loading programmatic MREC');
+        }
+
         // Start auto-refresh (enabled by default)
         if (_isAutoRefreshEnabled && _programmaticAdId != null) {
           await CloudX.startAutoRefresh(adId: _programmaticAdId!);

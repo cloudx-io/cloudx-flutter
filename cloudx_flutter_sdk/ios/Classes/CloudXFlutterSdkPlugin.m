@@ -809,6 +809,12 @@
         [self.adInstances removeObjectForKey:adId];
         [self.pendingResults removeObjectForKey:adId];
         [self.adPositions removeObjectForKey:adId];
+
+        // Clean up placement mappings for this adId
+        NSArray *placementKeys = [self.placementToAdIdMap allKeysForObject:adId];
+        for (NSString *placementKey in placementKeys) {
+            [self.placementToAdIdMap removeObjectForKey:placementKey];
+        }
     }
 
     result(@YES);
