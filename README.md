@@ -1,5 +1,8 @@
 # CloudX Flutter SDK
 
+[![pub package](https://img.shields.io/pub/v/cloudx_flutter_sdk.svg)](https://pub.dev/packages/cloudx_flutter_sdk)
+[![GitHub](https://img.shields.io/badge/github-cloudx--flutter-blue)](https://github.com/cloudx-io/cloudx-flutter)
+
 A Flutter plugin for the CloudX Mobile Ads platform. Monetize your Flutter apps with banner, MREC, and interstitial ads across iOS and Android.
 
 ## Features
@@ -23,9 +26,21 @@ A Flutter plugin for the CloudX Mobile Ads platform. Monetize your Flutter apps 
 
 ## Installation
 
-### Option 1: Git Dependency (Recommended)
-
 Add this to your `pubspec.yaml`:
+
+```yaml
+dependencies:
+  cloudx_flutter_sdk: ^0.1.0
+```
+
+Then run:
+```bash
+flutter pub get
+```
+
+**Alternative: Git Dependency**
+
+For the latest development version from GitHub:
 
 ```yaml
 dependencies:
@@ -34,21 +49,6 @@ dependencies:
       url: https://github.com/cloudx-io/cloudx-flutter.git
       ref: v0.1.0  # Use specific version tag
       path: cloudx_flutter_sdk
-```
-
-Then run:
-```bash
-flutter pub get
-```
-
-### Option 2: Local Path (Development Only)
-
-If you have the SDK cloned locally:
-
-```yaml
-dependencies:
-  cloudx_flutter_sdk:
-    path: ../cloudx_flutter_sdk  # Relative path to SDK
 ```
 
 ### iOS Setup
