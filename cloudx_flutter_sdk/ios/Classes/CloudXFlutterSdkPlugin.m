@@ -302,11 +302,13 @@
     if ([call.method isEqualToString:@"initSDK"]) {
         [self initSDK:call.arguments result:result];
     } else if ([call.method isEqualToString:@"isSDKInitialized"]) {
-        result(@([[CloudXCore shared] isInitialized]));
+        // TODO: CloudXCore does not expose isInitialized - always return false for now
+        result(@NO);
     } else if ([call.method isEqualToString:@"getSDKVersion"]) {
         result([[CloudXCore shared] sdkVersion]);
     } else if ([call.method isEqualToString:@"getUserID"]) {
-        result([[CloudXCore shared] userID]);
+        // TODO: CloudXCore does not expose userID getter - return nil
+        result(nil);
     } else if ([call.method isEqualToString:@"setUserID"]) {
         [[CloudXCore shared] setHashedUserID:call.arguments[@"userID"]];
         result(@YES);
@@ -330,15 +332,17 @@
         [CloudXCore setIsAgeRestrictedUser:[call.arguments[@"isAgeRestrictedUser"] boolValue]];
         result(@YES);
     } else if ([call.method isEqualToString:@"setGPPString"]) {
-        [CloudXCore setGPPString:call.arguments[@"gppString"]];
+        // TODO: CloudXCore does not support GPP yet - no-op for now
         result(@YES);
     } else if ([call.method isEqualToString:@"getGPPString"]) {
-        result([CloudXCore getGPPString]);
+        // TODO: CloudXCore does not support GPP yet - return nil
+        result(nil);
     } else if ([call.method isEqualToString:@"setGPPSid"]) {
-        [CloudXCore setGPPSid:call.arguments[@"gppSid"]];
+        // TODO: CloudXCore does not support GPP yet - no-op for now
         result(@YES);
     } else if ([call.method isEqualToString:@"getGPPSid"]) {
-        result([CloudXCore getGPPSid]);
+        // TODO: CloudXCore does not support GPP yet - return nil
+        result(nil);
     }
     // Targeting Methods
     else if ([call.method isEqualToString:@"setUserKeyValue"]) {
@@ -462,15 +466,15 @@
 - (void)createInterstitial:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *placementName = arguments[@"placementName"];
     NSString *adId = arguments[@"adId"];
-    
+
     if (!placementName || !adId) {
-        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
-                                  message:@"placementName and adId are required" 
+        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
+                                  message:@"placementName and adId are required"
                                   details:nil]);
         return;
     }
-    
-    CLXPublisherFullscreenAd *interstitialAd = [[CloudXCore shared] createInterstitialWithPlacement:placementName
+
+    CLXInterstitial *interstitialAd = [[CloudXCore shared] createInterstitialWithPlacement:placementName
                                                                                               delegate:self];
     
     if (interstitialAd) {
@@ -489,15 +493,15 @@
 - (void)createRewarded:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *placementName = arguments[@"placementName"];
     NSString *adId = arguments[@"adId"];
-    
+
     if (!placementName || !adId) {
-        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
-                                  message:@"placementName and adId are required" 
+        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
+                                  message:@"placementName and adId are required"
                                   details:nil]);
         return;
     }
-    
-    CLXPublisherFullscreenAd *rewardedAd = [[CloudXCore shared] createRewardedWithPlacement:placementName
+
+    CLXRewarded *rewardedAd = [[CloudXCore shared] createRewardedWithPlacement:placementName
                                                                                      delegate:self];
     
     if (rewardedAd) {
