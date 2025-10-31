@@ -80,17 +80,21 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> {
             children: [
               Expanded(
                 child: Text(
-                  _useProgrammaticMREC ? 'Programmatic (Positioned)' : 'Widget-based (Embedded)',
+                  _useProgrammaticMREC
+                      ? 'Programmatic (Positioned)'
+                      : 'Widget-based (Embedded)',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
               Switch(
                 value: _useProgrammaticMREC,
-                onChanged: !_showMREC ? (value) {
-                  setState(() {
-                    _useProgrammaticMREC = value;
-                  });
-                } : null,
+                onChanged: !_showMREC
+                    ? (value) {
+                        setState(() {
+                          _useProgrammaticMREC = value;
+                        });
+                      }
+                    : null,
               ),
             ],
           ),
@@ -108,7 +112,8 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('MREC Position:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('MREC Position:',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -118,10 +123,13 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> {
                   _buildPositionChip('Top Right', AdViewPosition.topRight),
                   _buildPositionChip('Center', AdViewPosition.centered),
                   _buildPositionChip('Center Left', AdViewPosition.centerLeft),
-                  _buildPositionChip('Center Right', AdViewPosition.centerRight),
+                  _buildPositionChip(
+                      'Center Right', AdViewPosition.centerRight),
                   _buildPositionChip('Bottom Left', AdViewPosition.bottomLeft),
-                  _buildPositionChip('Bottom Center', AdViewPosition.bottomCenter),
-                  _buildPositionChip('Bottom Right', AdViewPosition.bottomRight),
+                  _buildPositionChip(
+                      'Bottom Center', AdViewPosition.bottomCenter),
+                  _buildPositionChip(
+                      'Bottom Right', AdViewPosition.bottomRight),
                 ],
               ),
             ],
@@ -136,28 +144,36 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> {
     return FilterChip(
       label: Text(label),
       selected: isSelected,
-      onSelected: !_showMREC ? (selected) {
-        setState(() {
-          _selectedPosition = position;
-        });
-      } : null,
+      onSelected: !_showMREC
+          ? (selected) {
+              setState(() {
+                _selectedPosition = position;
+              });
+            }
+          : null,
     );
   }
 
   Widget _buildLoadButton() {
     return Center(
       child: ElevatedButton(
-        onPressed: _useProgrammaticMREC ? _toggleProgrammaticMREC : () {
-          setState(() {
-            _showMREC = !_showMREC;
-          });
-          if (!_showMREC) {
-            setAdState(AdState.noAd);
-            setCustomStatus(text: 'MREC stopped', color: Colors.grey);
-          } else {
-            setAdState(AdState.loading);
-          }
-        },
+        onPressed: _useProgrammaticMREC
+            ? _toggleProgrammaticMREC
+            : () {
+                setState(() {
+                  _showMREC = !_showMREC;
+                  // Reset auto-refresh state to default when stopping widget-based MREC
+                  if (!_showMREC) {
+                    _isAutoRefreshEnabled = true;
+                  }
+                });
+                if (!_showMREC) {
+                  setAdState(AdState.noAd);
+                  setCustomStatus(text: 'MREC stopped', color: Colors.grey);
+                } else {
+                  setAdState(AdState.loading);
+                }
+              },
         child: Text(_showMREC ? 'Stop' : 'Load / Show'),
       ),
     );
@@ -169,10 +185,13 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> {
       if (_programmaticAdId != null) {
         await CloudX.destroyAd(adId: _programmaticAdId!);
         _programmaticAdId = null;
-        DemoAppLogger.sharedInstance.logMessage('🗑️ Destroyed programmatic MREC');
+        DemoAppLogger.sharedInstance
+            .logMessage('🗑️ Destroyed programmatic MREC');
       }
       setState(() {
         _showMREC = false;
+        // Reset auto-refresh state to default when destroying ad
+        _isAutoRefreshEnabled = true;
       });
       setAdState(AdState.noAd);
       setCustomStatus(text: 'Programmatic MREC stopped', color: Colors.grey);
@@ -192,15 +211,18 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> {
           listener: _createMRECListener('Programmatic MREC'),
         );
 
-        DemoAppLogger.sharedInstance.logMessage('🎯 Created programmatic MREC at ${_selectedPosition.value}');
+        DemoAppLogger.sharedInstance.logMessage(
+            '🎯 Created programmatic MREC at ${_selectedPosition.value}');
 
         // Start auto-refresh (enabled by default)
         if (_isAutoRefreshEnabled && _programmaticAdId != null) {
           await CloudX.startAutoRefresh(adId: _programmaticAdId!);
-          DemoAppLogger.sharedInstance.logMessage('🔄 Auto-refresh started (enabled by default)');
+          DemoAppLogger.sharedInstance
+              .logMessage('🔄 Auto-refresh started (enabled by default)');
         }
       } catch (e) {
-        DemoAppLogger.sharedInstance.logMessage('❌ Error creating programmatic MREC: $e');
+        DemoAppLogger.sharedInstance
+            .logMessage('❌ Error creating programmatic MREC: $e');
         setAdState(AdState.noAd);
         setCustomStatus(text: 'Error: $e', color: Colors.red);
         setState(() {
@@ -250,7 +272,8 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> {
 
   Future<void> _startAutoRefresh() async {
     await _performAutoRefreshAction(
-      programmaticAction: () => CloudX.startAutoRefresh(adId: _programmaticAdId!),
+      programmaticAction: () =>
+          CloudX.startAutoRefresh(adId: _programmaticAdId!),
       widgetAction: () => _mrecController.startAutoRefresh(),
     );
 
@@ -263,7 +286,8 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> {
 
   Future<void> _stopAutoRefresh() async {
     await _performAutoRefreshAction(
-      programmaticAction: () => CloudX.stopAutoRefresh(adId: _programmaticAdId!),
+      programmaticAction: () =>
+          CloudX.stopAutoRefresh(adId: _programmaticAdId!),
       widgetAction: () => _mrecController.stopAutoRefresh(),
     );
 
@@ -337,7 +361,8 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> {
                   ),
                 ],
               ),
-              child: const Icon(Icons.layers, size: _iconSizeSmall, color: Colors.blue),
+              child: const Icon(Icons.layers,
+                  size: _iconSizeSmall, color: Colors.blue),
             ),
             const SizedBox(height: 16),
             Text(
@@ -407,11 +432,14 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> {
       },
       onAdDisplayed: (ad) {
         DemoAppLogger.sharedInstance.logAdEvent('📺 $adType Displayed', ad);
-        final positionText = _useProgrammaticMREC ? ' at ${_selectedPosition.value}' : '';
-        setCustomStatus(text: '$adType Displayed$positionText', color: Colors.green);
+        final positionText =
+            _useProgrammaticMREC ? ' at ${_selectedPosition.value}' : '';
+        setCustomStatus(
+            text: '$adType Displayed$positionText', color: Colors.green);
       },
       onAdDisplayFailed: (error) {
-        DemoAppLogger.sharedInstance.logMessage('❌ $adType Display Failed: $error');
+        DemoAppLogger.sharedInstance
+            .logMessage('❌ $adType Display Failed: $error');
         setCustomStatus(text: 'Failed to display: $error', color: Colors.red);
       },
       onAdClicked: (ad) {

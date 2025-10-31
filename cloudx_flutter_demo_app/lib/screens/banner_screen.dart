@@ -77,17 +77,21 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
             children: [
               Expanded(
                 child: Text(
-                  _useProgrammaticBanner ? 'Programmatic (Positioned)' : 'Widget-based (Embedded)',
+                  _useProgrammaticBanner
+                      ? 'Programmatic (Positioned)'
+                      : 'Widget-based (Embedded)',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
               Switch(
                 value: _useProgrammaticBanner,
-                onChanged: !_showBanner ? (value) {
-                  setState(() {
-                    _useProgrammaticBanner = value;
-                  });
-                } : null,
+                onChanged: !_showBanner
+                    ? (value) {
+                        setState(() {
+                          _useProgrammaticBanner = value;
+                        });
+                      }
+                    : null,
               ),
             ],
           ),
@@ -105,7 +109,8 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Banner Position:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('Banner Position:',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -115,10 +120,13 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
                   _buildPositionChip('Top Right', AdViewPosition.topRight),
                   _buildPositionChip('Center', AdViewPosition.centered),
                   _buildPositionChip('Center Left', AdViewPosition.centerLeft),
-                  _buildPositionChip('Center Right', AdViewPosition.centerRight),
+                  _buildPositionChip(
+                      'Center Right', AdViewPosition.centerRight),
                   _buildPositionChip('Bottom Left', AdViewPosition.bottomLeft),
-                  _buildPositionChip('Bottom Center', AdViewPosition.bottomCenter),
-                  _buildPositionChip('Bottom Right', AdViewPosition.bottomRight),
+                  _buildPositionChip(
+                      'Bottom Center', AdViewPosition.bottomCenter),
+                  _buildPositionChip(
+                      'Bottom Right', AdViewPosition.bottomRight),
                 ],
               ),
             ],
@@ -133,28 +141,36 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
     return FilterChip(
       label: Text(label),
       selected: isSelected,
-      onSelected: !_showBanner ? (selected) {
-        setState(() {
-          _selectedPosition = position;
-        });
-      } : null,
+      onSelected: !_showBanner
+          ? (selected) {
+              setState(() {
+                _selectedPosition = position;
+              });
+            }
+          : null,
     );
   }
 
   Widget _buildLoadButton() {
     return Center(
       child: ElevatedButton(
-        onPressed: _useProgrammaticBanner ? _toggleProgrammaticBanner : () {
-          setState(() {
-            _showBanner = !_showBanner;
-          });
-          if (!_showBanner) {
-            setAdState(AdState.noAd);
-            setCustomStatus(text: 'Banner stopped', color: Colors.grey);
-          } else {
-            setAdState(AdState.loading);
-          }
-        },
+        onPressed: _useProgrammaticBanner
+            ? _toggleProgrammaticBanner
+            : () {
+                setState(() {
+                  _showBanner = !_showBanner;
+                  // Reset auto-refresh state to default when stopping widget-based banner
+                  if (!_showBanner) {
+                    _isAutoRefreshEnabled = true;
+                  }
+                });
+                if (!_showBanner) {
+                  setAdState(AdState.noAd);
+                  setCustomStatus(text: 'Banner stopped', color: Colors.grey);
+                } else {
+                  setAdState(AdState.loading);
+                }
+              },
         child: Text(_showBanner ? 'Stop' : 'Load / Show'),
       ),
     );
@@ -166,10 +182,13 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
       if (_programmaticAdId != null) {
         await CloudX.destroyAd(adId: _programmaticAdId!);
         _programmaticAdId = null;
-        DemoAppLogger.sharedInstance.logMessage('🗑️ Destroyed programmatic banner');
+        DemoAppLogger.sharedInstance
+            .logMessage('🗑️ Destroyed programmatic banner');
       }
       setState(() {
         _showBanner = false;
+        // Reset auto-refresh state to default when destroying ad
+        _isAutoRefreshEnabled = true;
       });
       setAdState(AdState.noAd);
       setCustomStatus(text: 'Programmatic banner stopped', color: Colors.grey);
@@ -179,7 +198,8 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
         _showBanner = true;
       });
       setAdState(AdState.loading);
-      setCustomStatus(text: 'Loading programmatic banner...', color: Colors.blue);
+      setCustomStatus(
+          text: 'Loading programmatic banner...', color: Colors.blue);
 
       try {
         // Create programmatic banner with position
@@ -189,15 +209,18 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
           listener: _createBannerListener('Programmatic Banner'),
         );
 
-        DemoAppLogger.sharedInstance.logMessage('🎯 Created programmatic banner at ${_selectedPosition.value}');
+        DemoAppLogger.sharedInstance.logMessage(
+            '🎯 Created programmatic banner at ${_selectedPosition.value}');
 
         // Start auto-refresh (enabled by default)
         if (_isAutoRefreshEnabled && _programmaticAdId != null) {
           await CloudX.startAutoRefresh(adId: _programmaticAdId!);
-          DemoAppLogger.sharedInstance.logMessage('🔄 Auto-refresh started (enabled by default)');
+          DemoAppLogger.sharedInstance
+              .logMessage('🔄 Auto-refresh started (enabled by default)');
         }
       } catch (e) {
-        DemoAppLogger.sharedInstance.logMessage('❌ Error creating programmatic banner: $e');
+        DemoAppLogger.sharedInstance
+            .logMessage('❌ Error creating programmatic banner: $e');
         setAdState(AdState.noAd);
         setCustomStatus(text: 'Error: $e', color: Colors.red);
         setState(() {
@@ -247,7 +270,8 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
 
   Future<void> _startAutoRefresh() async {
     await _performAutoRefreshAction(
-      programmaticAction: () => CloudX.startAutoRefresh(adId: _programmaticAdId!),
+      programmaticAction: () =>
+          CloudX.startAutoRefresh(adId: _programmaticAdId!),
       widgetAction: () => _bannerController.startAutoRefresh(),
     );
 
@@ -260,7 +284,8 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
 
   Future<void> _stopAutoRefresh() async {
     await _performAutoRefreshAction(
-      programmaticAction: () => CloudX.stopAutoRefresh(adId: _programmaticAdId!),
+      programmaticAction: () =>
+          CloudX.stopAutoRefresh(adId: _programmaticAdId!),
       widgetAction: () => _bannerController.stopAutoRefresh(),
     );
 
@@ -291,7 +316,8 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
           size: _iconSizeLarge,
           color: Colors.grey[400],
         ),
-        title: _useProgrammaticBanner ? 'Programmatic Mode' : 'Widget-based Mode',
+        title:
+            _useProgrammaticBanner ? 'Programmatic Mode' : 'Widget-based Mode',
         description: _useProgrammaticBanner
             ? 'Banner will overlay at\nselected screen position'
             : 'Banner will render here\nin the widget tree',
@@ -334,7 +360,8 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
                   ),
                 ],
               ),
-              child: const Icon(Icons.layers, size: _iconSizeSmall, color: Colors.blue),
+              child: const Icon(Icons.layers,
+                  size: _iconSizeSmall, color: Colors.blue),
             ),
             const SizedBox(height: 16),
             Text(
@@ -404,11 +431,14 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
       },
       onAdDisplayed: (ad) {
         DemoAppLogger.sharedInstance.logAdEvent('📺 $adType Displayed', ad);
-        final positionText = _useProgrammaticBanner ? ' at ${_selectedPosition.value}' : '';
-        setCustomStatus(text: '$adType Displayed$positionText', color: Colors.green);
+        final positionText =
+            _useProgrammaticBanner ? ' at ${_selectedPosition.value}' : '';
+        setCustomStatus(
+            text: '$adType Displayed$positionText', color: Colors.green);
       },
       onAdDisplayFailed: (error) {
-        DemoAppLogger.sharedInstance.logMessage('❌ $adType Display Failed: $error');
+        DemoAppLogger.sharedInstance
+            .logMessage('❌ $adType Display Failed: $error');
         setCustomStatus(text: 'Failed to display: $error', color: Colors.red);
       },
       onAdClicked: (ad) {
