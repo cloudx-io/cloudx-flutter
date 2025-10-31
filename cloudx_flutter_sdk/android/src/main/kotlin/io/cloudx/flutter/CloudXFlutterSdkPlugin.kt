@@ -37,6 +37,9 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     // Storage for pending results (for async operations)
     private val pendingResults = mutableMapOf<String, Result>()
 
+    // Track SDK initialization state
+    private var isSDKInitialized = false
+
     companion object {
         private const val TAG = "CloudXFlutter"
         private const val METHOD_CHANNEL = "cloudx_flutter_sdk"
@@ -127,9 +130,9 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
         when (call.method) {
             // Core SDK Methods
             "initSDK" -> initSDK(call, result)
-            "isSDKInitialized" -> result.success(false) // TODO: Track initialization state
-            "getSDKVersion" -> result.success("0.0.1") // TODO: Get from SDK
-            "getUserID" -> result.success(null) // TODO: Implement user ID getter
+            "isSDKInitialized" -> result.success(isSDKInitialized)
+            "getSDKVersion" -> result.success(io.cloudx.sdk.BuildConfig.SDK_VERSION_NAME)
+            "getUserID" -> result.success(null) // Android SDK does not support retrieving user ID (only setting)
             "setUserID" -> {
                 val userID = call.argument<String>("userID")
                 userID?.let { CloudX.setHashedUserId(it) }
@@ -244,11 +247,13 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
         CloudX.initialize(initParams, object : CloudXInitializationListener {
             override fun onInitialized() {
                 logDebug( "CloudX SDK initialized successfully")
+                isSDKInitialized = true
                 result.success(true)
             }
-            
+
             override fun onInitializationFailed(cloudXError: CloudXError) {
                 logError( "CloudX SDK initialization failed: ${cloudXError.effectiveMessage}")
+                isSDKInitialized = false
                 result.error(
                     "INIT_FAILED",
                     cloudXError.effectiveMessage,
