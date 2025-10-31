@@ -617,7 +617,7 @@ await CloudX.destroyAd(adId: adId);
 
 ## Example App
 
-A complete demo app is included in the `cloudx_flutter_demo_app/` directory. It demonstrates:
+A complete demo app is available in the [GitHub repository](https://github.com/cloudx-io/cloudx-flutter) under `cloudx_flutter_demo_app/`. It demonstrates:
 
 - SDK initialization with environment selection
 - All ad format implementations
@@ -627,10 +627,11 @@ A complete demo app is included in the `cloudx_flutter_demo_app/` directory. It 
 - Proper lifecycle management
 - Event logging and debugging
 
-Run the demo:
+Clone the repository and run the demo:
 
 ```bash
-cd cloudx_flutter_demo_app
+git clone https://github.com/cloudx-io/cloudx-flutter.git
+cd cloudx-flutter/cloudx_flutter_demo_app
 flutter pub get
 flutter run
 ```

@@ -19,7 +19,7 @@ Synchronizes the SDK version from `pubspec.yaml` to all platform-specific files.
 **What it does:**
 1. Reads version from `pubspec.yaml`
 2. Updates `android/build.gradle`
-3. Updates `ios/cloudx_flutter_sdk.podspec`
+3. Updates `ios/cloudx_flutter.podspec`
 
 **When to use:**
 - When updating the SDK version for a new release
@@ -34,7 +34,7 @@ vim pubspec.yaml  # Change version: 0.1.0 → 0.2.0
 ./tool/sync_version.sh
 
 # 3. Commit
-git add pubspec.yaml android/build.gradle ios/cloudx_flutter_sdk.podspec
+git add pubspec.yaml android/build.gradle ios/cloudx_flutter.podspec
 git commit -m "Bump version to 0.2.0"
 ```
 

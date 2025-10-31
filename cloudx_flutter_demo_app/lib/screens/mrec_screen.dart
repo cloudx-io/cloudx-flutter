@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cloudx_flutter_sdk/cloudx.dart';
+import 'package:cloudx_flutter/cloudx.dart';
 import 'base_ad_screen.dart';
 import '../config/demo_config.dart';
 import '../utils/demo_app_logger.dart';
@@ -213,6 +213,12 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> {
 
         DemoAppLogger.sharedInstance.logMessage(
             '🎯 Created programmatic MREC at ${_selectedPosition.value}');
+
+        // Load the MREC
+        if (_programmaticAdId != null) {
+          await CloudX.loadMREC(adId: _programmaticAdId!);
+          DemoAppLogger.sharedInstance.logMessage('📥 Loading programmatic MREC');
+        }
 
         // Start auto-refresh (enabled by default)
         if (_isAutoRefreshEnabled && _programmaticAdId != null) {
