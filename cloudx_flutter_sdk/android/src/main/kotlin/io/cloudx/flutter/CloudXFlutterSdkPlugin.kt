@@ -107,7 +107,12 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     // EventChannel.StreamHandler implementation
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
         eventSink = events
-        logDebug( "Event stream listener attached")
+        logDebug("Event stream listener attached")
+
+        // Send ready sentinel to match iOS behavior and prevent 500ms timeout on Flutter side
+        events?.success(mapOf(
+            "event" to "__eventChannelReady__"
+        ))
     }
 
     override fun onCancel(arguments: Any?) {
