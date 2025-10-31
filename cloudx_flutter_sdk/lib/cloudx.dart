@@ -114,30 +114,12 @@ class CloudX {
     return !Platform.isIOS;
   }
 
-  /// Check if the SDK is initialized
-  static Future<bool> isInitialized() async {
-    try {
-      return await _invokeMethod<bool>('isSDKInitialized') ?? false;
-    } catch (e) {
-      return false;
-    }
-  }
-
   /// Get the SDK version
   static Future<String> getVersion() async {
     try {
       return await _invokeMethod<String>('getSDKVersion') ?? 'Unknown';
     } catch (e) {
       return 'Unknown';
-    }
-  }
-
-  /// Get or set the user ID
-  static Future<String?> getUserID() async {
-    try {
-      return await _invokeMethod<String>('getUserID');
-    } catch (e) {
-      return null;
     }
   }
 

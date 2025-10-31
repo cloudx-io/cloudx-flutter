@@ -418,9 +418,6 @@ Enhance ad targeting with first-party data.
 ```dart
 // Set user ID (should be hashed for privacy)
 await CloudX.setUserID('hashed-user-id');
-
-// Get current user ID
-final userId = await CloudX.getUserID();
 ```
 
 ### Key-Value Targeting
@@ -497,9 +494,6 @@ class _MyAdScreenState extends State<MyAdScreen> {
 ## SDK Information
 
 ```dart
-// Check if SDK is initialized
-final isInitialized = await CloudX.isInitialized();
-
 // Check platform support
 final isSupported = await CloudX.isPlatformSupported();
 
@@ -661,7 +655,6 @@ flutter run
 
 ### Initialization
 - `initialize({required String appKey, bool allowIosExperimental})` → `Future<bool>`
-- `isInitialized()` → `Future<bool>`
 - `isPlatformSupported()` → `Future<bool>`
 - `getVersion()` → `Future<String>`
 - `setEnvironment(String environment)` → `Future<void>`
@@ -701,7 +694,6 @@ flutter run
 
 ### User Targeting
 - `setUserID(String? userID)` → `Future<void>`
-- `getUserID()` → `Future<String?>`
 - `setUserKeyValue(String key, String value)` → `Future<void>`
 - `setAppKeyValue(String key, String value)` → `Future<void>`
 - `clearAllKeyValues()` → `Future<void>`

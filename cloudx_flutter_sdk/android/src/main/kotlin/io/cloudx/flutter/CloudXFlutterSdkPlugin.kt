@@ -122,9 +122,7 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
         when (call.method) {
             // Core SDK Methods
             "initSDK" -> initSDK(call, result)
-            "isSDKInitialized" -> result.success(false) // TODO: Track initialization state
             "getSDKVersion" -> result.success("0.0.1") // TODO: Get from SDK
-            "getUserID" -> result.success(null) // TODO: Implement user ID getter
             "setUserID" -> {
                 val userID = call.argument<String>("userID")
                 userID?.let { CloudX.setHashedUserId(it) }

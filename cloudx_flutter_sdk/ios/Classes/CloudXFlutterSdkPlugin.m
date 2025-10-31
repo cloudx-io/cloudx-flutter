@@ -301,14 +301,8 @@
     // Core SDK Methods
     if ([call.method isEqualToString:@"initSDK"]) {
         [self initSDK:call.arguments result:result];
-    } else if ([call.method isEqualToString:@"isSDKInitialized"]) {
-        // TODO: CloudXCore does not expose isInitialized - always return false for now
-        result(@NO);
     } else if ([call.method isEqualToString:@"getSDKVersion"]) {
         result([[CloudXCore shared] sdkVersion]);
-    } else if ([call.method isEqualToString:@"getUserID"]) {
-        // TODO: CloudXCore does not expose userID getter - return nil
-        result(nil);
     } else if ([call.method isEqualToString:@"setUserID"]) {
         [[CloudXCore shared] setHashedUserID:call.arguments[@"userID"]];
         result(@YES);
