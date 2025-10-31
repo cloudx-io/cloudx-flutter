@@ -37,6 +37,12 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     // Storage for pending results (for async operations)
     private val pendingResults = mutableMapOf<String, Result>()
 
+    // Track SDK initialization state
+    private var isSDKInitialized = false
+
+    // Track privacy state to prevent overwriting when setting individual fields
+    private var currentPrivacy = CloudXPrivacy()
+
     companion object {
         private const val TAG = "CloudXFlutter"
         private const val METHOD_CHANNEL = "cloudx_flutter_sdk"
@@ -107,7 +113,12 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     // EventChannel.StreamHandler implementation
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
         eventSink = events
-        logDebug( "Event stream listener attached")
+        logDebug("Event stream listener attached")
+
+        // Send ready sentinel to match iOS behavior and prevent 500ms timeout on Flutter side
+        events?.success(mapOf(
+            "event" to "__eventChannelReady__"
+        ))
     }
 
     override fun onCancel(arguments: Any?) {
@@ -122,7 +133,9 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
         when (call.method) {
             // Core SDK Methods
             "initSDK" -> initSDK(call, result)
-            "getSDKVersion" -> result.success("0.0.1") // TODO: Get from SDK
+            "isSDKInitialized" -> result.success(isSDKInitialized)
+            "getSDKVersion" -> result.success(io.cloudx.sdk.BuildConfig.SDK_VERSION_NAME)
+            "getUserID" -> result.success(null) // Android SDK does not support retrieving user ID (only setting)
             "setUserID" -> {
                 val userID = call.argument<String>("userID")
                 userID?.let { CloudX.setHashedUserId(it) }
@@ -237,11 +250,13 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
         CloudX.initialize(initParams, object : CloudXInitializationListener {
             override fun onInitialized() {
                 logDebug( "CloudX SDK initialized successfully")
+                isSDKInitialized = true
                 result.success(true)
             }
-            
+
             override fun onInitializationFailed(cloudXError: CloudXError) {
                 logError( "CloudX SDK initialization failed: ${cloudXError.effectiveMessage}")
+                isSDKInitialized = false
                 result.error(
                     "INIT_FAILED",
                     cloudXError.effectiveMessage,
@@ -274,13 +289,23 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
 
     private fun setIsUserConsent(call: MethodCall, result: Result) {
         val isUserConsent = call.argument<Boolean>("isUserConsent") ?: false
-        CloudX.setPrivacy(CloudXPrivacy(isUserConsent = isUserConsent))
+        // Preserve existing isAgeRestrictedUser value
+        currentPrivacy = CloudXPrivacy(
+            isUserConsent = isUserConsent,
+            isAgeRestrictedUser = currentPrivacy.isAgeRestrictedUser
+        )
+        CloudX.setPrivacy(currentPrivacy)
         result.success(true)
     }
 
     private fun setIsAgeRestrictedUser(call: MethodCall, result: Result) {
         val isAgeRestricted = call.argument<Boolean>("isAgeRestrictedUser") ?: false
-        CloudX.setPrivacy(CloudXPrivacy(isAgeRestrictedUser = isAgeRestricted))
+        // Preserve existing isUserConsent value
+        currentPrivacy = CloudXPrivacy(
+            isUserConsent = currentPrivacy.isUserConsent,
+            isAgeRestrictedUser = isAgeRestricted
+        )
+        CloudX.setPrivacy(currentPrivacy)
         result.success(true)
     }
 
