@@ -1,5 +1,5 @@
 Pod::Spec.new do |s|
-  s.name             = 'cloudx_flutter_sdk'
+  s.name             = 'cloudx_flutter'
   s.version          = '0.1.0'
   s.summary          = 'Flutter SDK wrapper for CloudX Core Objective-C SDK'
   s.description      = <<-DESC

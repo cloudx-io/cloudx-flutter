@@ -1,6 +1,6 @@
 # CloudX Flutter SDK
 
-[![pub package](https://img.shields.io/pub/v/cloudx_flutter_sdk.svg)](https://pub.dev/packages/cloudx_flutter_sdk)
+[![pub package](https://img.shields.io/pub/v/cloudx_flutter.svg)](https://pub.dev/packages/cloudx_flutter)
 [![GitHub](https://img.shields.io/badge/github-cloudx--flutter-blue)](https://github.com/cloudx-io/cloudx-flutter)
 
 A Flutter plugin for the CloudX Mobile Ads platform. Monetize your Flutter apps with banner, MREC, and interstitial ads across iOS and Android.
@@ -30,7 +30,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  cloudx_flutter_sdk: ^0.1.0
+  cloudx_flutter: ^0.1.0
 ```
 
 Then run:
@@ -44,7 +44,7 @@ For the latest development version from GitHub:
 
 ```yaml
 dependencies:
-  cloudx_flutter_sdk:
+  cloudx_flutter:
     git:
       url: https://github.com/cloudx-io/cloudx-flutter.git
       ref: v0.1.0  # Use specific version tag
@@ -75,7 +75,7 @@ No additional configuration required. Minimum SDK is automatically set to API 21
 Initialize CloudX before creating any ads:
 
 ```dart
-import 'package:cloudx_flutter_sdk/cloudx.dart';
+import 'package:cloudx_flutter/cloudx.dart';
 
 // Optional: Enable verbose logging (development only)
 await CloudX.setLoggingEnabled(true);
@@ -103,7 +103,7 @@ if (success) {
 Embed banner ads directly in your widget tree:
 
 ```dart
-import 'package:cloudx_flutter_sdk/cloudx.dart';
+import 'package:cloudx_flutter/cloudx.dart';
 
 class MyHomePage extends StatelessWidget {
   @override
