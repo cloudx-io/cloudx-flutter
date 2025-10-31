@@ -1,6 +1,6 @@
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
-import 'package:cloudx_flutter_sdk/cloudx.dart';
+import 'package:cloudx_flutter/cloudx.dart';
 import 'screens/banner_screen.dart';
 import 'screens/mrec_screen.dart';
 import 'screens/interstitial_screen.dart';

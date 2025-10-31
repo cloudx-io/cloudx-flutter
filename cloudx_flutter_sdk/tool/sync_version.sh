@@ -14,11 +14,11 @@ sed -i.bak "s/^version '.*'/version '$VERSION'/" android/build.gradle
 rm android/build.gradle.bak
 
 # Update iOS podspec
-sed -i.bak "s/s.version.*=.*/s.version          = '$VERSION'/" ios/cloudx_flutter_sdk.podspec
-rm ios/cloudx_flutter_sdk.podspec.bak
+sed -i.bak "s/s.version.*=.*/s.version          = '$VERSION'/" ios/cloudx_flutter.podspec
+rm ios/cloudx_flutter.podspec.bak
 
 echo "✅ Version synced to all files"
 echo ""
 echo "Files updated:"
 echo "  - android/build.gradle: $VERSION"
-echo "  - ios/cloudx_flutter_sdk.podspec: $VERSION"
+echo "  - ios/cloudx_flutter.podspec: $VERSION"

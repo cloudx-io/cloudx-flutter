@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cloudx_flutter_sdk/cloudx.dart';
+import 'package:cloudx_flutter/cloudx.dart';
 import 'base_ad_screen.dart';
 import '../config/demo_config.dart';
 import '../utils/demo_app_logger.dart';

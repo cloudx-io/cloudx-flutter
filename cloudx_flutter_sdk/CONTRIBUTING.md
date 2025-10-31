@@ -40,7 +40,7 @@ vim pubspec.yaml  # Change: version: 0.1.0 → 0.2.0
 vim CHANGELOG.md  # Add release notes
 
 # 4. Commit all version changes
-git add pubspec.yaml android/build.gradle ios/cloudx_flutter_sdk.podspec CHANGELOG.md
+git add pubspec.yaml android/build.gradle ios/cloudx_flutter.podspec CHANGELOG.md
 git commit -m "Bump version to 0.2.0"
 
 # 5. Create and push tag
@@ -51,7 +51,7 @@ git push origin v0.2.0
 
 The `sync_version.sh` script automatically updates:
 - `android/build.gradle`
-- `ios/cloudx_flutter_sdk.podspec`
+- `ios/cloudx_flutter.podspec`
 
 See `tool/README.md` for more details about development tools.
 
@@ -71,7 +71,7 @@ cloudx_flutter_sdk/
 │   └── build.gradle
 ├── ios/                  # iOS (Objective-C) implementation
 │   ├── Classes/
-│   └── cloudx_flutter_sdk.podspec
+│   └── cloudx_flutter.podspec
 ├── tool/                 # Development scripts
 ├── pubspec.yaml          # Package metadata & version
 ├── README.md             # User documentation
@@ -134,7 +134,7 @@ vim pubspec.yaml  # Bump version
 vim CHANGELOG.md  # Add release notes
 
 # Commit
-git add pubspec.yaml android/build.gradle ios/cloudx_flutter_sdk.podspec CHANGELOG.md
+git add pubspec.yaml android/build.gradle ios/cloudx_flutter.podspec CHANGELOG.md
 git commit -m "Release v0.2.0"
 ```
 
@@ -186,7 +186,7 @@ Synchronizes version from `pubspec.yaml` to platform-specific files.
 **What it does:**
 - Reads version from `pubspec.yaml`
 - Updates `android/build.gradle`
-- Updates `ios/cloudx_flutter_sdk.podspec`
+- Updates `ios/cloudx_flutter.podspec`
 
 See `tool/README.md` for more details.
 
