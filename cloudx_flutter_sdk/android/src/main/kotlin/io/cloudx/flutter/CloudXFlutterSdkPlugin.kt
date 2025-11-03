@@ -19,23 +19,24 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.platform.PlatformViewRegistry
 import java.lang.ref.WeakReference
+import java.util.concurrent.ConcurrentHashMap
 
 /** CloudXFlutterSdkPlugin - Kotlin implementation for Android */
 class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, EventChannel.StreamHandler {
     private lateinit var methodChannel: MethodChannel
     private lateinit var eventChannel: EventChannel
-    private var eventSink: EventChannel.EventSink? = null
+    @Volatile private var eventSink: EventChannel.EventSink? = null
     private var activityRef: WeakReference<Activity>? = null
     private var context: Context? = null
-    
-    // Storage for ad instances
-    private val adInstances = mutableMapOf<String, Any>()
 
-    // Storage for programmatic banner containers (overlays)
-    private val programmaticBannerContainers = mutableMapOf<String, FrameLayout>()
+    // Storage for ad instances (thread-safe: accessed from platform thread and UI thread)
+    private val adInstances = ConcurrentHashMap<String, Any>()
 
-    // Storage for pending results (for async operations)
-    private val pendingResults = mutableMapOf<String, Result>()
+    // Storage for programmatic banner containers (thread-safe: accessed from multiple threads)
+    private val programmaticBannerContainers = ConcurrentHashMap<String, FrameLayout>()
+
+    // Storage for pending results (currently unused, but thread-safe for future use)
+    private val pendingResults = ConcurrentHashMap<String, Result>()
 
     // Track privacy state to prevent overwriting when setting individual fields
     private var currentPrivacy = CloudXPrivacy()
