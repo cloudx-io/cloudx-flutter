@@ -25,10 +25,10 @@ export 'widgets/cloudx_ad_view_controller.dart';
 export 'widgets/cloudx_banner_view.dart';
 export 'widgets/cloudx_mrec_view.dart';
 
+// ignore: avoid_classes_with_only_static_members
 /// The main CloudX Flutter SDK class.
 ///
 /// Provides a comprehensive Flutter wrapper for the CloudX Core Objective-C SDK.
-// ignore: avoid_classes_with_only_static_members
 class CloudX {
   static const MethodChannel _channel = MethodChannel('cloudx_flutter_sdk');
   static const EventChannel _eventChannel =
@@ -41,9 +41,7 @@ class CloudX {
   static final Map<String, CloudXAdListener> _listeners = {};
 
   // Event stream (initialized lazily)
-  // ignore: unused_field
-  static StreamSubscription?
-      _eventSubscription; // Stored to keep subscription alive
+  static StreamSubscription? _eventSubscription;
   static bool _eventStreamInitialized = false;
 
   /// Flutter plugin registration (required for some plugin registration scenarios)
@@ -148,6 +146,15 @@ class CloudX {
   /// Call this when you need to completely tear down the SDK, such as during app logout.
   /// You can reinitialize the SDK afterward by calling initialize() again.
   static Future<void> deinitialize() async {
+    // Cancel EventChannel subscription to prevent memory leak
+    await _eventSubscription?.cancel();
+    _eventSubscription = null;
+    _eventStreamInitialized = false;
+
+    // Clear listener storage
+    _listeners.clear();
+
+    // Call native deinitialize
     await _invokeMethod('deinitialize');
   }
 
