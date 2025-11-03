@@ -162,7 +162,11 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
                 logDebug("Logging enabled set to: $enabled")
                 result.success(true)
             }
-            
+            "deinitialize" -> {
+                CloudX.deinitialize()
+                result.success(true)
+            }
+
             // Privacy & Compliance Methods
             "setCCPAPrivacyString" -> setCCPAPrivacyString(call, result)
             "setIsUserConsent" -> setIsUserConsent(call, result)

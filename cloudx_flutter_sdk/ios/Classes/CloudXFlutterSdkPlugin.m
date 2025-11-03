@@ -318,10 +318,6 @@ static const CGFloat kDefaultBannerHeight = 50.0;
         BOOL enabled = [call.arguments[@"enabled"] boolValue];
         [CloudXCore setLoggingEnabled:enabled];
         result(@YES);
-    } else if ([call.method isEqualToString:@"setMinLogLevel"]) {
-        NSInteger minLogLevel = [call.arguments[@"minLogLevel"] integerValue];
-        [CloudXCore setMinLogLevel:minLogLevel];
-        result(@YES);
     } else if ([call.method isEqualToString:@"deinitialize"]) {
         [[CloudXCore shared] deinitialize];
         result(@YES);

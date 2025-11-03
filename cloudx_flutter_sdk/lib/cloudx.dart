@@ -145,6 +145,15 @@ class CloudX {
     await _invokeMethod('setLoggingEnabled', {'enabled': enabled});  // Control native-side logging
   }
 
+  /// Deinitialize the CloudX SDK
+  ///
+  /// Cleans up SDK resources and resets initialization state.
+  /// Call this when you need to completely tear down the SDK, such as during app logout.
+  /// You can reinitialize the SDK afterward by calling initialize() again.
+  static Future<void> deinitialize() async {
+    await _invokeMethod('deinitialize');
+  }
+
   /// Internal logging helper that respects the logging flag
   ///
   /// Only logs when _loggingEnabled is true. Use this instead of print()
