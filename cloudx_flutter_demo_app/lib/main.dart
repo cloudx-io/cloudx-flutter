@@ -1,11 +1,9 @@
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
-import 'package:cloudx_flutter_sdk/cloudx.dart';
+import 'package:cloudx_flutter/cloudx.dart';
 import 'screens/banner_screen.dart';
 import 'screens/mrec_screen.dart';
 import 'screens/interstitial_screen.dart';
-import 'screens/rewarded_screen.dart';
-import 'screens/native_screen.dart';
 import 'screens/logs_modal_screen.dart';
 import 'config/demo_config.dart';
 
@@ -160,28 +158,26 @@ class _InitScreenState extends State<InitScreen> {
       _currentEnvironment = config;
     });
 
-    try {
-      // Set environment (iOS only, Android uses CloudXInitializationServer)
-      await CloudX.setEnvironment(config.name.toLowerCase());
-      
-      final success = await CloudX.initialize(
-        appKey: config.appKey
-      );
-      
-      setState(() {
-        _isSDKInitialized = success;
-        _isInitializing = false;
-        if (!success) {
+    // Set environment (iOS only, Android uses CloudXInitializationServer)
+    await CloudX.setEnvironment(config.name.toLowerCase());
+
+    final success = await CloudX.initialize(
+      appKey: config.appKey,
+      // Allow iOS experimental for demo/testing purposes
+      allowIosExperimental: true,
+    );
+
+    setState(() {
+      _isSDKInitialized = success;
+      _isInitializing = false;
+      if (!success) {
+        if (Platform.isIOS) {
+          _initError = 'iOS SDK is not production-ready.\nOnly Android is currently supported.';
+        } else {
           _initError = 'Failed to initialize CloudX SDK.';
         }
-      });
-    } catch (e) {
-      setState(() {
-        _isSDKInitialized = false;
-        _isInitializing = false;
-        _initError = 'Error: $e';
-      });
-    }
+      }
+    });
   }
 }
 
@@ -201,8 +197,6 @@ class _MainTabViewState extends State<MainTabView> {
     Text('Banner'),
     Text('MREC'),
     Text('Interstitial'),
-    Text('Rewarded'),
-    Text('Native'),
   ];
 
   @override
@@ -211,8 +205,6 @@ class _MainTabViewState extends State<MainTabView> {
       BannerScreen(isSDKInitialized: true, environment: widget.environment),
       MRECScreen(isSDKInitialized: true, environment: widget.environment),
       InterstitialScreen(isSDKInitialized: true, environment: widget.environment),
-      RewardedScreen(isSDKInitialized: true, environment: widget.environment),
-      NativeScreen(isSDKInitialized: true, environment: widget.environment),
     ];
     return Scaffold(
       appBar: AppBar(
@@ -240,10 +232,7 @@ class _MainTabViewState extends State<MainTabView> {
           BottomNavigationBarItem(icon: Icon(Icons.view_day), label: 'Banner'),
           BottomNavigationBarItem(icon: Icon(Icons.crop_square), label: 'MREC'),
           BottomNavigationBarItem(icon: Icon(Icons.crop_3_2), label: 'Interstitial'),
-          BottomNavigationBarItem(icon: Icon(Icons.card_giftcard), label: 'Rewarded'),
-          BottomNavigationBarItem(icon: Icon(Icons.view_module), label: 'Native'),
         ],
-        type: BottomNavigationBarType.fixed,
       ),
     );
   }

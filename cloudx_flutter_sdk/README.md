@@ -1,40 +1,92 @@
 # CloudX Flutter SDK
 
-A Flutter plugin that provides a comprehensive wrapper around the CloudX native SDKs (iOS and Android), exposing all ad types (banner, interstitial, rewarded, native, MREC) with full privacy compliance support.
+[![pub package](https://img.shields.io/pub/v/cloudx_flutter.svg)](https://pub.dev/packages/cloudx_flutter)
+[![GitHub](https://img.shields.io/badge/github-cloudx--flutter-blue)](https://github.com/cloudx-io/cloudx-flutter)
+
+A Flutter plugin for the CloudX Mobile Ads platform. Monetize your Flutter apps with banner, MREC, and interstitial ads across iOS and Android.
 
 ## Features
 
-- **Full SDK Integration**: Complete wrapper for CloudX Core (iOS) and CloudX Android SDK
-- **Cross-Platform**: Single Dart API works on both iOS and Android
-- **All Ad Types**: Banner, Interstitial, Rewarded, Native, and MREC ads
-- **Privacy Compliance**: Built-in CCPA, GDPR, COPPA, and GPP support
-- **Listener Pattern**: Callback-based events for ad lifecycle management
-- **Error Handling**: Comprehensive error handling and user feedback
-- **Type Safety**: Strongly typed Dart interfaces
-- **DRY & SOLID**: Architecture following best practices for maintainability
-- **Platform Support**: iOS (Objective-C) and Android (Kotlin) backends
+- **Banner Ads** (320x50) - Widget-based and programmatic positioning
+- **MREC Ads** (300x250) - Medium Rectangle ads with flexible placement
+- **Interstitial Ads** - Full-screen ads for natural transition points
+- **Privacy Compliance** - Built-in support for CCPA, GPP, GDPR, and COPPA
+- **Auto-Refresh** - Automatic ad refresh with server-side configuration
+- **Revenue Tracking** - Access to eCPM and winning bidder information
+- **User Targeting** - First-party data integration via key-value pairs
+
+## Platform Support
+
+| Platform | Status | Minimum Version |
+|----------|--------|-----------------|
+| **Android** | ✅ Production Ready | API 21 (Android 5.0) |
+| **iOS** | ⚠️ Alpha/Experimental | iOS 14.0 |
+
+**Note:** iOS support requires setting `allowIosExperimental: true` during initialization.
 
 ## Installation
 
-Add the CloudX Flutter SDK to your `pubspec.yaml`:
+Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  cloudx_flutter_sdk:
-    path: ../cloudx_flutter_sdk
+  cloudx_flutter: ^0.1.2
 ```
+
+Then run:
+```bash
+flutter pub get
+```
+
+**Alternative: Git Dependency**
+
+For the latest development version from GitHub:
+
+```yaml
+dependencies:
+  cloudx_flutter:
+    git:
+      url: https://github.com/cloudx-io/cloudx-flutter.git
+      ref: v0.1.2  # Use specific version tag
+      path: cloudx_flutter_sdk
+```
+
+### iOS Setup
+
+The SDK requires iOS 14.0+. Update your `ios/Podfile`:
+
+```ruby
+platform :ios, '14.0'
+```
+
+Then install pods:
+```bash
+cd ios && pod install
+```
+
+### Android Setup
+
+No additional configuration required. Minimum SDK is automatically set to API 21.
 
 ## Quick Start
 
 ### 1. Initialize the SDK
 
-```dart
-import 'package:cloudx_flutter_sdk/cloudx.dart';
+Initialize CloudX before creating any ads:
 
-// Initialize the SDK with your app key
+```dart
+import 'package:cloudx_flutter/cloudx.dart';
+
+// Optional: Enable verbose logging (development only)
+await CloudX.setLoggingEnabled(true);
+
+// Optional: Set environment (default: production)
+await CloudX.setEnvironment('production'); // 'dev', 'staging', or 'production'
+
+// Initialize the SDK
 final success = await CloudX.initialize(
   appKey: 'YOUR_APP_KEY',
-  hashedUserID: 'OPTIONAL_HASHED_USER_ID', // Optional
+  allowIosExperimental: true, // Required for iOS
 );
 
 if (success) {
@@ -44,325 +96,631 @@ if (success) {
 }
 ```
 
-### 2. Create and Load Ads
+### 2. Banner Ads
 
-#### Banner Ads
+**Option A: Widget-Based (Recommended)**
+
+Embed banner ads directly in your widget tree:
+
+```dart
+import 'package:cloudx_flutter/cloudx.dart';
+
+class MyHomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('My App')),
+      body: Column(
+        children: [
+          Expanded(child: Text('Your content here')),
+
+          // Banner ad at the bottom
+          CloudXBannerView(
+            placementName: 'home_banner',
+            listener: CloudXAdViewListener(
+              onAdLoaded: (ad) => print('Banner loaded: ${ad.bidder}'),
+              onAdLoadFailed: (error) => print('Banner failed: $error'),
+              onAdDisplayed: (ad) => print('Banner displayed'),
+              onAdDisplayFailed: (error) => print('Display failed: $error'),
+              onAdClicked: (ad) => print('Banner clicked'),
+              onAdHidden: (ad) => print('Banner hidden'),
+              onAdExpanded: (ad) => print('Banner expanded'),
+              onAdCollapsed: (ad) => print('Banner collapsed'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+**Option B: Programmatic Positioning**
+
+Create banners that overlay your content at specific screen positions:
 
 ```dart
 // Create a banner ad
-final success = await CloudX.createBanner(
-  placement: 'banner1',
-  adId: 'unique_banner_id',
-  listener: BannerListener()
-    ..onAdLoaded = (ad) => print('Banner loaded: ${ad?.placementName}')
-    ..onAdFailedToLoad = (error, ad) => print('Banner failed: $error')
-    ..onAdShown = (ad) => print('Banner shown')
-    ..onAdClicked = (ad) => print('Banner clicked'),
+final adId = await CloudX.createBanner(
+  placementName: 'home_banner',
+  adId: 'banner_1', // Optional: auto-generated if not provided
+  listener: CloudXAdViewListener(
+    onAdLoaded: (ad) => print('Loaded: ${ad.revenue}'),
+    onAdLoadFailed: (error) => print('Failed: $error'),
+    onAdDisplayed: (ad) => print('Displayed'),
+    onAdDisplayFailed: (error) => print('Failed to display'),
+    onAdClicked: (ad) => print('Clicked'),
+    onAdHidden: (ad) => print('Hidden'),
+    onAdExpanded: (ad) => print('Expanded'),
+    onAdCollapsed: (ad) => print('Collapsed'),
+  ),
+  position: AdViewPosition.bottomCenter, // Optional: for overlay banners
 );
 
-if (success) {
-  // Load the banner
-  await CloudX.loadBanner(adId: 'unique_banner_id');
+// Load the banner
+await CloudX.loadBanner(adId: adId!);
+
+// Show the banner (if using programmatic positioning)
+await CloudX.showBanner(adId: adId);
+
+// Hide when needed
+await CloudX.hideBanner(adId: adId);
+
+// Always destroy when done
+await CloudX.destroyAd(adId: adId);
+```
+
+**Auto-Refresh Control:**
+
+```dart
+// Start auto-refresh (refresh interval configured server-side)
+await CloudX.startAutoRefresh(adId: adId);
+
+// Stop auto-refresh (IMPORTANT: call before destroying)
+await CloudX.stopAutoRefresh(adId: adId);
+```
+
+### 3. MREC Ads (300x250)
+
+Medium Rectangle ads work just like banners but with a larger size.
+
+**Widget-Based:**
+
+```dart
+CloudXMRECView(
+  placementName: 'home_mrec',
+  listener: CloudXAdViewListener(
+    onAdLoaded: (ad) => print('MREC loaded'),
+    onAdLoadFailed: (error) => print('MREC failed: $error'),
+    onAdDisplayed: (ad) => print('MREC displayed'),
+    onAdDisplayFailed: (error) => print('Display failed'),
+    onAdClicked: (ad) => print('MREC clicked'),
+    onAdHidden: (ad) => print('MREC hidden'),
+    onAdExpanded: (ad) => print('MREC expanded'),
+    onAdCollapsed: (ad) => print('MREC collapsed'),
+  ),
+)
+```
+
+**Programmatic:**
+
+```dart
+final adId = await CloudX.createMREC(
+  placementName: 'home_mrec',
+  listener: CloudXAdViewListener(...),
+  position: AdViewPosition.centered,
+);
+
+await CloudX.loadMREC(adId: adId!);
+await CloudX.showMREC(adId: adId);
+
+// Check if ready
+final isReady = await CloudX.isMRECReady(adId: adId);
+
+// Always destroy when done
+await CloudX.destroyAd(adId: adId);
+```
+
+### 4. Interstitial Ads
+
+Full-screen ads shown at natural transition points:
+
+```dart
+// Create the interstitial
+final adId = await CloudX.createInterstitial(
+  placementName: 'level_complete',
+  listener: CloudXInterstitialListener(
+    onAdLoaded: (ad) => print('Interstitial ready'),
+    onAdLoadFailed: (error) => print('Load failed: $error'),
+    onAdDisplayed: (ad) => print('Interstitial showing'),
+    onAdDisplayFailed: (error) => print('Show failed: $error'),
+    onAdClicked: (ad) => print('Interstitial clicked'),
+    onAdHidden: (ad) => print('Interstitial closed'),
+  ),
+);
+
+// Load the interstitial
+await CloudX.loadInterstitial(adId: adId!);
+
+// Check if ready before showing
+final isReady = await CloudX.isInterstitialReady(adId: adId);
+if (isReady) {
+  await CloudX.showInterstitial(adId: adId);
+}
+
+// Always destroy after showing
+await CloudX.destroyAd(adId: adId);
+```
+
+## Event Listeners
+
+All ad types use listener objects with callback functions.
+
+### CloudXAdViewListener
+
+Used for Banner and MREC ads:
+
+```dart
+CloudXAdViewListener(
+  onAdLoaded: (CloudXAd ad) {
+    // Ad successfully loaded
+    print('Bidder: ${ad.bidder}');
+    print('Revenue: \$${ad.revenue}');
+  },
+  onAdLoadFailed: (String error) {
+    // Failed to load ad
+  },
+  onAdDisplayed: (CloudXAd ad) {
+    // Ad is now visible to user
+  },
+  onAdDisplayFailed: (String error) {
+    // Failed to display ad
+  },
+  onAdClicked: (CloudXAd ad) {
+    // User clicked the ad
+  },
+  onAdHidden: (CloudXAd ad) {
+    // Ad was hidden
+  },
+  onAdRevenuePaid: (CloudXAd ad) {
+    // Revenue tracking (optional)
+  },
+  onAdExpanded: (CloudXAd ad) {
+    // User expanded the ad
+  },
+  onAdCollapsed: (CloudXAd ad) {
+    // User collapsed the ad
+  },
+)
+```
+
+### CloudXInterstitialListener
+
+Used for Interstitial ads:
+
+```dart
+CloudXInterstitialListener(
+  onAdLoaded: (CloudXAd ad) {
+    // Interstitial ready to show
+  },
+  onAdLoadFailed: (String error) {
+    // Failed to load
+  },
+  onAdDisplayed: (CloudXAd ad) {
+    // Interstitial is showing
+  },
+  onAdDisplayFailed: (String error) {
+    // Failed to show
+  },
+  onAdClicked: (CloudXAd ad) {
+    // User clicked
+  },
+  onAdHidden: (CloudXAd ad) {
+    // User closed interstitial
+  },
+  onAdRevenuePaid: (CloudXAd ad) {
+    // Revenue tracking (optional)
+  },
+)
+```
+
+### CloudXAd Model
+
+All callbacks receive a `CloudXAd` object with ad metadata:
+
+```dart
+class CloudXAd {
+  final String? placementName;       // Your placement name
+  final String? placementId;         // CloudX internal ID
+  final String? bidder;              // Winning network (e.g., "meta", "admob")
+  final String? externalPlacementId; // Network-specific ID
+  final double? revenue;             // eCPM revenue in USD
 }
 ```
 
-#### Interstitial Ads
+## Ad Positioning
+
+When using programmatic positioning, specify where ads should appear:
 
 ```dart
-// Create an interstitial ad
-final success = await CloudX.createInterstitial(
-  placement: 'interstitial1',
-  adId: 'unique_interstitial_id',
-  listener: InterstitialListener()
-    ..onAdLoaded = (ad) => print('Interstitial loaded')
-    ..onAdFailedToLoad = (error, ad) => print('Interstitial failed: $error')
-    ..onAdShown = (ad) => print('Interstitial shown')
-    ..onAdHidden = (ad) => print('Interstitial hidden'),
-);
-
-if (success) {
-  // Load the interstitial
-  await CloudX.loadInterstitial(adId: 'unique_interstitial_id');
-  
-  // Show when ready
-  await CloudX.showInterstitial(adId: 'unique_interstitial_id');
+enum AdViewPosition {
+  topCenter,
+  topRight,
+  centered,
+  centerLeft,
+  centerRight,
+  bottomLeft,
+  bottomCenter,
+  bottomRight,
 }
 ```
 
-#### Rewarded Ads
+Example:
+```dart
+await CloudX.createBanner(
+  placementName: 'banner',
+  position: AdViewPosition.bottomCenter,
+);
+```
+
+## Privacy & Compliance
+
+CloudX provides comprehensive privacy APIs to comply with regulations.
+
+### CCPA (California Consumer Privacy Act)
+
+Fully supported in bid requests:
 
 ```dart
-// Create a rewarded ad
-final success = await CloudX.createRewarded(
-  placement: 'rewarded1',
-  adId: 'unique_rewarded_id',
-  listener: RewardedListener()
-    ..onAdLoaded = (ad) => print('Rewarded loaded')
-    ..onAdFailedToLoad = (error, ad) => print('Rewarded failed: $error')
-    ..onAdShown = (ad) => print('Rewarded shown')
-    ..onAdHidden = (ad) => print('Rewarded hidden')
-    ..onRewarded = (ad) => print('User earned reward!'),
-);
+// Set CCPA privacy string (format: "1YNN")
+// 1 = version, Y/N = opt-out-sale, Y/N = opt-out-sharing, Y/N = LSPA
+await CloudX.setCCPAPrivacyString('1YNN');
+```
 
-if (success) {
-  // Load the rewarded ad
-  await CloudX.loadRewarded(adId: 'unique_rewarded_id');
-  
-  // Show when ready
-  await CloudX.showRewarded(adId: 'unique_rewarded_id');
+### GDPR (General Data Protection Regulation)
+
+⚠️ **Warning:** Not yet supported by CloudX servers. Contact CloudX for GDPR support.
+
+```dart
+await CloudX.setIsUserConsent(true); // true = user consented
+```
+
+### COPPA (Children's Online Privacy Protection Act)
+
+Clears user data but not yet included in bid requests (server limitation):
+
+```dart
+await CloudX.setIsAgeRestrictedUser(true); // true = age-restricted
+```
+
+### GPP (Global Privacy Platform)
+
+Comprehensive privacy framework (fully supported):
+
+```dart
+// Set GPP string
+await CloudX.setGPPString('DBABMA~CPXxRfAPXxRfAAfKABENB...');
+
+// Set section IDs (e.g., [7, 8] for US-National and US-CA)
+await CloudX.setGPPSid([7, 8]);
+
+// Get current values
+final gppString = await CloudX.getGPPString();
+final gppSid = await CloudX.getGPPSid();
+```
+
+## User Targeting
+
+Enhance ad targeting with first-party data.
+
+### User ID
+
+```dart
+// Set user ID (should be hashed for privacy)
+await CloudX.setUserID('hashed-user-id');
+```
+
+### Key-Value Targeting
+
+**User-Level Targeting** (cleared by privacy regulations):
+
+```dart
+await CloudX.setUserKeyValue('age', '25');
+await CloudX.setUserKeyValue('interests', 'gaming');
+```
+
+**App-Level Targeting** (persistent across privacy changes):
+
+```dart
+await CloudX.setAppKeyValue('app_version', '1.2.0');
+await CloudX.setAppKeyValue('build_type', 'release');
+```
+
+**Clear All:**
+
+```dart
+await CloudX.clearAllKeyValues();
+```
+
+## Lifecycle Management
+
+### Widget Lifecycle
+
+For widget-based ads (`CloudXBannerView`, `CloudXMRECView`), the SDK automatically handles lifecycle.
+
+### Programmatic Lifecycle
+
+For programmatically created ads, **always call `destroyAd()`** to prevent memory leaks:
+
+```dart
+class MyAdScreen extends StatefulWidget {
+  @override
+  _MyAdScreenState createState() => _MyAdScreenState();
+}
+
+class _MyAdScreenState extends State<MyAdScreen> {
+  String? _adId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAd();
+  }
+
+  Future<void> _loadAd() async {
+    _adId = await CloudX.createInterstitial(
+      placementName: 'my_interstitial',
+      listener: CloudXInterstitialListener(...),
+    );
+    await CloudX.loadInterstitial(adId: _adId!);
+  }
+
+  @override
+  void dispose() {
+    // CRITICAL: Always destroy ads
+    if (_adId != null) {
+      CloudX.destroyAd(adId: _adId!);
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(...);
+  }
 }
 ```
 
-#### Native Ads
+## SDK Information
 
 ```dart
-// Create a native ad
-final success = await CloudX.createNative(
-  placement: 'native1',
-  adId: 'unique_native_id',
-  listener: NativeListener()
-    ..onAdLoaded = (ad) => print('Native loaded')
-    ..onAdFailedToLoad = (error, ad) => print('Native failed: $error')
-    ..onAdShown = (ad) => print('Native shown')
-    ..onAdClicked = (ad) => print('Native clicked'),
-);
-
-if (success) {
-  // Load the native ad
-  await CloudX.loadNative(adId: 'unique_native_id');
-  
-  // Show when ready
-  await CloudX.showNative(adId: 'unique_native_id');
-}
-```
-
-#### MREC Ads
-
-```dart
-// Create an MREC ad
-final success = await CloudX.createMREC(
-  placement: 'mrec1',
-  adId: 'unique_mrec_id',
-  listener: MRECListener()
-    ..onAdLoaded = (ad) => print('MREC loaded')
-    ..onAdFailedToLoad = (error, ad) => print('MREC failed: $error')
-    ..onAdShown = (ad) => print('MREC shown')
-    ..onAdClicked = (ad) => print('MREC clicked'),
-);
-
-if (success) {
-  // Load the MREC ad
-  await CloudX.loadMREC(adId: 'unique_mrec_id');
-  
-  // Show when ready
-  await CloudX.showMREC(adId: 'unique_mrec_id');
-}
-```
-
-### 3. Ad Management
-
-```dart
-// Check if an ad is ready
-final isReady = await CloudX.isInterstitialReady(adId: 'unique_interstitial_id');
-
-// Hide an ad (for banner/MREC)
-await CloudX.hideBanner(adId: 'unique_banner_id');
-
-// Destroy an ad instance
-await CloudX.destroyAd(adId: 'unique_ad_id');
+// Check platform support
+final isSupported = await CloudX.isPlatformSupported();
 
 // Get SDK version
 final version = await CloudX.getVersion();
 ```
 
-## Listener Interfaces
+## Advanced Features
 
-### BannerListener
+### Widget Controllers
+
+Control banner/MREC widgets programmatically:
+
 ```dart
-abstract class BannerListener {
-  void Function(CloudXAd? ad)? onAdLoaded;
-  void Function(String error, CloudXAd? ad)? onAdFailedToLoad;
-  void Function(CloudXAd? ad)? onAdShown;
-  void Function(String error, CloudXAd? ad)? onAdFailedToShow;
-  void Function(CloudXAd? ad)? onAdHidden;
-  void Function(CloudXAd? ad)? onAdClicked;
-  void Function(CloudXAd? ad)? onAdImpression;
-  void Function(CloudXAd? ad)? onAdClosedByUser;
-  void Function(CloudXAd? ad)? onRevenuePaid;
-  void Function(CloudXAd? ad)? onAdExpanded;
-  void Function(CloudXAd? ad)? onAdCollapsed;
+final controller = CloudXAdViewController();
+
+CloudXBannerView(
+  placementName: 'home_banner',
+  controller: controller,
+  listener: CloudXAdViewListener(...),
+)
+
+// Control auto-refresh
+await controller.startAutoRefresh();
+await controller.stopAutoRefresh();
+
+// Check if controller is attached
+if (controller.isAttached) {
+  // Controller is ready
 }
 ```
 
-### InterstitialListener
+## Best Practices
+
+### 1. Always Destroy Ads
+
+Memory leaks occur if you don't destroy ads:
+
 ```dart
-abstract class InterstitialListener {
-  void Function(CloudXAd? ad)? onAdLoaded;
-  void Function(String error, CloudXAd? ad)? onAdFailedToLoad;
-  void Function(CloudXAd? ad)? onAdShown;
-  void Function(String error, CloudXAd? ad)? onAdFailedToShow;
-  void Function(CloudXAd? ad)? onAdHidden;
-  void Function(CloudXAd? ad)? onAdClicked;
-  void Function(CloudXAd? ad)? onAdImpression;
-  void Function(CloudXAd? ad)? onAdClosedByUser;
-  void Function(CloudXAd? ad)? onRevenuePaid;
+@override
+void dispose() {
+  CloudX.destroyAd(adId: myAdId);
+  super.dispose();
 }
 ```
 
-### RewardedListener
+### 2. Stop Auto-Refresh Before Destroying
+
+For banner/MREC ads:
+
 ```dart
-abstract class RewardedListener {
-  void Function(CloudXAd? ad)? onAdLoaded;
-  void Function(String error, CloudXAd? ad)? onAdFailedToLoad;
-  void Function(CloudXAd? ad)? onAdShown;
-  void Function(String error, CloudXAd? ad)? onAdFailedToShow;
-  void Function(CloudXAd? ad)? onAdHidden;
-  void Function(CloudXAd? ad)? onAdClicked;
-  void Function(CloudXAd? ad)? onAdImpression;
-  void Function(CloudXAd? ad)? onAdClosedByUser;
-  void Function(CloudXAd? ad)? onRevenuePaid;
-  void Function(CloudXAd? ad)? onRewarded;
-  void Function(CloudXAd? ad)? onRewardedVideoStarted;
-  void Function(CloudXAd? ad)? onRewardedVideoCompleted;
+await CloudX.stopAutoRefresh(adId: adId);
+await CloudX.destroyAd(adId: adId);
+```
+
+### 3. Check Ad Readiness
+
+For interstitials, always check before showing:
+
+```dart
+final isReady = await CloudX.isInterstitialReady(adId: adId);
+if (isReady) {
+  await CloudX.showInterstitial(adId: adId);
 }
 ```
 
-### NativeListener
+### 4. Disable Logging in Production
+
 ```dart
-abstract class NativeListener {
-  void Function(CloudXAd? ad)? onAdLoaded;
-  void Function(String error, CloudXAd? ad)? onAdFailedToLoad;
-  void Function(CloudXAd? ad)? onAdShown;
-  void Function(String error, CloudXAd? ad)? onAdFailedToShow;
-  void Function(CloudXAd? ad)? onAdHidden;
-  void Function(CloudXAd? ad)? onAdClicked;
-  void Function(CloudXAd? ad)? onAdImpression;
-  void Function(CloudXAd? ad)? onAdClosedByUser;
-  void Function(CloudXAd? ad)? onRevenuePaid;
+// Only enable during development
+if (kDebugMode) {
+  await CloudX.setLoggingEnabled(true);
 }
 ```
 
-### MRECListener
+### 5. Handle Initialization Errors
+
 ```dart
-abstract class MRECListener {
-  void Function(CloudXAd? ad)? onAdLoaded;
-  void Function(String error, CloudXAd? ad)? onAdFailedToLoad;
-  void Function(CloudXAd? ad)? onAdShown;
-  void Function(String error, CloudXAd? ad)? onAdFailedToShow;
-  void Function(CloudXAd? ad)? onAdHidden;
-  void Function(CloudXAd? ad)? onAdClicked;
-  void Function(CloudXAd? ad)? onAdImpression;
-  void Function(CloudXAd? ad)? onAdClosedByUser;
-  void Function(CloudXAd? ad)? onRevenuePaid;
+final success = await CloudX.initialize(appKey: 'YOUR_KEY');
+if (!success) {
+  // Handle initialization failure
+  // - Check network connection
+  // - Verify app key is correct
+  // - Check platform support (iOS requires experimental flag)
 }
 ```
 
-## Error Handling
+## Common Issues
 
-The SDK provides comprehensive error handling through:
+### iOS: "Experimental API" Error
 
-1. **Return Values**: All methods return `bool` or `Future<bool>` to indicate success/failure
-2. **Listener Callbacks**: Error details are passed to listener callbacks
-3. **Exception Handling**: Platform exceptions are caught and handled gracefully
+**Solution:** Set `allowIosExperimental: true` during initialization:
 
 ```dart
-try {
-  final success = await CloudX.createBanner(
-    placement: 'banner1',
-    adId: 'banner_id',
-    listener: BannerListener()
-      ..onAdFailedToLoad = (error, ad) {
-        print('Banner failed to load: $error');
-        // Handle the error appropriately
-      },
-  );
-  
-  if (!success) {
-    print('Failed to create banner ad');
-  }
-} catch (e) {
-  print('Unexpected error: $e');
-}
+await CloudX.initialize(
+  appKey: 'YOUR_KEY',
+  allowIosExperimental: true,
+);
 ```
 
-## Privacy & Compliance
+### Banner Not Showing
 
-The SDK provides comprehensive privacy compliance features:
+**Checklist:**
+1. Did you call `loadBanner()`?
+2. For programmatic banners, did you call `showBanner()`?
+3. Is the ad view added to the widget tree?
+4. Check the `onAdLoadFailed` callback for errors
+
+### Memory Leaks
+
+**Solution:** Always call `destroyAd()` in your widget's `dispose()` method.
+
+### Auto-Refresh Not Stopping
+
+**Solution:** Explicitly call `stopAutoRefresh()` before destroying:
 
 ```dart
-// CCPA Privacy String
-await CloudX.setCCPAPrivacyString('1YNN');
-
-// GDPR Consent
-await CloudX.setIsUserConsent(true);
-
-// COPPA (Age-Restricted Users)
-await CloudX.setIsAgeRestrictedUser(false);
-
-// Do Not Sell (CCPA)
-await CloudX.setIsDoNotSell(false);
-
-// Global Privacy Platform (GPP)
-await CloudX.setGPPString('DBACNYA~CPXxRfAPXxRfAAfKABENB...');
-await CloudX.setGPPSid([7, 8]); // US-National (7), US-CA (8)
+await CloudX.stopAutoRefresh(adId: adId);
+await CloudX.destroyAd(adId: adId);
 ```
 
-## User Targeting
+## Example App
 
-```dart
-// Set hashed user ID
-await CloudX.provideUserDetailsWithHashedUserID('hashed-email-here');
+A complete demo app is available in the [GitHub repository](https://github.com/cloudx-io/cloudx-flutter) under `cloudx_flutter_demo_app/`. It demonstrates:
 
-// Set single key-value pair (generic)
-await CloudX.useHashedKeyValue('age', '25');
+- SDK initialization with environment selection
+- All ad format implementations
+- Widget-based and programmatic approaches
+- Privacy compliance integration
+- User targeting setup
+- Proper lifecycle management
+- Event logging and debugging
 
-// Set multiple key-values (more efficient)
-await CloudX.useKeyValues({
-  'gender': 'male',
-  'location': 'US',
-  'interests': 'gaming',
-});
+Clone the repository and run the demo:
 
-// Set user-level targeting (cleared when privacy regulations require removing personal data)
-await CloudX.setUserKeyValue('age', '25');
-await CloudX.setUserKeyValue('interests', 'gaming');
-
-// Set app-level targeting (NOT affected by privacy regulations)
-await CloudX.setAppKeyValue('app_version', '1.2.0');
-await CloudX.setAppKeyValue('build_type', 'release');
-
-// Clear all user and app-level key-value pairs
-await CloudX.clearAllKeyValues();
+```bash
+git clone https://github.com/cloudx-io/cloudx-flutter.git
+cd cloudx-flutter/cloudx_flutter_demo_app
+flutter pub get
+flutter run
 ```
-
-## Platform Support
-
-- **iOS**: Full support via Objective-C backend (iOS 14.0+)
-- **Android**: Full support via Kotlin backend (API 21+)
 
 ## Requirements
 
+### Flutter
+- Flutter SDK: 3.0.0 or higher
+- Dart SDK: 3.0.0 or higher
+
 ### iOS
-- iOS 14.0 or higher
-- CocoaPods
+- iOS: 14.0 or higher
+- CocoaPods for dependency management
+- CloudXCore pod: ~> 1.1.40
 
 ### Android
-- Android API 21 (Android 5.0) or higher
-- Gradle 8.0+
+- Android API: 21 (Android 5.0) or higher
+- Gradle: 8.0+
+- CloudX Android SDK: 0.5.0
 
-### Flutter
-- Flutter 3.0+
-- Dart 3.0+
+## API Reference
 
-## Documentation
+### Initialization
+- `initialize({required String appKey, bool allowIosExperimental})` → `Future<bool>`
+- `isPlatformSupported()` → `Future<bool>`
+- `getVersion()` → `Future<String>`
+- `setEnvironment(String environment)` → `Future<void>`
+- `setLoggingEnabled(bool enabled)` → `Future<void>`
 
-- **[Integration Guide](INTEGRATION_GUIDE.md)**: Step-by-step guide for iOS and Android integration
-- **[Architecture Review](ARCHITECTURE_REVIEW.md)**: Deep dive into SDK architecture and design principles
+### Banner Ads
+- `createBanner({required String placementName, String? adId, CloudXAdViewListener? listener, AdViewPosition? position})` → `Future<String?>`
+- `loadBanner({required String adId})` → `Future<bool>`
+- `showBanner({required String adId})` → `Future<bool>`
+- `hideBanner({required String adId})` → `Future<bool>`
+- `startAutoRefresh({required String adId})` → `Future<bool>`
+- `stopAutoRefresh({required String adId})` → `Future<bool>`
 
-## License
+### MREC Ads
+- `createMREC({required String placementName, String? adId, CloudXAdViewListener? listener, AdViewPosition? position})` → `Future<String?>`
+- `loadMREC({required String adId})` → `Future<bool>`
+- `showMREC({required String adId})` → `Future<bool>`
+- `isMRECReady({required String adId})` → `Future<bool>`
 
-This project is licensed under the Business Source License 1.1 - see the LICENSE file for details.
+### Interstitial Ads
+- `createInterstitial({required String placementName, String? adId, CloudXInterstitialListener? listener})` → `Future<String?>`
+- `loadInterstitial({required String adId})` → `Future<bool>`
+- `showInterstitial({required String adId})` → `Future<bool>`
+- `isInterstitialReady({required String adId})` → `Future<bool>`
+
+### Ad Lifecycle
+- `destroyAd({required String adId})` → `Future<bool>`
+
+### Privacy
+- `setCCPAPrivacyString(String? ccpaString)` → `Future<void>`
+- `setIsUserConsent(bool hasConsent)` → `Future<void>`
+- `setIsAgeRestrictedUser(bool isAgeRestricted)` → `Future<void>`
+- `setGPPString(String? gppString)` → `Future<void>`
+- `getGPPString()` → `Future<String?>`
+- `setGPPSid(List<int>? sectionIds)` → `Future<void>`
+- `getGPPSid()` → `Future<List<int>?>`
+
+### User Targeting
+- `setUserID(String? userID)` → `Future<void>`
+- `setUserKeyValue(String key, String value)` → `Future<void>`
+- `setAppKeyValue(String key, String value)` → `Future<void>`
+- `clearAllKeyValues()` → `Future<void>`
+
+## Roadmap (Future Versions)
+
+The following features are planned for future releases:
+
+- ✅ Rewarded Ads (implementation exists, needs public API)
+- ✅ Native Ads with multiple sizes (implementation exists, needs public API)
+- ✅ Structured error handling with error codes
+- ✅ Granular log level control
+- ✅ App Open Ads
 
 ## Support
 
-For support and questions, please contact the CloudX team. 
+For questions, issues, or feature requests:
+- Contact the CloudX team
+- Check the demo app for implementation examples
+
+## License
+
+This project is licensed under the Business Source License 1.1. See the LICENSE file for details.
+
+---
+
+**Version:** 0.1.2 (Alpha)
+
+**Last Updated:** 2025

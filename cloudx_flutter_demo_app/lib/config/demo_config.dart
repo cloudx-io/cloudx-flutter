@@ -1,20 +1,20 @@
 class DemoEnvironmentConfig {
   final String name;
   final String appKey;
-  final String bannerPlacement;
-  final String mrecPlacement;
-  final String interstitialPlacement;
-  final String nativePlacement;
-  final String rewardedPlacement;
+  final String bannerPlacementName;
+  final String mrecPlacementName;
+  final String interstitialPlacementName;
+  final String nativePlacementName;
+  final String rewardedPlacementName;
 
   const DemoEnvironmentConfig({
     required this.name,
     required this.appKey,
-    required this.bannerPlacement,
-    required this.mrecPlacement,
-    required this.interstitialPlacement,
-    required this.nativePlacement,
-    required this.rewardedPlacement,
+    required this.bannerPlacementName,
+    required this.mrecPlacementName,
+    required this.interstitialPlacementName,
+    required this.nativePlacementName,
+    required this.rewardedPlacementName,
   });
 }
 
@@ -23,61 +23,61 @@ class DemoConfig {
   static const iosDev = DemoEnvironmentConfig(
     name: 'Development',
     appKey: 'g0PdN9_0ilfIcuNXhBopl',
-    bannerPlacement: 'metaBanner',
-    mrecPlacement: 'metaMREC',
-    interstitialPlacement: 'metaInterstitial',
-    nativePlacement: 'metaNative',
-    rewardedPlacement: 'metaRewarded',
+    bannerPlacementName: 'metaBanner',
+    mrecPlacementName: 'metaMREC',
+    interstitialPlacementName: 'metaInterstitial',
+    nativePlacementName: 'metaNative',
+    rewardedPlacementName: 'metaRewarded',
   );
 
   static const iosStaging = DemoEnvironmentConfig(
     name: 'Staging',
     appKey: 'A7ovaBRCcAL8lapKtoZmm',
-    bannerPlacement: 'objcDemo-banner-1',
-    mrecPlacement: 'objcDemo-mrec-1',
-    interstitialPlacement: 'objcDemo-interstitial-1',
-    nativePlacement: '-',
-    rewardedPlacement: '-',
+    bannerPlacementName: 'objcDemo-banner-1',
+    mrecPlacementName: 'objcDemo-mrec-1',
+    interstitialPlacementName: 'objcDemo-interstitial-1',
+    nativePlacementName: '-',
+    rewardedPlacementName: '-',
   );
 
   static const iosProduction = DemoEnvironmentConfig(
     name: 'Production',
     appKey: 'ZFyiqxXWTOGYclwHElLbM',
-    bannerPlacement: 'flutter-demo-banner-1',
-    mrecPlacement: 'flutter-demo-mrec-1',
-    interstitialPlacement: 'flutter-demo-interstitial-1',
-    nativePlacement: '-',
-    rewardedPlacement: '-',
+    bannerPlacementName: 'flutter-demo-banner-1',
+    mrecPlacementName: 'flutter-demo-mrec-1',
+    interstitialPlacementName: 'flutter-demo-interstitial-1',
+    nativePlacementName: '-',
+    rewardedPlacementName: '-',
   );
 
   // Android Configs
   static const androidDev = DemoEnvironmentConfig(
     name: 'Development',
     appKey: 'g0PdN9_0ilfIcuNXhBopl', // TODO: Replace with actual Android dev app key
-    bannerPlacement: 'metaBanner',
-    mrecPlacement: 'metaMREC',
-    interstitialPlacement: 'metaInterstitial',
-    nativePlacement: 'metaNative',
-    rewardedPlacement: 'metaRewarded',
+    bannerPlacementName: 'metaBanner',
+    mrecPlacementName: 'metaMREC',
+    interstitialPlacementName: 'metaInterstitial',
+    nativePlacementName: 'metaNative',
+    rewardedPlacementName: 'metaRewarded',
   );
 
   static const androidStaging = DemoEnvironmentConfig(
     name: 'Staging',
     appKey: 'A7ovaBRCcAL8lapKtoZmm', // TODO: Replace with actual Android staging app key
-    bannerPlacement: 'objcDemo-banner-1',
-    mrecPlacement: 'objcDemo-mrec-1',
-    interstitialPlacement: 'objcDemo-interstitial-1',
-    nativePlacement: '-',
-    rewardedPlacement: '-',
+    bannerPlacementName: 'objcDemo-banner-1',
+    mrecPlacementName: 'objcDemo-mrec-1',
+    interstitialPlacementName: 'objcDemo-interstitial-1',
+    nativePlacementName: '-',
+    rewardedPlacementName: '-',
   );
 
   static const androidProduction = DemoEnvironmentConfig(
     name: 'Production',
-    appKey: 'Le01Sy3tmPjg8dlN0750r',
-    bannerPlacement: 'flutter-demo-banner-1',
-    mrecPlacement: 'flutter-demo-mrec-1',
-    interstitialPlacement: 'flutter-demo-interstitial-1',
-    nativePlacement: '-',
-    rewardedPlacement: '-',
+    appKey: 'QtGzyVf8AuffQIWC9jOUx',
+    bannerPlacementName: 'FlutterDemoBanner',
+    mrecPlacementName: 'FlutterDemoMrec',
+    interstitialPlacementName: 'FlutterDemoInterstitial',
+    nativePlacementName: '-',
+    rewardedPlacementName: '-',
   );
 }

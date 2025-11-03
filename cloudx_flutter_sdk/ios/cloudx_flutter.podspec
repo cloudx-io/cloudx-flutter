@@ -1,13 +1,13 @@
 Pod::Spec.new do |s|
-  s.name             = 'cloudx_flutter_sdk'
-  s.version          = '2.0.0'
+  s.name             = 'cloudx_flutter'
+  s.version          = '0.1.2'
   s.summary          = 'Flutter SDK wrapper for CloudX Core Objective-C SDK'
   s.description      = <<-DESC
 A Flutter plugin that provides a complete wrapper around the CloudX Core Objective-C SDK,
 exposing all ad types (banner, interstitial, rewarded, native, MREC), privacy & compliance APIs
 (CCPA, GDPR, COPPA, GPP), targeting APIs, and comprehensive ad lifecycle callbacks.
                        DESC
-  s.homepage         = 'https://github.com/cloudx-xenoss/cloudx_flutter_sdk'
+  s.homepage         = 'https://github.com/cloudx-io/cloudx-flutter'
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'CloudX' => 'support@cloudx.io' }
   s.source           = { :path => '.' }

@@ -116,29 +116,35 @@ abstract class BaseAdScreenState<T extends BaseAdScreen> extends State<T> {
   Widget buildMainContent();
 
   Widget _buildStatusUI() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(
-              color: _customStatusColor ?? _getStatusColor(),
-              borderRadius: BorderRadius.circular(6),
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(
+                color: _customStatusColor ?? _getStatusColor(),
+                borderRadius: BorderRadius.circular(6),
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            _customStatusText ?? _getStatusText(),
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: _customStatusColor ?? _getStatusColor(),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                _customStatusText ?? _getStatusText(),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: _customStatusColor ?? _getStatusColor(),
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

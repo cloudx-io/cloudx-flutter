@@ -7,6 +7,10 @@
 #import <Flutter/Flutter.h>
 #import <objc/runtime.h>
 
+// Constants for ad sizing
+static const CGFloat kDefaultBannerWidth = 320.0;
+static const CGFloat kDefaultBannerHeight = 50.0;
+
 @interface CloudXFlutterSdkPlugin () <CLXInterstitialDelegate, CLXRewardedDelegate, CLXBannerDelegate, CLXNativeDelegate, FlutterStreamHandler>
 @property (nonatomic, strong) CLXLogger *logger;
 @property (nonatomic, strong) FlutterMethodChannel *channel;
@@ -18,6 +22,8 @@
 @property (nonatomic, strong) NSMutableDictionary<NSString *, FlutterResult> *pendingResults;
 // Map CloudX internal placement IDs to Flutter adIds
 @property (nonatomic, strong) NSMutableDictionary<NSString *, NSString *> *placementToAdIdMap;
+// Map adId to position for programmatic ads
+@property (nonatomic, strong) NSMutableDictionary<NSString *, NSString *> *adPositions;
 @end
 
 @interface CloudXBannerPlatformView : NSObject <FlutterPlatformView>
@@ -290,6 +296,7 @@
         _adInstances = [NSMutableDictionary dictionary];
         _pendingResults = [NSMutableDictionary dictionary];
         _placementToAdIdMap = [NSMutableDictionary dictionary];
+        _adPositions = [NSMutableDictionary dictionary];
     }
     return self;
 }
@@ -298,8 +305,6 @@
     // Core SDK Methods
     if ([call.method isEqualToString:@"initSDK"]) {
         [self initSDK:call.arguments result:result];
-    } else if ([call.method isEqualToString:@"isSDKInitialized"]) {
-        result(@([[CloudXCore shared] isInitialized]));
     } else if ([call.method isEqualToString:@"getSDKVersion"]) {
         result([[CloudXCore shared] sdkVersion]);
     } else if ([call.method isEqualToString:@"setUserID"]) {
@@ -331,6 +336,18 @@
     } else if ([call.method isEqualToString:@"setIsAgeRestrictedUser"]) {
         [CloudXCore setIsAgeRestrictedUser:[call.arguments[@"isAgeRestrictedUser"] boolValue]];
         result(@YES);
+    } else if ([call.method isEqualToString:@"setGPPString"]) {
+        // TODO: CloudXCore does not support GPP yet - no-op for now
+        result(@YES);
+    } else if ([call.method isEqualToString:@"getGPPString"]) {
+        // TODO: CloudXCore does not support GPP yet - return nil
+        result(nil);
+    } else if ([call.method isEqualToString:@"setGPPSid"]) {
+        // TODO: CloudXCore does not support GPP yet - no-op for now
+        result(@YES);
+    } else if ([call.method isEqualToString:@"getGPPSid"]) {
+        // TODO: CloudXCore does not support GPP yet - return nil
+        result(nil);
     }
     // Targeting Methods
     else if ([call.method isEqualToString:@"setUserKeyValue"]) {
@@ -412,42 +429,14 @@
 
 #pragma mark - Ad Creation
 
-- (void)createAd:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *adType = arguments[@"adType"];
-    NSString *placement = arguments[@"placement"];
-    NSString *adId = arguments[@"adId"];
-    
-    if (!adType || !placement || !adId) {
-        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
-                                  message:@"adType, placement, and adId are required" 
-                                  details:nil]);
-        return;
-    }
-    
-    if ([adType isEqualToString:@"banner"]) {
-        [self createBanner:@{@"placement": placement, @"adId": adId} result:result];
-    } else if ([adType isEqualToString:@"interstitial"]) {
-        [self createInterstitial:@{@"placement": placement, @"adId": adId} result:result];
-    } else if ([adType isEqualToString:@"rewarded"]) {
-        [self createRewarded:@{@"placement": placement, @"adId": adId} result:result];
-    } else if ([adType isEqualToString:@"native"]) {
-        [self createNative:@{@"placement": placement, @"adId": adId} result:result];
-    } else if ([adType isEqualToString:@"mrec"]) {
-        [self createMREC:@{@"placement": placement, @"adId": adId} result:result];
-    } else {
-        result([FlutterError errorWithCode:@"INVALID_AD_TYPE" 
-                                  message:[NSString stringWithFormat:@"Unknown ad type: %@", adType] 
-                                  details:nil]);
-    }
-}
-
 - (void)createBanner:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *adId = arguments[@"adId"];
-    NSString *placement = arguments[@"placement"];
+    NSString *placementName = arguments[@"placementName"];
+    NSString *position = arguments[@"position"];  // Optional: for programmatic banners
 
-    if (!placement || !adId) {
+    if (!placementName || !adId) {
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
-                                  message:@"placement and adId are required"
+                                  message:@"placementName and adId are required"
                                   details:nil]);
         return;
     }
@@ -455,7 +444,7 @@
     UIViewController *viewController = [self getTopViewController];
 
     // Create banner (tmax configured server-side)
-    CLXBannerAdView *bannerAd = [[CloudXCore shared] createBannerWithPlacement:placement
+    CLXBannerAdView *bannerAd = [[CloudXCore shared] createBannerWithPlacement:placementName
                                                                   viewController:viewController
                                                                         delegate:self
                                                                             tmax:nil];
@@ -464,6 +453,14 @@
         self.adInstances[adId] = bannerAd;
         [self setAdId:adId forInstance:bannerAd];
         [self storePlacementIdMappingForAdInstance:bannerAd withAdId:adId adType:@"banner"];
+
+        // Store position for programmatic banners
+        if (position) {
+            self.adPositions[adId] = position;
+            [self.logger debug:[NSString stringWithFormat:@"Created programmatic banner with position: %@", position]];
+            // Note: View will be added to hierarchy when showBanner is called
+        }
+
         result(@YES);
     } else {
         result([FlutterError errorWithCode:@"AD_CREATION_FAILED"
@@ -473,18 +470,18 @@
 }
 
 - (void)createInterstitial:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *placement = arguments[@"placement"];
+    NSString *placementName = arguments[@"placementName"];
     NSString *adId = arguments[@"adId"];
-    
-    if (!placement || !adId) {
-        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
-                                  message:@"placement and adId are required" 
+
+    if (!placementName || !adId) {
+        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
+                                  message:@"placementName and adId are required"
                                   details:nil]);
         return;
     }
-    
-    CLXInterstitial *interstitialAd = [[CloudXCore shared] createInterstitialWithPlacement:placement
-                                                                                 delegate:self];
+
+    CLXInterstitial *interstitialAd = [[CloudXCore shared] createInterstitialWithPlacement:placementName
+                                                                                              delegate:self];
     
     if (interstitialAd) {
         self.adInstances[adId] = interstitialAd;
@@ -500,18 +497,18 @@
 }
 
 - (void)createRewarded:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *placement = arguments[@"placement"];
+    NSString *placementName = arguments[@"placementName"];
     NSString *adId = arguments[@"adId"];
-    
-    if (!placement || !adId) {
-        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
-                                  message:@"placement and adId are required" 
+
+    if (!placementName || !adId) {
+        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
+                                  message:@"placementName and adId are required"
                                   details:nil]);
         return;
     }
-    
-    CLXRewarded *rewardedAd = [[CloudXCore shared] createRewardedWithPlacement:placement
-                                                                     delegate:self];
+
+    CLXRewarded *rewardedAd = [[CloudXCore shared] createRewardedWithPlacement:placementName
+                                                                                     delegate:self];
     
     if (rewardedAd) {
         self.adInstances[adId] = rewardedAd;
@@ -527,18 +524,18 @@
 }
 
 - (void)createNative:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *placement = arguments[@"placement"];
+    NSString *placementName = arguments[@"placementName"];
     NSString *adId = arguments[@"adId"];
     
-    if (!placement || !adId) {
+    if (!placementName || !adId) {
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
-                                  message:@"placement and adId are required" 
+                                  message:@"placementName and adId are required" 
                                   details:nil]);
         return;
     }
     
     UIViewController *viewController = [self getTopViewController];
-    CLXNativeAdView *nativeAd = [[CloudXCore shared] createNativeAdWithPlacement:placement
+    CLXNativeAdView *nativeAd = [[CloudXCore shared] createNativeAdWithPlacement:placementName
                                                                     viewController:viewController
                                                                         delegate:self];
     
@@ -555,29 +552,38 @@
 }
 
 - (void)createMREC:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *placement = arguments[@"placement"];
+    NSString *placementName = arguments[@"placementName"];
     NSString *adId = arguments[@"adId"];
-    
-    if (!placement || !adId) {
-        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
-                                  message:@"placement and adId are required" 
+    NSString *position = arguments[@"position"];  // Optional: for programmatic MRECs
+
+    if (!placementName || !adId) {
+        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
+                                  message:@"placementName and adId are required"
                                   details:nil]);
         return;
     }
-    
+
     UIViewController *viewController = [self getTopViewController];
-    CLXBannerAdView *mrecAd = [[CloudXCore shared] createMRECWithPlacement:placement
+    CLXBannerAdView *mrecAd = [[CloudXCore shared] createMRECWithPlacement:placementName
                                                               viewController:viewController
                                                                   delegate:self];
-    
+
     if (mrecAd) {
         self.adInstances[adId] = mrecAd;
         [self setAdId:adId forInstance:mrecAd];
         [self storePlacementIdMappingForAdInstance:mrecAd withAdId:adId adType:@"mrec"];
+
+        // Store position for programmatic MRECs
+        if (position) {
+            self.adPositions[adId] = position;
+            [self.logger debug:[NSString stringWithFormat:@"Created programmatic MREC with position: %@", position]];
+            // Note: View will be added to hierarchy when showMREC is called
+        }
+
         result(@YES);
     } else {
-        result([FlutterError errorWithCode:@"AD_CREATION_FAILED" 
-                                  message:@"Failed to create MREC ad" 
+        result([FlutterError errorWithCode:@"AD_CREATION_FAILED"
+                                  message:@"Failed to create MREC ad"
                                   details:nil]);
     }
 }
@@ -634,38 +640,117 @@
         result(@YES);
     } else {
         [self.logger error:@"Ad instance does not support loading"];
-        result([FlutterError errorWithCode:@"INVALID_AD_TYPE" 
-                                  message:@"Ad instance does not support loading" 
+        result([FlutterError errorWithCode:@"INVALID_AD_TYPE"
+                                  message:@"Ad instance does not support loading"
                                   details:nil]);
     }
 }
 
+/// Helper method to determine ad size with progressive fallback
+- (CGSize)determineSizeForAdView:(UIView *)adView {
+    // Try bounds first (set by CloudX SDK for standard sizes: Banner 320x50, MREC 300x250)
+    CGSize adSize = adView.bounds.size;
+    if (!CGSizeEqualToSize(adSize, CGSizeZero)) {
+        return adSize;
+    }
+
+    // Fallback to frame if bounds not set
+    [self.logger debug:@"Ad view bounds are zero, checking frame"];
+    adSize = adView.frame.size;
+    if (!CGSizeEqualToSize(adSize, CGSizeZero)) {
+        return adSize;
+    }
+
+    // Last resort: use default banner size
+    [self.logger debug:@"Ad view frame also zero, using default banner size"];
+    return CGSizeMake(kDefaultBannerWidth, kDefaultBannerHeight);
+}
+
+/// Helper method to apply positioning constraints for programmatic ads
+- (void)applyPositionConstraints:(NSString *)position toView:(UIView *)adView inContainer:(UIView *)containerView {
+    // Position format matches Flutter AdViewPosition enum values (e.g., "top_center", "bottom_left")
+    NSMutableArray<NSLayoutConstraint *> *constraints = [NSMutableArray array];
+
+    // Determine ad size with progressive fallback (bounds → frame → default)
+    CGSize adSize = [self determineSizeForAdView:adView];
+
+    // Add explicit size constraints for Auto Layout
+    // Required because CloudX ad views may not have intrinsic content size
+    [constraints addObject:[adView.widthAnchor constraintEqualToConstant:adSize.width]];
+    [constraints addObject:[adView.heightAnchor constraintEqualToConstant:adSize.height]];
+
+    // Horizontal positioning
+    if ([position containsString:@"left"]) {
+        [constraints addObject:[adView.leadingAnchor constraintEqualToAnchor:containerView.safeAreaLayoutGuide.leadingAnchor]];
+    } else if ([position containsString:@"right"]) {
+        [constraints addObject:[adView.trailingAnchor constraintEqualToAnchor:containerView.safeAreaLayoutGuide.trailingAnchor]];
+    } else {
+        // center (horizontal)
+        [constraints addObject:[adView.centerXAnchor constraintEqualToAnchor:containerView.centerXAnchor]];
+    }
+
+    // Vertical positioning
+    if ([position hasPrefix:@"top"]) {
+        [constraints addObject:[adView.topAnchor constraintEqualToAnchor:containerView.safeAreaLayoutGuide.topAnchor]];
+    } else if ([position hasPrefix:@"bottom"]) {
+        [constraints addObject:[adView.bottomAnchor constraintEqualToAnchor:containerView.safeAreaLayoutGuide.bottomAnchor]];
+    } else {
+        // centered (vertical)
+        [constraints addObject:[adView.centerYAnchor constraintEqualToAnchor:containerView.centerYAnchor]];
+    }
+
+    [NSLayoutConstraint activateConstraints:constraints];
+}
+
 - (void)showAd:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *adId = arguments[@"adId"];
-    
+
     if (!adId) {
-        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
-                                  message:@"adId is required" 
+        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
+                                  message:@"adId is required"
                                   details:nil]);
         return;
     }
-    
+
     id adInstance = self.adInstances[adId];
     if (!adInstance) {
-        result([FlutterError errorWithCode:@"AD_NOT_FOUND" 
-                                  message:@"Ad instance not found" 
+        result([FlutterError errorWithCode:@"AD_NOT_FOUND"
+                                  message:@"Ad instance not found"
                                   details:nil]);
         return;
     }
-    
-    UIViewController *viewController = [self getTopViewController];
-    
-    if ([adInstance respondsToSelector:@selector(showFromViewController:)]) {
+
+    // Check if this is a programmatic banner/MREC with position
+    NSString *position = self.adPositions[adId];
+    if (position && [adInstance isKindOfClass:[UIView class]]) {
+        // Programmatic banner/MREC - add to view hierarchy and show
+        UIView *adView = (UIView *)adInstance;
+        UIViewController *viewController = [self getTopViewController];
+        UIView *containerView = viewController.view;
+
+        // Only add to hierarchy if not already there
+        if (!adView.superview) {
+            adView.translatesAutoresizingMaskIntoConstraints = NO;
+            [containerView addSubview:adView];
+
+            // Apply positioning constraints
+            [self applyPositionConstraints:position toView:adView inContainer:containerView];
+            [self.logger debug:[NSString stringWithFormat:@"Added programmatic ad to view hierarchy at position: %@", position]];
+        } else {
+            // Already in hierarchy, just unhide
+            adView.hidden = NO;
+            [self.logger debug:[NSString stringWithFormat:@"Unhiding programmatic ad at position: %@", position]];
+        }
+
+        result(@YES);
+    } else if ([adInstance respondsToSelector:@selector(showFromViewController:)]) {
+        // Fullscreen ad (interstitial/rewarded)
+        UIViewController *viewController = [self getTopViewController];
         [adInstance showFromViewController:viewController];
         result(@YES);
     } else {
-        result([FlutterError errorWithCode:@"INVALID_AD_TYPE" 
-                                  message:@"Ad instance does not support showing" 
+        result([FlutterError errorWithCode:@"INVALID_AD_TYPE"
+                                  message:@"Ad instance does not support showing"
                                   details:nil]);
     }
 }
@@ -690,12 +775,21 @@
     
     // Handle different ad types according to CloudX SDK and industry standards
     if ([adInstance isKindOfClass:[UIView class]]) {
-        // Banner ads (UIView-based) - remove from superview or hide
+        // Banner/MREC ads (UIView-based) - just hide them (keep in hierarchy for programmatic)
         UIView *bannerView = (UIView *)adInstance;
-        if (bannerView.superview) {
-            [bannerView removeFromSuperview];
-        } else {
+        NSString *position = self.adPositions[adId];
+
+        if (position) {
+            // Programmatic ad - keep in hierarchy, just hide
             bannerView.hidden = YES;
+            [self.logger debug:@"Hiding programmatic ad (kept in hierarchy)"];
+        } else {
+            // Widget-based ad - can remove from hierarchy
+            if (bannerView.superview) {
+                [bannerView removeFromSuperview];
+            } else {
+                bannerView.hidden = YES;
+            }
         }
         result(@YES);
     } else if ([adInstance respondsToSelector:@selector(destroy)]) {
@@ -759,12 +853,28 @@
             // No inner ad, that's fine
         }
 
+        // For programmatic banner/MREC views, explicitly remove from superview
+        if ([adInstance isKindOfClass:[UIView class]]) {
+            UIView *adView = (UIView *)adInstance;
+            if (adView.superview) {
+                [adView removeFromSuperview];
+                [self.logger debug:@"Removed programmatic ad view from hierarchy"];
+            }
+        }
+
         if ([adInstance respondsToSelector:@selector(destroy)]) {
             [adInstance destroy];
         }
 
         [self.adInstances removeObjectForKey:adId];
         [self.pendingResults removeObjectForKey:adId];
+        [self.adPositions removeObjectForKey:adId];
+
+        // Clean up placement mappings for this adId
+        NSArray *placementKeys = [self.placementToAdIdMap allKeysForObject:adId];
+        for (NSString *placementKey in placementKeys) {
+            [self.placementToAdIdMap removeObjectForKey:placementKey];
+        }
     }
 
     result(@YES);

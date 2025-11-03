@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cloudx_flutter_sdk/cloudx.dart';
+import 'package:cloudx_flutter/cloudx.dart';
 import 'base_ad_screen.dart';
 import '../config/demo_config.dart';
 import '../utils/demo_app_logger.dart';
@@ -17,15 +17,11 @@ class InterstitialScreen extends BaseAdScreen {
   State<InterstitialScreen> createState() => _InterstitialScreenState();
 }
 
-class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> with AutomaticKeepAliveClientMixin {
+class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> {
   String? _currentAdId;
 
   @override
-  bool get wantKeepAlive => true;
-
-  @override
   Widget build(BuildContext context) {
-    super.build(context); // Required for AutomaticKeepAliveClientMixin
     return buildScreen(context);
   }
 
@@ -124,10 +120,10 @@ class _InterstitialScreenState extends BaseAdScreenState<InterstitialScreen> wit
 
     try {
       // adId is now auto-generated - no need to create manually!
-      _log('Creating interstitial with placement: ${widget.environment.interstitialPlacement}');
+      _log('Creating interstitial with placement: ${widget.environment.interstitialPlacementName}');
 
       _currentAdId = await CloudX.createInterstitial(
-        placement: widget.environment.interstitialPlacement,
+        placementName: widget.environment.interstitialPlacementName,
         // adId is optional - will be auto-generated as 'interstitial_<placement>_<timestamp>'
         listener: CloudXInterstitialListener(
           onAdLoaded: (ad) {

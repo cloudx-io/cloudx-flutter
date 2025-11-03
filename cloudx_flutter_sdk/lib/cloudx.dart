@@ -1,6 +1,7 @@
 library cloudx;
 
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -9,6 +10,7 @@ import 'package:flutter/services.dart';
 // ==============================================================================
 
 import 'models/cloudx_ad.dart';
+import 'models/banner_position.dart';
 import 'listeners/cloudx_ad_listener.dart';
 import 'listeners/cloudx_ad_view_listener.dart';
 import 'listeners/cloudx_interstitial_listener.dart';
@@ -20,6 +22,7 @@ import 'listeners/cloudx_rewarded_interstitial_listener.dart';
 
 // Models
 export 'models/cloudx_ad.dart';
+export 'models/banner_position.dart';
 
 // Listeners (matching Android SDK naming)
 export 'listeners/cloudx_ad_listener.dart';
@@ -31,18 +34,6 @@ export 'listeners/cloudx_rewarded_interstitial_listener.dart';
 export 'widgets/cloudx_banner_view.dart';
 export 'widgets/cloudx_mrec_view.dart';
 export 'widgets/cloudx_ad_view_controller.dart';
-
-/// Custom exception for CloudX SDK errors
-class CloudXException implements Exception {
-  final String code;
-  final String message;
-  final dynamic details;
-
-  CloudXException(this.code, this.message, [this.details]);
-
-  @override
-  String toString() => 'CloudXException($code): $message';
-}
 
 /// The main CloudX Flutter SDK class.
 ///
@@ -72,12 +63,28 @@ class CloudX {
   /// Initialize the CloudX SDK
   ///
   /// [appKey] - Your CloudX app key
+  /// [allowIosExperimental] - Set to `true` to enable iOS SDK (alpha/development only)
   ///
   /// Returns `true` if initialization was successful
-  /// Throws [CloudXException] if initialization fails
+  /// Returns `false` if initialization fails or platform is not supported
+  ///
+  /// **Platform Support:**
+  /// - Android: ✅ Production-ready
+  /// - iOS: ⚠️ Alpha/Development only - requires `allowIosExperimental: true`
   static Future<bool> initialize({
     required String appKey,
+    bool allowIosExperimental = false,
   }) async {
+    // Platform guard: iOS SDK is not production-ready
+    if (Platform.isIOS && !allowIosExperimental) {
+      debugPrint('⚠️ CloudX iOS SDK is not yet production-ready.');
+      debugPrint('⚠️ Currently only Android is fully supported.');
+      debugPrint('⚠️ For iOS alpha testing, use: CloudX.initialize(appKey: "...", allowIosExperimental: true)');
+      debugPrint('⚠️ For production iOS access, contact the CloudX team.');
+      debugPrint('⚠️ SDK initialization skipped on iOS.');
+      return false;
+    }
+
     final arguments = <String, dynamic>{
       'appKey': appKey,
     };
@@ -87,21 +94,24 @@ class CloudX {
       await _ensureEventStreamInitialized();
       return result ?? false;
     } on PlatformException catch (e) {
-      throw CloudXException(
-        e.code,
-        e.message ?? 'Failed to initialize SDK',
-        e.details,
-      );
+      debugPrint('❌ CloudX initialization failed: ${e.message}');
+      debugPrint('   Error code: ${e.code}');
+      if (e.details != null) {
+        debugPrint('   Details: ${e.details}');
+      }
+      return false;
     }
   }
 
-  /// Check if the SDK is initialized
-  static Future<bool> isInitialized() async {
-    try {
-      return await _invokeMethod<bool>('isSDKInitialized') ?? false;
-    } catch (e) {
-      return false;
-    }
+  /// Check if the current platform is supported by CloudX SDK
+  ///
+  /// Returns `true` if platform is production-ready, `false` otherwise
+  ///
+  /// Currently:
+  /// - Android: Production-ready ✅
+  /// - iOS: Alpha/Development only ⚠️
+  static bool isPlatformSupported() {
+    return !Platform.isIOS;
   }
 
   /// Get the SDK version
@@ -113,33 +123,9 @@ class CloudX {
     }
   }
 
-  /// Get or set the user ID
-  static Future<String?> getUserID() async {
-    try {
-      return await _invokeMethod<String>('getUserID');
-    } catch (e) {
-      return null;
-    }
-  }
-
   /// Set the user ID
   static Future<void> setUserID(String? userID) async {
     await _invokeMethod('setUserID', {'userID': userID});
-  }
-
-  /// Get logs data dictionary
-  static Future<Map<String, String>> getLogsData() async {
-    try {
-      final result = await _invokeMethod<Map>('getLogsData');
-      return result?.cast<String, String>() ?? {};
-    } catch (e) {
-      return {};
-    }
-  }
-
-  /// Track SDK errors for analytics
-  static Future<void> trackSDKError(String error) async {
-    await _invokeMethod('trackSDKError', {'error': error});
   }
 
   /// Set the environment (dev, staging, production)
@@ -277,27 +263,37 @@ class CloudX {
 
   /// Create a banner ad
   ///
-  /// [placement] - The placement name from your CloudX dashboard
-  /// [adId] - Unique identifier for this ad instance
-  /// Create a banner ad
-  ///
   /// If [adId] is not provided, one will be automatically generated.
   /// Returns the adId (either provided or generated) for use with other methods.
+  ///
+  /// [placementName] - Ad placement name
+  /// [adId] - Optional custom ad identifier
   /// [listener] - Optional callback listener for ad events
+  /// [position] - Optional position for programmatic banner placement.
+  ///   If provided, creates a native overlay banner at the specified position.
+  ///   If null, creates a widget-based banner for use with CloudXBannerView.
   static Future<String?> createBanner({
-    required String placement,
+    required String placementName,
     String? adId,
     CloudXAdViewListener? listener,
+    AdViewPosition? position,
   }) async {
     await _ensureEventStreamInitialized();
 
     // Auto-generate adId if not provided
-    final id = adId ?? 'banner_${placement}_${DateTime.now().millisecondsSinceEpoch}';
+    final id = adId ?? 'banner_${placementName}_${DateTime.now().millisecondsSinceEpoch}';
 
-    final success = await _invokeMethod<bool>('createBanner', {
-      'placement': placement,
+    final arguments = <String, dynamic>{
+      'placementName': placementName,
       'adId': id,
-    });
+    };
+
+    // Add position if programmatic banner
+    if (position != null) {
+      arguments['position'] = position.value;
+    }
+
+    final success = await _invokeMethod<bool>('createBanner', arguments);
 
     if (success == true) {
       if (listener != null) {
@@ -319,7 +315,31 @@ class CloudX {
     return await _invokeMethod<bool>('showAd', {'adId': adId}) ?? false;
   }
 
-  /// Hide a banner ad
+  /// Hide a banner ad temporarily without destroying it
+  ///
+  /// Use this method to temporarily remove a banner from view while keeping the ad instance alive.
+  /// This is useful when you want to hide ads during specific user interactions (e.g., during video playback,
+  /// in-app purchases, or other sensitive screens) and show them again later.
+  ///
+  /// To show the ad again, call [showBanner] with the same [adId].
+  ///
+  /// **Important**: This does NOT stop auto-refresh if enabled. The ad will continue to refresh in the background.
+  /// Call [stopAutoRefresh] if you want to pause refreshing while hidden.
+  ///
+  /// **When to use [hideBanner] vs [destroyAd]**:
+  /// - Use [hideBanner] when you plan to show the ad again later in the same session
+  /// - Use [destroyAd] when you're completely done with the ad (e.g., navigating away from the screen)
+  ///
+  /// Example:
+  /// ```dart
+  /// // Hide banner during video playback
+  /// await CloudX.stopAutoRefresh(adId: bannerId);
+  /// await CloudX.hideBanner(adId: bannerId);
+  ///
+  /// // Show banner again when video ends
+  /// await CloudX.showBanner(adId: bannerId);
+  /// await CloudX.startAutoRefresh(adId: bannerId);
+  /// ```
   static Future<bool> hideBanner({required String adId}) async {
     return await _invokeMethod<bool>('hideAd', {'adId': adId}) ?? false;
   }
@@ -333,17 +353,17 @@ class CloudX {
   /// If [adId] is not provided, one will be automatically generated.
   /// Returns the adId (either provided or generated) for use with other methods.
   static Future<String?> createInterstitial({
-    required String placement,
+    required String placementName,
     String? adId,
     CloudXInterstitialListener? listener,
   }) async {
     await _ensureEventStreamInitialized();
 
     // Auto-generate adId if not provided
-    final id = adId ?? 'interstitial_${placement}_${DateTime.now().millisecondsSinceEpoch}';
+    final id = adId ?? 'interstitial_${placementName}_${DateTime.now().millisecondsSinceEpoch}';
 
     final success = await _invokeMethod<bool>('createInterstitial', {
-      'placement': placement,
+      'placementName': placementName,
       'adId': id,
     });
 
@@ -376,22 +396,23 @@ class CloudX {
   // MARK: - Rewarded Ad Methods
   // ============================================================================
 
-  /// Create a rewarded ad
+  /// Create a rewarded ad (NOT READY - Internal use only)
   ///
   /// If [adId] is not provided, one will be automatically generated.
   /// Returns the adId (either provided or generated) for use with other methods.
-  static Future<String?> createRewarded({
-    required String placement,
+  // ignore: unused_element
+  static Future<String?> _createRewarded({
+    required String placementName,
     String? adId,
     CloudXRewardedInterstitialListener? listener,
   }) async {
     await _ensureEventStreamInitialized();
 
     // Auto-generate adId if not provided
-    final id = adId ?? 'rewarded_${placement}_${DateTime.now().millisecondsSinceEpoch}';
+    final id = adId ?? 'rewarded_${placementName}_${DateTime.now().millisecondsSinceEpoch}';
 
     final success = await _invokeMethod<bool>('createRewarded', {
-      'placement': placement,
+      'placementName': placementName,
       'adId': id,
     });
 
@@ -405,18 +426,21 @@ class CloudX {
     return null;
   }
 
-  /// Load a rewarded ad
-  static Future<bool> loadRewarded({required String adId}) async {
+  /// Load a rewarded ad (NOT READY - Internal use only)
+  // ignore: unused_element
+  static Future<bool> _loadRewarded({required String adId}) async {
     return await _invokeMethod<bool>('loadAd', {'adId': adId}) ?? false;
   }
 
-  /// Show a rewarded ad
-  static Future<bool> showRewarded({required String adId}) async {
+  /// Show a rewarded ad (NOT READY - Internal use only)
+  // ignore: unused_element
+  static Future<bool> _showRewarded({required String adId}) async {
     return await _invokeMethod<bool>('showAd', {'adId': adId}) ?? false;
   }
 
-  /// Check if rewarded ad is ready to show
-  static Future<bool> isRewardedReady({required String adId}) async {
+  /// Check if rewarded ad is ready to show (NOT READY - Internal use only)
+  // ignore: unused_element
+  static Future<bool> _isRewardedReady({required String adId}) async {
     return await _invokeMethod<bool>('isAdReady', {'adId': adId}) ?? false;
   }
 
@@ -424,22 +448,23 @@ class CloudX {
   // MARK: - Native Ad Methods
   // ============================================================================
 
-  /// Create a native ad
+  /// Create a native ad (NOT READY - Internal use only)
   ///
   /// If [adId] is not provided, one will be automatically generated.
   /// Returns the adId (either provided or generated) for use with other methods.
-  static Future<String?> createNative({
-    required String placement,
+  // ignore: unused_element
+  static Future<String?> _createNative({
+    required String placementName,
     String? adId,
     CloudXAdViewListener? listener,
   }) async {
     await _ensureEventStreamInitialized();
 
     // Auto-generate adId if not provided
-    final id = adId ?? 'native_${placement}_${DateTime.now().millisecondsSinceEpoch}';
+    final id = adId ?? 'native_${placementName}_${DateTime.now().millisecondsSinceEpoch}';
 
     final success = await _invokeMethod<bool>('createNative', {
-      'placement': placement,
+      'placementName': placementName,
       'adId': id,
     });
 
@@ -454,17 +479,26 @@ class CloudX {
   }
 
   /// Load a native ad
-  static Future<bool> loadNative({required String adId}) async {
+  ///
+  /// NOT READY - Internal use only. Native ads are not ready for public use.
+  // ignore: unused_element
+  static Future<bool> _loadNative({required String adId}) async {
     return await _invokeMethod<bool>('loadAd', {'adId': adId}) ?? false;
   }
 
   /// Show a native ad
-  static Future<bool> showNative({required String adId}) async {
+  ///
+  /// NOT READY - Internal use only. Native ads are not ready for public use.
+  // ignore: unused_element
+  static Future<bool> _showNative({required String adId}) async {
     return await _invokeMethod<bool>('showAd', {'adId': adId}) ?? false;
   }
 
   /// Check if native ad is ready to show
-  static Future<bool> isNativeReady({required String adId}) async {
+  ///
+  /// NOT READY - Internal use only. Native ads are not ready for public use.
+  // ignore: unused_element
+  static Future<bool> _isNativeReady({required String adId}) async {
     return await _invokeMethod<bool>('isAdReady', {'adId': adId}) ?? false;
   }
 
@@ -477,18 +511,20 @@ class CloudX {
   /// If [adId] is not provided, one will be automatically generated.
   /// Returns the adId (either provided or generated) for use with other methods.
   static Future<String?> createMREC({
-    required String placement,
+    required String placementName,
     String? adId,
     CloudXAdViewListener? listener,
+    AdViewPosition? position,
   }) async {
     await _ensureEventStreamInitialized();
 
     // Auto-generate adId if not provided
-    final id = adId ?? 'mrec_${placement}_${DateTime.now().millisecondsSinceEpoch}';
+    final id = adId ?? 'mrec_${placementName}_${DateTime.now().millisecondsSinceEpoch}';
 
     final success = await _invokeMethod<bool>('createMREC', {
-      'placement': placement,
+      'placementName': placementName,
       'adId': id,
+      if (position != null) 'position': position.value,
     });
 
     if (success == true) {

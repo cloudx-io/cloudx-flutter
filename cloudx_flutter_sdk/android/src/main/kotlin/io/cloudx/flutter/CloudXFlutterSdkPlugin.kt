@@ -4,7 +4,10 @@ import android.app.Activity
 import android.content.Context
 import android.preference.PreferenceManager
 import android.util.Log
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import io.cloudx.sdk.*
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -27,9 +30,15 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     
     // Storage for ad instances
     private val adInstances = mutableMapOf<String, Any>()
-    
+
+    // Storage for programmatic banner containers (overlays)
+    private val programmaticBannerContainers = mutableMapOf<String, FrameLayout>()
+
     // Storage for pending results (for async operations)
     private val pendingResults = mutableMapOf<String, Result>()
+
+    // Track privacy state to prevent overwriting when setting individual fields
+    private var currentPrivacy = CloudXPrivacy()
 
     companion object {
         private const val TAG = "CloudXFlutter"
@@ -39,6 +48,12 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
         private const val NATIVE_VIEW_TYPE = "cloudx_native_view"
         private const val MREC_VIEW_TYPE = "cloudx_mrec_view"
     }
+
+    // Logging helpers
+    private fun logDebug(message: String) = CloudXLogger.d(TAG, message)
+    private fun logError(message: String) = CloudXLogger.e(TAG, message)
+    private fun logError(message: String, throwable: Throwable) = CloudXLogger.e(TAG, message, throwable)
+    private fun logWarning(message: String) = CloudXLogger.w(TAG, message)
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         context = binding.applicationContext
@@ -65,19 +80,19 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
             CloudXAdViewFactory(this, AdViewType.MREC)
         )
         
-        Log.d(TAG, "Plugin attached to engine")
+        logDebug( "Plugin attached to engine")
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         methodChannel.setMethodCallHandler(null)
         eventChannel.setStreamHandler(null)
         context = null
-        Log.d(TAG, "Plugin detached from engine")
+        logDebug( "Plugin detached from engine")
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         activityRef = WeakReference(binding.activity)
-        Log.d(TAG, "Plugin attached to activity")
+        logDebug( "Plugin attached to activity")
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
@@ -95,38 +110,35 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     // EventChannel.StreamHandler implementation
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
         eventSink = events
-        Log.d(TAG, "Event stream listener attached")
+        logDebug("Event stream listener attached")
+
+        // Send ready sentinel to match iOS behavior and prevent 500ms timeout on Flutter side
+        events?.success(mapOf(
+            "event" to "__eventChannelReady__"
+        ))
     }
 
     override fun onCancel(arguments: Any?) {
         eventSink = null
-        Log.d(TAG, "Event stream listener cancelled")
+        logDebug( "Event stream listener cancelled")
     }
 
     // MethodCallHandler implementation
     override fun onMethodCall(call: MethodCall, result: Result) {
-        Log.d(TAG, "Method call: ${call.method}")
+        logDebug( "Method call: ${call.method}")
         
         when (call.method) {
             // Core SDK Methods
             "initSDK" -> initSDK(call, result)
-            "isSDKInitialized" -> result.success(false) // TODO: Track initialization state
-            "getSDKVersion" -> result.success("0.0.1") // TODO: Get from SDK
-            "getUserID" -> result.success(null) // TODO: Implement user ID getter
+            "getSDKVersion" -> result.success(io.cloudx.sdk.BuildConfig.SDK_VERSION_NAME)
             "setUserID" -> {
                 val userID = call.argument<String>("userID")
                 userID?.let { CloudX.setHashedUserId(it) }
                 result.success(true)
             }
-            "getLogsData" -> result.success(emptyMap<String, String>())
-            "trackSDKError" -> {
-                val error = call.argument<String>("error") ?: "Unknown error"
-                Log.e(TAG, "SDK Error tracked: $error")
-                result.success(true)
-            }
             "setEnvironment" -> {
                 val environment = call.argument<String>("environment")
-                Log.d(TAG, "setEnvironment called with: $environment")
+                logDebug( "setEnvironment called with: $environment")
                 
                 // Map environment string to CloudXInitializationServer
                 initializationServer = when (environment?.lowercase()) {
@@ -134,18 +146,20 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
                     "staging" -> CloudXInitializationServer.Staging
                     "production", "prod" -> CloudXInitializationServer.Production
                     else -> {
-                        Log.w(TAG, "Unknown environment: $environment, defaulting to Production")
+                        logWarning( "Unknown environment: $environment, defaulting to Production")
                         CloudXInitializationServer.Production
                     }
                 }
                 
-                Log.d(TAG, "Environment set to: $initializationServer")
+                logDebug( "Environment set to: $initializationServer")
                 result.success(true)
             }
             "setLoggingEnabled" -> {
                 val enabled = call.argument<Boolean>("enabled") ?: false
+                // Set logging for both plugin and native SDK
+                CloudXLogger.setLoggingEnabled(enabled)
                 CloudX.setLoggingEnabled(enabled)
-                Log.d(TAG, "Logging enabled set to: $enabled")
+                logDebug("Logging enabled set to: $enabled")
                 result.success(true)
             }
             
@@ -221,7 +235,7 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
             return
         }
 
-        Log.d(TAG, "Initializing CloudX SDK with appKey: $appKey, server: $initializationServer")
+        logDebug( "Initializing CloudX SDK with appKey: $appKey, server: $initializationServer")
 
         val initParams = CloudXInitializationParams(
             appKey = appKey,
@@ -230,12 +244,12 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
         
         CloudX.initialize(initParams, object : CloudXInitializationListener {
             override fun onInitialized() {
-                Log.d(TAG, "CloudX SDK initialized successfully")
+                logDebug( "CloudX SDK initialized successfully")
                 result.success(true)
             }
-            
+
             override fun onInitializationFailed(cloudXError: CloudXError) {
-                Log.e(TAG, "CloudX SDK initialization failed: ${cloudXError.effectiveMessage}")
+                logError( "CloudX SDK initialization failed: ${cloudXError.effectiveMessage}")
                 result.error(
                     "INIT_FAILED",
                     cloudXError.effectiveMessage,
@@ -268,13 +282,23 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
 
     private fun setIsUserConsent(call: MethodCall, result: Result) {
         val isUserConsent = call.argument<Boolean>("isUserConsent") ?: false
-        CloudX.setPrivacy(CloudXPrivacy(isUserConsent = isUserConsent))
+        // Preserve existing isAgeRestrictedUser value
+        currentPrivacy = CloudXPrivacy(
+            isUserConsent = isUserConsent,
+            isAgeRestrictedUser = currentPrivacy.isAgeRestrictedUser
+        )
+        CloudX.setPrivacy(currentPrivacy)
         result.success(true)
     }
 
     private fun setIsAgeRestrictedUser(call: MethodCall, result: Result) {
         val isAgeRestricted = call.argument<Boolean>("isAgeRestrictedUser") ?: false
-        CloudX.setPrivacy(CloudXPrivacy(isAgeRestrictedUser = isAgeRestricted))
+        // Preserve existing isUserConsent value
+        currentPrivacy = CloudXPrivacy(
+            isUserConsent = currentPrivacy.isUserConsent,
+            isAgeRestrictedUser = isAgeRestricted
+        )
+        CloudX.setPrivacy(currentPrivacy)
         result.success(true)
     }
 
@@ -335,104 +359,213 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     // MARK: - Ad Creation
     // ============================================================================
 
-    private fun createBanner(call: MethodCall, result: Result) {
-        val placement = call.argument<String>("placement")
-        val adId = call.argument<String>("adId")
-        
-        if (placement == null || adId == null) {
-            result.error("INVALID_ARGUMENTS", "placement and adId are required", null)
+    /**
+     * Convert position string to Android Gravity flags
+     */
+    private fun getGravityFromPosition(position: String): Int {
+        return when (position) {
+            "top_center" -> Gravity.TOP or Gravity.CENTER_HORIZONTAL
+            "top_right" -> Gravity.TOP or Gravity.END
+            "centered" -> Gravity.CENTER
+            "center_left" -> Gravity.CENTER_VERTICAL or Gravity.START
+            "center_right" -> Gravity.CENTER_VERTICAL or Gravity.END
+            "bottom_left" -> Gravity.BOTTOM or Gravity.START
+            "bottom_center" -> Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+            "bottom_right" -> Gravity.BOTTOM or Gravity.END
+            else -> Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL // Default to bottom center
+        }
+    }
+
+    /**
+     * Creates a programmatic ad view overlay at the specified position.
+     * This is shared logic used by both banners and MRECs.
+     *
+     * @param adView The CloudXAdView instance to position
+     * @param position The position string (e.g., "bottom_center")
+     * @param adId The unique identifier for this ad
+     * @param adType The type of ad (e.g., "banner", "MREC") for logging
+     * @param result The Flutter result callback
+     */
+    private fun createProgrammaticAdView(
+        adView: CloudXAdView,
+        position: String,
+        adId: String,
+        adType: String,
+        result: Result
+    ) {
+        val activity = activityRef?.get()
+        if (activity == null) {
+            result.error("NO_ACTIVITY", "Activity not available for programmatic $adType", null)
             return
         }
-        
+
+        logDebug("Creating programmatic $adType at position: $position")
+
+        // Run on UI thread to add view to activity
+        activity.runOnUiThread {
+            try {
+                // Create container layout that will overlay the Flutter view
+                // Using FrameLayout because it supports gravity directly
+                val containerLayout = FrameLayout(activity)
+
+                // Get gravity for positioning
+                val gravity = getGravityFromPosition(position)
+
+                logDebug("Creating programmatic $adType with gravity: $gravity for position: $position")
+
+                // Create layout params with gravity for the ad view
+                val adViewLayoutParams = FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    gravity  // Apply gravity directly to FrameLayout.LayoutParams
+                )
+
+                // Remove ad view from any existing parent
+                (adView.parent as? ViewGroup)?.removeView(adView)
+
+                // Add ad view to container with gravity-based positioning
+                containerLayout.addView(adView, adViewLayoutParams)
+
+                // Set initial visibility to GONE (will be shown with showAd)
+                containerLayout.visibility = View.GONE
+
+                // Add container to activity's content view
+                activity.addContentView(
+                    containerLayout,
+                    FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.MATCH_PARENT
+                    )
+                )
+
+                // Store container for show/hide operations
+                programmaticBannerContainers[adId] = containerLayout
+
+                logDebug("Successfully created programmatic $adType: $adId at position: $position")
+                result.success(true)
+            } catch (e: Exception) {
+                logError("Failed to create programmatic $adType layout", e)
+                result.error("AD_CREATION_FAILED", "Failed to create programmatic $adType: ${e.message}", null)
+            }
+        }
+    }
+
+    private fun createBanner(call: MethodCall, result: Result) {
+        val placementName = call.argument<String>("placementName")
+        val adId = call.argument<String>("adId")
+        val position = call.argument<String>("position")
+
+        if (placementName == null || adId == null) {
+            result.error("INVALID_ARGUMENTS", "placementName and adId are required", null)
+            return
+        }
+
         try {
-            val bannerAd = CloudX.createBanner(placement)
+            val bannerAd = CloudX.createBanner(placementName)
             bannerAd.listener = createAdViewListener(adId)
             adInstances[adId] = bannerAd
-            result.success(true)
+
+            // If position is specified, create programmatic banner overlay
+            if (position != null) {
+                createProgrammaticAdView(bannerAd, position, adId, "banner", result)
+            } else {
+                // Widget-based banner (will be embedded via PlatformView)
+                logDebug("Created widget-based banner: $adId")
+                result.success(true)
+            }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to create banner", e)
+            logError("Failed to create banner", e)
             result.error("AD_CREATION_FAILED", "Failed to create banner: ${e.message}", null)
         }
     }
 
     private fun createInterstitial(call: MethodCall, result: Result) {
-        val placement = call.argument<String>("placement")
+        val placementName = call.argument<String>("placementName")
         val adId = call.argument<String>("adId")
         
-        if (placement == null || adId == null) {
-            result.error("INVALID_ARGUMENTS", "placement and adId are required", null)
+        if (placementName == null || adId == null) {
+            result.error("INVALID_ARGUMENTS", "placementName and adId are required", null)
             return
         }
         
         try {
-            val interstitialAd = CloudX.createInterstitial(placement)
+            val interstitialAd = CloudX.createInterstitial(placementName)
             interstitialAd.listener = createInterstitialListener(adId)
             interstitialAd.revenueListener = createRevenueListener(adId)
             adInstances[adId] = interstitialAd
             result.success(true)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to create interstitial", e)
+            logError( "Failed to create interstitial", e)
             result.error("AD_CREATION_FAILED", "Failed to create interstitial: ${e.message}", null)
         }
     }
 
     private fun createRewarded(call: MethodCall, result: Result) {
-        val placement = call.argument<String>("placement")
+        val placementName = call.argument<String>("placementName")
         val adId = call.argument<String>("adId")
         
-        if (placement == null || adId == null) {
-            result.error("INVALID_ARGUMENTS", "placement and adId are required", null)
+        if (placementName == null || adId == null) {
+            result.error("INVALID_ARGUMENTS", "placementName and adId are required", null)
             return
         }
         
         try {
-            val rewardedAd = CloudX.createRewardedInterstitial(placement)
+            val rewardedAd = CloudX.createRewardedInterstitial(placementName)
             rewardedAd.listener = createRewardedListener(adId)
             rewardedAd.revenueListener = createRevenueListener(adId)
             adInstances[adId] = rewardedAd
             result.success(true)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to create rewarded ad", e)
+            logError( "Failed to create rewarded ad", e)
             result.error("AD_CREATION_FAILED", "Failed to create rewarded ad: ${e.message}", null)
         }
     }
 
     private fun createNative(call: MethodCall, result: Result) {
-        val placement = call.argument<String>("placement")
+        val placementName = call.argument<String>("placementName")
         val adId = call.argument<String>("adId")
         
-        if (placement == null || adId == null) {
-            result.error("INVALID_ARGUMENTS", "placement and adId are required", null)
+        if (placementName == null || adId == null) {
+            result.error("INVALID_ARGUMENTS", "placementName and adId are required", null)
             return
         }
         
         try {
-            val nativeAd = CloudX.createNativeAdSmall(placement)
+            val nativeAd = CloudX.createNativeAdSmall(placementName)
             nativeAd.listener = createAdViewListener(adId)
             adInstances[adId] = nativeAd
             result.success(true)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to create native ad", e)
+            logError( "Failed to create native ad", e)
             result.error("AD_CREATION_FAILED", "Failed to create native ad: ${e.message}", null)
         }
     }
 
     private fun createMREC(call: MethodCall, result: Result) {
-        val placement = call.argument<String>("placement")
+        val placementName = call.argument<String>("placementName")
         val adId = call.argument<String>("adId")
-        
-        if (placement == null || adId == null) {
-            result.error("INVALID_ARGUMENTS", "placement and adId are required", null)
+        val position = call.argument<String>("position")
+
+        if (placementName == null || adId == null) {
+            result.error("INVALID_ARGUMENTS", "placementName and adId are required", null)
             return
         }
-        
+
         try {
-            val mrecAd = CloudX.createMREC(placement)
+            val mrecAd = CloudX.createMREC(placementName)
             mrecAd.listener = createAdViewListener(adId)
             adInstances[adId] = mrecAd
-            result.success(true)
+
+            // If position is specified, create programmatic MREC overlay
+            if (position != null) {
+                createProgrammaticAdView(mrecAd, position, adId, "MREC", result)
+            } else {
+                // Widget-based MREC (will be embedded via PlatformView)
+                logDebug("Created widget-based MREC: $adId")
+                result.success(true)
+            }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to create MREC", e)
+            logError("Failed to create MREC", e)
             result.error("AD_CREATION_FAILED", "Failed to create MREC: ${e.message}", null)
         }
     }
@@ -479,19 +612,19 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
             result.error("INVALID_ARGUMENTS", "adId is required", null)
             return
         }
-        
+
         val adInstance = adInstances[adId]
         if (adInstance == null) {
             result.error("AD_NOT_FOUND", "Ad instance not found", null)
             return
         }
-        
+
         val activity = activityRef?.get()
         if (activity == null) {
             result.error("NO_ACTIVITY", "Activity not available", null)
             return
         }
-        
+
         when (adInstance) {
             is CloudXInterstitialAd -> {
                 adInstance.show()
@@ -502,7 +635,18 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
                 result.success(true)
             }
             is CloudXAdView -> {
-                adInstance.visibility = View.VISIBLE
+                // Check if this is a programmatic banner with container
+                val container = programmaticBannerContainers[adId]
+                if (container != null) {
+                    // Show programmatic banner container
+                    activity.runOnUiThread {
+                        container.visibility = View.VISIBLE
+                        logDebug("Showing programmatic banner: $adId")
+                    }
+                } else {
+                    // Widget-based banner (visibility controlled by PlatformView)
+                    adInstance.visibility = View.VISIBLE
+                }
                 result.success(true)
             }
             else -> {
@@ -517,10 +661,21 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
             result.error("INVALID_ARGUMENTS", "adId is required", null)
             return
         }
-        
+
         val adInstance = adInstances[adId]
         if (adInstance is CloudXAdView) {
-            adInstance.visibility = View.GONE
+            // Check if this is a programmatic banner with container
+            val container = programmaticBannerContainers[adId]
+            if (container != null) {
+                // Hide programmatic banner container
+                activityRef?.get()?.runOnUiThread {
+                    container.visibility = View.GONE
+                    logDebug("Hiding programmatic banner: $adId")
+                }
+            } else {
+                // Widget-based banner
+                adInstance.visibility = View.GONE
+            }
             result.success(true)
         } else {
             result.success(true)
@@ -553,7 +708,21 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
         when (adInstance) {
             is CloudXInterstitialAd -> adInstance.destroy()
             is CloudXRewardedInterstitialAd -> adInstance.destroy()
-            is CloudXAdView -> adInstance.destroy()
+            is CloudXAdView -> {
+                adInstance.destroy()
+
+                // Clean up programmatic banner container if exists
+                val container = programmaticBannerContainers[adId]
+                if (container != null) {
+                    activityRef?.get()?.runOnUiThread {
+                        // Remove container from activity
+                        val parent = container.parent as? ViewGroup
+                        parent?.removeView(container)
+                        logDebug("Removed programmatic banner container: $adId")
+                    }
+                    programmaticBannerContainers.remove(adId)
+                }
+            }
         }
 
         adInstances.remove(adId)
@@ -633,42 +802,42 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     private fun createAdViewListener(adId: String): CloudXAdViewListener {
         return object : CloudXAdViewListener {
             override fun onAdLoaded(cloudXAd: CloudXAd) {
-                Log.d(TAG, "Ad loaded: $adId")
+                logDebug( "Ad loaded: $adId")
                 sendEventToFlutter("didLoad", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdDisplayed(cloudXAd: CloudXAd) {
-                Log.d(TAG, "Ad displayed: $adId")
+                logDebug( "Ad displayed: $adId")
                 sendEventToFlutter("didShow", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdHidden(cloudXAd: CloudXAd) {
-                Log.d(TAG, "Ad hidden: $adId")
+                logDebug( "Ad hidden: $adId")
                 sendEventToFlutter("didHide", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdClicked(cloudXAd: CloudXAd) {
-                Log.d(TAG, "Ad clicked: $adId")
+                logDebug( "Ad clicked: $adId")
                 sendEventToFlutter("didClick", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdLoadFailed(cloudXError: CloudXError) {
-                Log.e(TAG, "Ad load failed: $adId - ${cloudXError.effectiveMessage}")
+                logError( "Ad load failed: $adId - ${cloudXError.effectiveMessage}")
                 sendEventToFlutter("failToLoad", adId, mapOf("error" to cloudXError.effectiveMessage))
             }
             
             override fun onAdDisplayFailed(cloudXError: CloudXError) {
-                Log.e(TAG, "Ad display failed: $adId - ${cloudXError.effectiveMessage}")
+                logError( "Ad display failed: $adId - ${cloudXError.effectiveMessage}")
                 sendEventToFlutter("failToShow", adId, mapOf("error" to cloudXError.effectiveMessage))
             }
             
             override fun onAdExpanded(cloudXAd: CloudXAd) {
-                Log.d(TAG, "Ad expanded: $adId")
+                logDebug( "Ad expanded: $adId")
                 sendEventToFlutter("didExpandAd", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdCollapsed(cloudXAd: CloudXAd) {
-                Log.d(TAG, "Ad collapsed: $adId")
+                logDebug( "Ad collapsed: $adId")
                 sendEventToFlutter("didCollapseAd", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
         }
@@ -677,32 +846,32 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     private fun createInterstitialListener(adId: String): CloudXInterstitialListener {
         return object : CloudXInterstitialListener {
             override fun onAdLoaded(cloudXAd: CloudXAd) {
-                Log.d(TAG, "Interstitial loaded: $adId")
+                logDebug( "Interstitial loaded: $adId")
                 sendEventToFlutter("didLoad", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdDisplayed(cloudXAd: CloudXAd) {
-                Log.d(TAG, "Interstitial displayed: $adId")
+                logDebug( "Interstitial displayed: $adId")
                 sendEventToFlutter("didShow", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdHidden(cloudXAd: CloudXAd) {
-                Log.d(TAG, "Interstitial hidden: $adId")
+                logDebug( "Interstitial hidden: $adId")
                 sendEventToFlutter("didHide", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdClicked(cloudXAd: CloudXAd) {
-                Log.d(TAG, "Interstitial clicked: $adId")
+                logDebug( "Interstitial clicked: $adId")
                 sendEventToFlutter("didClick", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdLoadFailed(cloudXError: CloudXError) {
-                Log.e(TAG, "Interstitial load failed: $adId - ${cloudXError.effectiveMessage}")
+                logError( "Interstitial load failed: $adId - ${cloudXError.effectiveMessage}")
                 sendEventToFlutter("failToLoad", adId, mapOf("error" to cloudXError.effectiveMessage))
             }
             
             override fun onAdDisplayFailed(cloudXError: CloudXError) {
-                Log.e(TAG, "Interstitial display failed: $adId - ${cloudXError.effectiveMessage}")
+                logError( "Interstitial display failed: $adId - ${cloudXError.effectiveMessage}")
                 sendEventToFlutter("failToShow", adId, mapOf("error" to cloudXError.effectiveMessage))
             }
         }
@@ -711,37 +880,37 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     private fun createRewardedListener(adId: String): CloudXRewardedInterstitialListener {
         return object : CloudXRewardedInterstitialListener {
             override fun onAdLoaded(cloudXAd: CloudXAd) {
-                Log.d(TAG, "Rewarded loaded: $adId")
+                logDebug( "Rewarded loaded: $adId")
                 sendEventToFlutter("didLoad", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdDisplayed(cloudXAd: CloudXAd) {
-                Log.d(TAG, "Rewarded displayed: $adId")
+                logDebug( "Rewarded displayed: $adId")
                 sendEventToFlutter("didShow", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdHidden(cloudXAd: CloudXAd) {
-                Log.d(TAG, "Rewarded hidden: $adId")
+                logDebug( "Rewarded hidden: $adId")
                 sendEventToFlutter("didHide", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdClicked(cloudXAd: CloudXAd) {
-                Log.d(TAG, "Rewarded clicked: $adId")
+                logDebug( "Rewarded clicked: $adId")
                 sendEventToFlutter("didClick", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
             
             override fun onAdLoadFailed(cloudXError: CloudXError) {
-                Log.e(TAG, "Rewarded load failed: $adId - ${cloudXError.effectiveMessage}")
+                logError( "Rewarded load failed: $adId - ${cloudXError.effectiveMessage}")
                 sendEventToFlutter("failToLoad", adId, mapOf("error" to cloudXError.effectiveMessage))
             }
             
             override fun onAdDisplayFailed(cloudXError: CloudXError) {
-                Log.e(TAG, "Rewarded display failed: $adId - ${cloudXError.effectiveMessage}")
+                logError( "Rewarded display failed: $adId - ${cloudXError.effectiveMessage}")
                 sendEventToFlutter("failToShow", adId, mapOf("error" to cloudXError.effectiveMessage))
             }
             
             override fun onUserRewarded(cloudXAd: CloudXAd) {
-                Log.d(TAG, "User rewarded: $adId")
+                logDebug( "User rewarded: $adId")
                 sendEventToFlutter("userRewarded", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
         }
@@ -750,7 +919,7 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     private fun createRevenueListener(adId: String): CloudXAdRevenueListener {
         return object : CloudXAdRevenueListener {
             override fun onAdRevenuePaid(cloudXAd: CloudXAd) {
-                Log.d(TAG, "Revenue paid: $adId")
+                logDebug( "Revenue paid: $adId")
                 sendEventToFlutter("revenuePaid", adId, mapOf("ad" to serializeCloudXAd(cloudXAd)))
             }
         }

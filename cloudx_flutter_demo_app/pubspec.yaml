@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cloudx_flutter_sdk:
+  cloudx_flutter:
     path: ../cloudx_flutter_sdk
   cupertino_icons: ^1.0.2
   intl: ^0.18.0

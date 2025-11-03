@@ -13,7 +13,7 @@ import '../cloudx.dart';
 /// Basic usage:
 /// ```dart
 /// CloudXBannerView(
-///   placement: 'home_banner',
+///   placementName: 'home_banner',
 ///   listener: CloudXAdViewListener(
 ///     onAdLoaded: (ad) => print('Banner loaded'),
 ///     onAdDisplayed: (ad) => print('Banner displayed'),
@@ -32,7 +32,7 @@ import '../cloudx.dart';
 /// final controller = CloudXAdViewController();
 ///
 /// CloudXBannerView(
-///   placement: 'home_banner',
+///   placementName: 'home_banner',
 ///   controller: controller,
 /// )
 ///
@@ -42,7 +42,7 @@ import '../cloudx.dart';
 /// ```
 class CloudXBannerView extends StatefulWidget {
   /// The placement name from your CloudX dashboard
-  final String placement;
+  final String placementName;
 
   /// Optional listener for ad lifecycle events
   final CloudXAdViewListener? listener;
@@ -59,7 +59,7 @@ class CloudXBannerView extends StatefulWidget {
 
   const CloudXBannerView({
     super.key,
-    required this.placement,
+    required this.placementName,
     this.listener,
     this.width,
     this.height,
@@ -77,7 +77,7 @@ class _CloudXBannerViewState extends State<CloudXBannerView> {
   @override
   void initState() {
     super.initState();
-    _adId = 'banner_${widget.placement}_${DateTime.now().millisecondsSinceEpoch}';
+    _adId = 'banner_${widget.placementName}_${DateTime.now().millisecondsSinceEpoch}';
 
     // Attach controller if provided
     widget.controller?.attach(_adId);
@@ -88,7 +88,7 @@ class _CloudXBannerViewState extends State<CloudXBannerView> {
   Future<void> _loadAd() async {
     try {
       final createdAdId = await CloudX.createBanner(
-        placement: widget.placement,
+        placementName: widget.placementName,
         adId: _adId,
         listener: widget.listener,
       );
