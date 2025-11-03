@@ -1,7 +1,7 @@
+import 'package:cloudx_flutter/cloudx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../cloudx.dart';
 
 /// A Flutter widget that displays a CloudX MREC (Medium Rectangle) ad.
 ///
@@ -41,6 +41,15 @@ import '../cloudx.dart';
 /// controller.stopAutoRefresh();
 /// ```
 class CloudXMRECView extends StatefulWidget {
+  const CloudXMRECView({
+    required this.placementName,
+    super.key,
+    this.listener,
+    this.width,
+    this.height,
+    this.controller,
+  });
+
   /// The placement name from your CloudX dashboard
   final String placementName;
 
@@ -57,15 +66,6 @@ class CloudXMRECView extends StatefulWidget {
   /// Use this to start/stop auto-refresh.
   final CloudXAdViewController? controller;
 
-  const CloudXMRECView({
-    super.key,
-    required this.placementName,
-    this.listener,
-    this.width,
-    this.height,
-    this.controller,
-  });
-
   @override
   State<CloudXMRECView> createState() => _CloudXMRECViewState();
 }
@@ -77,7 +77,8 @@ class _CloudXMRECViewState extends State<CloudXMRECView> {
   @override
   void initState() {
     super.initState();
-    _adId = 'mrec_${widget.placementName}_${DateTime.now().millisecondsSinceEpoch}';
+    _adId =
+        'mrec_${widget.placementName}_${DateTime.now().millisecondsSinceEpoch}';
 
     // Attach controller if provided
     widget.controller?.attach(_adId);

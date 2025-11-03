@@ -1,13 +1,27 @@
 /// CloudX ad listener
 library;
 
-import '../models/cloudx_ad.dart';
+import 'package:cloudx_flutter/models/cloudx_ad.dart';
 
 /// Base listener for all CloudX ad types
 ///
 /// Provides 6 core ad lifecycle callbacks. All callbacks are required
 /// to ensure proper error handling.
 abstract class CloudXAdListener {
+  /// Creates a CloudX ad listener with required core callbacks
+  ///
+  /// All 6 core callbacks are required to ensure developers handle all critical
+  /// ad lifecycle events. Revenue tracking is optional.
+  const CloudXAdListener({
+    required this.onAdLoaded,
+    required this.onAdLoadFailed,
+    required this.onAdDisplayed,
+    required this.onAdDisplayFailed,
+    required this.onAdClicked,
+    required this.onAdHidden,
+    this.onAdRevenuePaid,
+  });
+
   /// Called when ad is loaded and ready to show
   ///
   /// [ad] - Ad metadata including placement, bidder, and revenue information
@@ -43,18 +57,4 @@ abstract class CloudXAdListener {
   /// Use this callback to track ad revenue for analytics and reporting.
   /// [ad] - Ad metadata including revenue information
   final void Function(CloudXAd ad)? onAdRevenuePaid;
-
-  /// Creates a CloudX ad listener with required core callbacks
-  ///
-  /// All 6 core callbacks are required to ensure developers handle all critical
-  /// ad lifecycle events. Revenue tracking is optional.
-  const CloudXAdListener({
-    required this.onAdLoaded,
-    required this.onAdLoadFailed,
-    required this.onAdDisplayed,
-    required this.onAdDisplayFailed,
-    required this.onAdClicked,
-    required this.onAdHidden,
-    this.onAdRevenuePaid,
-  });
 }

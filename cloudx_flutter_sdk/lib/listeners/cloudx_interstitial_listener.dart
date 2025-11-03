@@ -1,7 +1,7 @@
 /// CloudX interstitial ad listener
 library;
 
-import 'cloudx_ad_listener.dart';
+import 'package:cloudx_flutter/listeners/cloudx_ad_listener.dart';
 
 /// Listener for interstitial ad events
 ///

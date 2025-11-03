@@ -33,8 +33,8 @@ enum AdViewPosition {
   /// Bottom right of the screen
   bottomRight('bottom_right');
 
+  const AdViewPosition(this.value);
+
   /// Internal value for platform channel communication
   final String value;
-
-  const AdViewPosition(this.value);
 }

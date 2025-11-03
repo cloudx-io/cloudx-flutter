@@ -5,32 +5,17 @@
 library;
 
 /// Represents metadata about a loaded ad.
-/// 
+///
 /// Corresponds to:
 /// - iOS: CLXAd
 /// - Android: CloudXAd
-/// 
+///
 /// Contains information about ad placement, bidder, and revenue.
 /// All fields are optional as they may not be available depending on
 /// the ad lifecycle state (e.g., during load failures).
 class CloudXAd {
-  /// The placement name configured in the CloudX dashboard
-  final String? placementName;
-  
-  /// The unique identifier for this placement
-  final String? placementId;
-  
-  /// The ad network/bidder that won the auction (e.g., "meta", "admob")
-  final String? bidder;
-  
-  /// The external placement ID from the ad network (network-specific ID)
-  final String? externalPlacementId;
-  
-  /// The eCPM revenue for this ad impression in USD
-  final double? revenue;
-
   /// Creates a CloudXAd instance.
-  /// 
+  ///
   /// Typically created internally by the SDK from native platform data.
   const CloudXAd({
     this.placementName,
@@ -41,7 +26,7 @@ class CloudXAd {
   });
 
   /// Creates a CloudXAd from a map received from the platform channel.
-  /// 
+  ///
   /// Returns an empty CloudXAd if [map] is null.
   factory CloudXAd.fromMap(Map<Object?, Object?>? map) {
     if (map == null) {
@@ -53,9 +38,25 @@ class CloudXAd {
       placementId: map['placementId'] as String?,
       bidder: map['bidder'] as String?,
       externalPlacementId: map['externalPlacementId'] as String?,
-      revenue: map['revenue'] != null ? (map['revenue'] as num).toDouble() : null,
+      revenue:
+          map['revenue'] != null ? (map['revenue'] as num).toDouble() : null,
     );
   }
+
+  /// The placement name configured in the CloudX dashboard
+  final String? placementName;
+
+  /// The unique identifier for this placement
+  final String? placementId;
+
+  /// The ad network/bidder that won the auction (e.g., "meta", "admob")
+  final String? bidder;
+
+  /// The external placement ID from the ad network (network-specific ID)
+  final String? externalPlacementId;
+
+  /// The eCPM revenue for this ad impression in USD
+  final double? revenue;
 
   /// Converts this CloudXAd to a map for platform channel communication.
   Map<String, dynamic> toMap() {
@@ -70,7 +71,9 @@ class CloudXAd {
 
   @override
   bool operator ==(Object other) {
-    if (identical(this, other)) return true;
+    if (identical(this, other)) {
+      return true;
+    }
     return other is CloudXAd &&
         other.placementName == placementName &&
         other.placementId == placementId &&
@@ -118,4 +121,3 @@ class CloudXAd {
     );
   }
 }
-

@@ -5,4 +5,4 @@
 // but this file re-exports cloudx.dart so that plugin registration and generated code work correctly.
 // You should import 'cloudx.dart' directly in your own code.
 
-export 'cloudx.dart'; 
+export 'cloudx.dart';

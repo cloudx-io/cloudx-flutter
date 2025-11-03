@@ -2,19 +2,15 @@ library cloudx;
 
 import 'dart:async';
 import 'dart:io';
+
+import 'package:cloudx_flutter/listeners/cloudx_ad_listener.dart';
+import 'package:cloudx_flutter/listeners/cloudx_ad_view_listener.dart';
+import 'package:cloudx_flutter/listeners/cloudx_interstitial_listener.dart';
+import 'package:cloudx_flutter/listeners/cloudx_rewarded_interstitial_listener.dart';
+import 'package:cloudx_flutter/models/banner_position.dart';
+import 'package:cloudx_flutter/models/cloudx_ad.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-
-// ==============================================================================
-// MARK: - Internal Imports
-// ==============================================================================
-
-import 'models/cloudx_ad.dart';
-import 'models/banner_position.dart';
-import 'listeners/cloudx_ad_listener.dart';
-import 'listeners/cloudx_ad_view_listener.dart';
-import 'listeners/cloudx_interstitial_listener.dart';
-import 'listeners/cloudx_rewarded_interstitial_listener.dart';
 
 // ==============================================================================
 // MARK: - Public API Exports
@@ -31,16 +27,17 @@ export 'listeners/cloudx_interstitial_listener.dart';
 export 'listeners/cloudx_rewarded_interstitial_listener.dart';
 
 // Widgets
+export 'widgets/cloudx_ad_view_controller.dart';
 export 'widgets/cloudx_banner_view.dart';
 export 'widgets/cloudx_mrec_view.dart';
-export 'widgets/cloudx_ad_view_controller.dart';
 
 /// The main CloudX Flutter SDK class.
 ///
 /// Provides a comprehensive Flutter wrapper for the CloudX Core Objective-C SDK.
 class CloudX {
   static const MethodChannel _channel = MethodChannel('cloudx_flutter_sdk');
-  static const EventChannel _eventChannel = EventChannel('cloudx_flutter_sdk_events');
+  static const EventChannel _eventChannel =
+      EventChannel('cloudx_flutter_sdk_events');
 
   // Internal logging control (disabled by default for production)
   static bool _loggingEnabled = false;
@@ -50,7 +47,8 @@ class CloudX {
 
   // Event stream (initialized lazily)
   // ignore: unused_field
-  static StreamSubscription? _eventSubscription; // Stored to keep subscription alive
+  static StreamSubscription?
+      _eventSubscription; // Stored to keep subscription alive
   static bool _eventStreamInitialized = false;
 
   /// Flutter plugin registration (required for some plugin registration scenarios)
@@ -79,7 +77,8 @@ class CloudX {
     if (Platform.isIOS && !allowIosExperimental) {
       debugPrint('⚠️ CloudX iOS SDK is not yet production-ready.');
       debugPrint('⚠️ Currently only Android is fully supported.');
-      debugPrint('⚠️ For iOS alpha testing, use: CloudX.initialize(appKey: "...", allowIosExperimental: true)');
+      debugPrint(
+          '⚠️ For iOS alpha testing, use: CloudX.initialize(appKey: "...", allowIosExperimental: true)');
       debugPrint('⚠️ For production iOS access, contact the CloudX team.');
       debugPrint('⚠️ SDK initialization skipped on iOS.');
       return false;
@@ -141,8 +140,9 @@ class CloudX {
   ///
   /// This controls both Dart-side and native-side logging.
   static Future<void> setLoggingEnabled(bool enabled) async {
-    _loggingEnabled = enabled;  // Control Dart-side logging
-    await _invokeMethod('setLoggingEnabled', {'enabled': enabled});  // Control native-side logging
+    _loggingEnabled = enabled; // Control Dart-side logging
+    await _invokeMethod('setLoggingEnabled',
+        {'enabled': enabled}); // Control native-side logging
   }
 
   /// Deinitialize the CloudX SDK
@@ -290,7 +290,8 @@ class CloudX {
     await _ensureEventStreamInitialized();
 
     // Auto-generate adId if not provided
-    final id = adId ?? 'banner_${placementName}_${DateTime.now().millisecondsSinceEpoch}';
+    final id = adId ??
+        'banner_${placementName}_${DateTime.now().millisecondsSinceEpoch}';
 
     final arguments = <String, dynamic>{
       'placementName': placementName,
@@ -369,7 +370,8 @@ class CloudX {
     await _ensureEventStreamInitialized();
 
     // Auto-generate adId if not provided
-    final id = adId ?? 'interstitial_${placementName}_${DateTime.now().millisecondsSinceEpoch}';
+    final id = adId ??
+        'interstitial_${placementName}_${DateTime.now().millisecondsSinceEpoch}';
 
     final success = await _invokeMethod<bool>('createInterstitial', {
       'placementName': placementName,
@@ -418,7 +420,8 @@ class CloudX {
     await _ensureEventStreamInitialized();
 
     // Auto-generate adId if not provided
-    final id = adId ?? 'rewarded_${placementName}_${DateTime.now().millisecondsSinceEpoch}';
+    final id = adId ??
+        'rewarded_${placementName}_${DateTime.now().millisecondsSinceEpoch}';
 
     final success = await _invokeMethod<bool>('createRewarded', {
       'placementName': placementName,
@@ -470,7 +473,8 @@ class CloudX {
     await _ensureEventStreamInitialized();
 
     // Auto-generate adId if not provided
-    final id = adId ?? 'native_${placementName}_${DateTime.now().millisecondsSinceEpoch}';
+    final id = adId ??
+        'native_${placementName}_${DateTime.now().millisecondsSinceEpoch}';
 
     final success = await _invokeMethod<bool>('createNative', {
       'placementName': placementName,
@@ -528,7 +532,8 @@ class CloudX {
     await _ensureEventStreamInitialized();
 
     // Auto-generate adId if not provided
-    final id = adId ?? 'mrec_${placementName}_${DateTime.now().millisecondsSinceEpoch}';
+    final id = adId ??
+        'mrec_${placementName}_${DateTime.now().millisecondsSinceEpoch}';
 
     final success = await _invokeMethod<bool>('createMREC', {
       'placementName': placementName,
@@ -566,7 +571,8 @@ class CloudX {
   /// Enables automatic ad refresh for the specified banner/MREC ad instance.
   /// The refresh interval is configured server-side in CloudX dashboard.
   static Future<bool> startAutoRefresh({required String adId}) async {
-    return await _invokeMethod<bool>('startAutoRefresh', {'adId': adId}) ?? false;
+    return await _invokeMethod<bool>('startAutoRefresh', {'adId': adId}) ??
+        false;
   }
 
   /// Stop auto-refresh for banner or MREC ad
@@ -574,7 +580,8 @@ class CloudX {
   /// Disables automatic ad refresh for the specified banner/MREC ad instance.
   /// Critical to call this when destroying ads to prevent background timers.
   static Future<bool> stopAutoRefresh({required String adId}) async {
-    return await _invokeMethod<bool>('stopAutoRefresh', {'adId': adId}) ?? false;
+    return await _invokeMethod<bool>('stopAutoRefresh', {'adId': adId}) ??
+        false;
   }
 
   // ============================================================================
@@ -594,7 +601,8 @@ class CloudX {
   // ============================================================================
 
   /// Centralized method invocation with error handling (DRY)
-  static Future<T?> _invokeMethod<T>(String method, [Map<String, dynamic>? arguments]) async {
+  static Future<T?> _invokeMethod<T>(String method,
+      [Map<String, dynamic>? arguments]) async {
     try {
       return await _channel.invokeMethod<T>(method, arguments);
     } on PlatformException catch (e) {
@@ -624,7 +632,9 @@ class CloudX {
         if (event is Map) {
           // Check for ready confirmation
           final eventType = event['event'] as String?;
-          if (eventType == '__eventChannelReady__' && _eventChannelReadyCompleter != null && !_eventChannelReadyCompleter!.isCompleted) {
+          if (eventType == '__eventChannelReady__' &&
+              _eventChannelReadyCompleter != null &&
+              !_eventChannelReadyCompleter!.isCompleted) {
             _log('EventChannel ready confirmation received');
             _eventChannelReadyCompleter!.complete();
           } else {
@@ -665,14 +675,17 @@ class CloudX {
       final data = event['data'] as Map<Object?, Object?>?;
 
       if (adId == null || eventType == null) {
-        _log('Event missing adId or eventType, ignoring: $event', isError: true);
+        _log('Event missing adId or eventType, ignoring: $event',
+            isError: true);
         return;
       }
 
       final listener = _listeners[adId];
 
       if (listener == null) {
-        _log('No listener found for adId: $adId (event: $eventType). Registered listeners: ${_listeners.keys.toList()}', isError: true);
+        _log(
+            'No listener found for adId: $adId (event: $eventType). Registered listeners: ${_listeners.keys.toList()}',
+            isError: true);
         return;
       }
 
@@ -684,7 +697,8 @@ class CloudX {
   }
 
   /// Dispatch events to appropriate listener callbacks (DRY)
-  static void _dispatchEventToListener(CloudXAdListener listener, String eventType, Map<Object?, Object?>? data) {
+  static void _dispatchEventToListener(CloudXAdListener listener,
+      String eventType, Map<Object?, Object?>? data) {
     // Parse ad data if present
     final adMap = data?['ad'] as Map<Object?, Object?>?;
     final ad = CloudXAd.fromMap(adMap);
@@ -735,4 +749,3 @@ class CloudX {
     }
   }
 }
-

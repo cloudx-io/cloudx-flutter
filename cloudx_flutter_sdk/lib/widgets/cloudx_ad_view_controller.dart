@@ -1,5 +1,5 @@
+import 'package:cloudx_flutter/cloudx.dart';
 import 'package:flutter/foundation.dart';
-import '../cloudx.dart';
 
 /// Controller for [CloudXBannerView] and [CloudXMRECView] that provides
 /// programmatic control over ad view behavior.
