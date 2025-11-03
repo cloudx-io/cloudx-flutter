@@ -2,7 +2,7 @@ package io.cloudx.flutter
 
 import android.app.Activity
 import android.content.Context
-import android.preference.PreferenceManager
+import android.content.SharedPreferences
 import android.util.Log
 import android.view.Gravity
 import android.view.View
@@ -271,8 +271,7 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     private fun setCCPAPrivacyString(call: MethodCall, result: Result) {
         val ccpaString = call.argument<String>("ccpaString")
         context?.let { ctx ->
-            @Suppress("DEPRECATION")
-            val prefs = PreferenceManager.getDefaultSharedPreferences(ctx)
+            val prefs = ctx.getDefaultSharedPreferences()
             prefs.edit().apply {
                 if (ccpaString != null) {
                     putString("IABUSPrivacy_String", ccpaString)
@@ -310,8 +309,7 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     private fun setGPPString(call: MethodCall, result: Result) {
         val gppString = call.argument<String>("gppString")
         context?.let { ctx ->
-            @Suppress("DEPRECATION")
-            val prefs = PreferenceManager.getDefaultSharedPreferences(ctx)
+            val prefs = ctx.getDefaultSharedPreferences()
             prefs.edit().apply {
                 if (gppString != null) {
                     putString("IABGPP_HDR_GppString", gppString)
@@ -326,8 +324,7 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
 
     private fun getGPPString(call: MethodCall, result: Result) {
         context?.let { ctx ->
-            @Suppress("DEPRECATION")
-            val prefs = PreferenceManager.getDefaultSharedPreferences(ctx)
+            val prefs = ctx.getDefaultSharedPreferences()
             val gppString = prefs.getString("IABGPP_HDR_GppString", null)
             result.success(gppString)
         } ?: result.success(null)
@@ -336,8 +333,7 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     private fun setGPPSid(call: MethodCall, result: Result) {
         val gppSid = call.argument<List<Int>>("gppSid")
         context?.let { ctx ->
-            @Suppress("DEPRECATION")
-            val prefs = PreferenceManager.getDefaultSharedPreferences(ctx)
+            val prefs = ctx.getDefaultSharedPreferences()
             prefs.edit().apply {
                 if (gppSid != null) {
                     putString("IABGPP_GppSID", gppSid.joinToString("_"))
@@ -352,8 +348,7 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
 
     private fun getGPPSid(call: MethodCall, result: Result) {
         context?.let { ctx ->
-            @Suppress("DEPRECATION")
-            val prefs = PreferenceManager.getDefaultSharedPreferences(ctx)
+            val prefs = ctx.getDefaultSharedPreferences()
             val gppSidString = prefs.getString("IABGPP_GppSID", null)
             val gppSidList = gppSidString?.split("_")?.mapNotNull { it.toIntOrNull() }
             result.success(gppSidList)
@@ -794,10 +789,15 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
         if (data != null) {
             eventData["data"] = data
         }
-        
+
         activityRef?.get()?.runOnUiThread {
             eventSink?.success(eventData)
         }
+    }
+
+    // Helper to get default SharedPreferences (replaces deprecated PreferenceManager)
+    private fun Context.getDefaultSharedPreferences(): SharedPreferences {
+        return getSharedPreferences("${packageName}_preferences", Context.MODE_PRIVATE)
     }
 
     // ============================================================================
