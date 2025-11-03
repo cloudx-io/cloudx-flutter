@@ -318,6 +318,9 @@ static const CGFloat kDefaultBannerHeight = 50.0;
         BOOL enabled = [call.arguments[@"enabled"] boolValue];
         [CloudXCore setLoggingEnabled:enabled];
         result(@YES);
+    } else if ([call.method isEqualToString:@"deinitialize"]) {
+        [[CloudXCore shared] deinitialize];
+        result(@YES);
     }
     // Privacy & Compliance Methods
     else if ([call.method isEqualToString:@"setCCPAPrivacyString"]) {
@@ -1178,13 +1181,6 @@ static const CGFloat kDefaultBannerHeight = 50.0;
     }
 }
 
-- (void)closedByUserActionWithAd:(CLXAd *)ad {
-    NSString *adId = [self getAdIdForCLXAd:ad];
-    if (adId) {
-        [self sendEventToFlutter:@"closedByUserAction" adId:adId data:@{@"ad": [self serializeCLXAd:ad]}];
-    }
-}
-
 - (void)revenuePaid:(CLXAd *)ad {
     NSString *adId = [self getAdIdForCLXAd:ad];
     if (adId) {
@@ -1218,20 +1214,6 @@ static const CGFloat kDefaultBannerHeight = 50.0;
     NSString *adId = [self getAdIdForCLXAd:ad];
     if (adId) {
         [self sendEventToFlutter:@"userRewarded" adId:adId data:@{@"ad": [self serializeCLXAd:ad]}];
-    }
-}
-
-- (void)rewardedVideoStarted:(CLXAd *)ad {
-    NSString *adId = [self getAdIdForCLXAd:ad];
-    if (adId) {
-        [self sendEventToFlutter:@"rewardedVideoStarted" adId:adId data:nil];
-    }
-}
-
-- (void)rewardedVideoCompleted:(CLXAd *)ad {
-    NSString *adId = [self getAdIdForCLXAd:ad];
-    if (adId) {
-        [self sendEventToFlutter:@"rewardedVideoCompleted" adId:adId data:nil];
     }
 }
 
