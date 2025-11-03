@@ -36,6 +36,7 @@ class CloudXAdViewController extends ChangeNotifier {
 
   /// Internal method called by ad view widgets to attach the controller.
   /// Do not call this method directly - it is managed automatically by the widget.
+  // ignore: use_setters_to_change_properties
   void attach(String adId) {
     _adId = adId;
   }

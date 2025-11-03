@@ -15,18 +15,12 @@ import 'package:flutter/services.dart';
 // ==============================================================================
 // MARK: - Public API Exports
 // ==============================================================================
-
-// Models
-export 'models/cloudx_ad.dart';
-export 'models/banner_position.dart';
-
-// Listeners (matching Android SDK naming)
 export 'listeners/cloudx_ad_listener.dart';
 export 'listeners/cloudx_ad_view_listener.dart';
 export 'listeners/cloudx_interstitial_listener.dart';
 export 'listeners/cloudx_rewarded_interstitial_listener.dart';
-
-// Widgets
+export 'models/banner_position.dart';
+export 'models/cloudx_ad.dart';
 export 'widgets/cloudx_ad_view_controller.dart';
 export 'widgets/cloudx_banner_view.dart';
 export 'widgets/cloudx_mrec_view.dart';
@@ -34,6 +28,7 @@ export 'widgets/cloudx_mrec_view.dart';
 /// The main CloudX Flutter SDK class.
 ///
 /// Provides a comprehensive Flutter wrapper for the CloudX Core Objective-C SDK.
+// ignore: avoid_classes_with_only_static_members
 class CloudX {
   static const MethodChannel _channel = MethodChannel('cloudx_flutter_sdk');
   static const EventChannel _eventChannel =
@@ -78,7 +73,7 @@ class CloudX {
       debugPrint('⚠️ CloudX iOS SDK is not yet production-ready.');
       debugPrint('⚠️ Currently only Android is fully supported.');
       debugPrint(
-          '⚠️ For iOS alpha testing, use: CloudX.initialize(appKey: "...", allowIosExperimental: true)');
+          '⚠️ For iOS alpha testing, use: CloudX.initialize(appKey: "...", allowIosExperimental: true)',);
       debugPrint('⚠️ For production iOS access, contact the CloudX team.');
       debugPrint('⚠️ SDK initialization skipped on iOS.');
       return false;
@@ -141,8 +136,10 @@ class CloudX {
   /// This controls both Dart-side and native-side logging.
   static Future<void> setLoggingEnabled(bool enabled) async {
     _loggingEnabled = enabled; // Control Dart-side logging
-    await _invokeMethod('setLoggingEnabled',
-        {'enabled': enabled}); // Control native-side logging
+    await _invokeMethod(
+      'setLoggingEnabled',
+      {'enabled': enabled},
+    ); // Control native-side logging
   }
 
   /// Deinitialize the CloudX SDK
@@ -305,7 +302,7 @@ class CloudX {
 
     final success = await _invokeMethod<bool>('createBanner', arguments);
 
-    if (success == true) {
+    if (success ?? false) {
       if (listener != null) {
         _listeners[id] = listener;
       }
@@ -378,7 +375,7 @@ class CloudX {
       'adId': id,
     });
 
-    if (success == true) {
+    if (success ?? false) {
       if (listener != null) {
         _listeners[id] = listener;
       }
@@ -428,7 +425,7 @@ class CloudX {
       'adId': id,
     });
 
-    if (success == true) {
+    if (success ?? false) {
       if (listener != null) {
         _listeners[id] = listener;
       }
@@ -481,7 +478,7 @@ class CloudX {
       'adId': id,
     });
 
-    if (success == true) {
+    if (success ?? false) {
       if (listener != null) {
         _listeners[id] = listener;
       }
@@ -541,7 +538,7 @@ class CloudX {
       if (position != null) 'position': position.value,
     });
 
-    if (success == true) {
+    if (success ?? false) {
       if (listener != null) {
         _listeners[id] = listener;
       }
@@ -601,8 +598,10 @@ class CloudX {
   // ============================================================================
 
   /// Centralized method invocation with error handling (DRY)
-  static Future<T?> _invokeMethod<T>(String method,
-      [Map<String, dynamic>? arguments]) async {
+  static Future<T?> _invokeMethod<T>(
+    String method, [
+    Map<String, dynamic>? arguments,
+  ]) async {
     try {
       return await _channel.invokeMethod<T>(method, arguments);
     } on PlatformException catch (e) {
@@ -675,8 +674,10 @@ class CloudX {
       final data = event['data'] as Map<Object?, Object?>?;
 
       if (adId == null || eventType == null) {
-        _log('Event missing adId or eventType, ignoring: $event',
-            isError: true);
+        _log(
+          'Event missing adId or eventType, ignoring: $event',
+          isError: true,
+        );
         return;
       }
 
@@ -684,8 +685,9 @@ class CloudX {
 
       if (listener == null) {
         _log(
-            'No listener found for adId: $adId (event: $eventType). Registered listeners: ${_listeners.keys.toList()}',
-            isError: true);
+          'No listener found for adId: $adId (event: $eventType). Registered listeners: ${_listeners.keys.toList()}',
+          isError: true,
+        );
         return;
       }
 
@@ -697,8 +699,11 @@ class CloudX {
   }
 
   /// Dispatch events to appropriate listener callbacks (DRY)
-  static void _dispatchEventToListener(CloudXAdListener listener,
-      String eventType, Map<Object?, Object?>? data) {
+  static void _dispatchEventToListener(
+    CloudXAdListener listener,
+    String eventType,
+    Map<Object?, Object?>? data,
+  ) {
     // Parse ad data if present
     final adMap = data?['ad'] as Map<Object?, Object?>?;
     final ad = CloudXAd.fromMap(adMap);
