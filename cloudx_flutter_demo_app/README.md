@@ -43,7 +43,7 @@ Each ad type has its own screen that extends `BaseAdScreen`:
 
 - **cloudx_flutter**: The Flutter SDK wrapper for CloudX (local path dependency)
 - **CloudXCore**: The underlying iOS Objective-C SDK (~> 1.1.40 via CocoaPods)
-- **CloudX Android SDK**: The underlying Android SDK (0.5.0 via Maven Central)
+- **CloudX Android SDK**: The underlying Android SDK (0.6.1 via Maven Central)
 
 ## Setup Instructions
 

@@ -48,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Widget Controllers**: `CloudXAdViewController` for programmatic control of widget-based ads
 
 ### Platform Details
-- **Android**: CloudX Android SDK 0.5.0
+- **Android**: CloudX Android SDK 0.6.1
 - **iOS**: CloudXCore pod ~> 1.1.40
 - **Flutter**: Requires Flutter 3.0.0+ and Dart 3.0.0+
 
