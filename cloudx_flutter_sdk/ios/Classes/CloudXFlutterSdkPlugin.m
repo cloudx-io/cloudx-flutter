@@ -16,6 +16,7 @@ static const CGFloat kDefaultBannerHeight = 50.0;
 @property (nonatomic, strong) FlutterMethodChannel *channel;
 @property (nonatomic, strong) FlutterEventChannel *eventChannel;
 @property (nonatomic, strong) FlutterEventSink eventSink;
+@property (nonatomic, strong) NSLock *eventSinkLock;
 
 // Simple state management - just store instances and pending results
 @property (nonatomic, strong) NSMutableDictionary<NSString *, id> *adInstances;
@@ -293,6 +294,7 @@ static const CGFloat kDefaultBannerHeight = 50.0;
     self = [super init];
     if (self) {
         _logger = [[CLXLogger alloc] initWithCategory:@"CloudX-Flutter"];
+        _eventSinkLock = [[NSLock alloc] init];
         _adInstances = [NSMutableDictionary dictionary];
         _pendingResults = [NSMutableDictionary dictionary];
         _placementToAdIdMap = [NSMutableDictionary dictionary];
@@ -1031,20 +1033,24 @@ static const CGFloat kDefaultBannerHeight = 50.0;
 }
 
 - (void)sendEventToFlutter:(NSString *)eventName adId:(NSString *)adId data:(NSDictionary *)data {
-    if (!self.eventSink) {
+    [self.eventSinkLock lock];
+    FlutterEventSink sink = self.eventSink;
+    [self.eventSinkLock unlock];
+
+    if (!sink) {
         [self.logger error:@"eventSink is nil, cannot send event"];
         return;
     }
-    
+
     NSMutableDictionary *arguments = [NSMutableDictionary dictionary];
     arguments[@"adId"] = adId;
     arguments[@"event"] = eventName;
     if (data) {
         arguments[@"data"] = data;
     }
-    
+
     dispatch_async(dispatch_get_main_queue(), ^{
-        self.eventSink(arguments);
+        sink(arguments);
     });
 }
 
@@ -1224,21 +1230,23 @@ static const CGFloat kDefaultBannerHeight = 50.0;
 #pragma mark - FlutterStreamHandler
 
 - (FlutterError *)onListenWithArguments:(id)arguments eventSink:(FlutterEventSink)events {
+    [self.eventSinkLock lock];
     self.eventSink = events;
-    
+    [self.eventSinkLock unlock];
+
     // Send ready confirmation to Dart side
-    dispatch_async(dispatch_get_main_queue(), ^{
-        self.eventSink(@{
-            @"event": @"__eventChannelReady__",
-            @"adId": @"__system__"
-        });
+    events(@{
+        @"event": @"__eventChannelReady__",
+        @"adId": @"__system__"
     });
-    
+
     return nil;
 }
 
 - (FlutterError *)onCancelWithArguments:(id)arguments {
+    [self.eventSinkLock lock];
     self.eventSink = nil;
+    [self.eventSinkLock unlock];
     return nil;
 }
 
