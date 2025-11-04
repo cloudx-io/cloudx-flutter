@@ -698,6 +698,12 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
         }
 
         val adInstance = adInstances[adId]
+        if (adInstance == null) {
+            logWarning("destroyAd called for non-existent adId: $adId")
+            result.success(true)
+            return
+        }
+
         when (adInstance) {
             is CloudXInterstitialAd -> adInstance.destroy()
             is CloudXRewardedInterstitialAd -> adInstance.destroy()
@@ -717,6 +723,7 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
         }
 
         adInstances.remove(adId)
+        logDebug("Successfully destroyed ad: $adId")
         result.success(true)
     }
 
