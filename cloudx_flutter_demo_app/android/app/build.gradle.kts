@@ -44,7 +44,10 @@ flutter {
 }
 
 dependencies {
-    // CloudX SDK from Maven Central
+    // CloudX SDK and Adapters for demo app
+    // Note: The core SDK is automatically included via the cloudx_flutter plugin,
+    // but we need it here too for native MainActivity code
     implementation("io.cloudx:sdk:0.5.0")
+    implementation("io.cloudx:adapter-cloudx:0.5.0")
     implementation("io.cloudx:adapter-meta:0.5.0")
 }

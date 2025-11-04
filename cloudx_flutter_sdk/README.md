@@ -68,6 +68,62 @@ cd ios && pod install
 
 No additional configuration required. Minimum SDK is automatically set to API 21.
 
+### Ad Network Adapters
+
+The CloudX SDK requires ad network adapters to serve ads. **Adapters are not included by default** - you must add them to your project based on which ad networks you want to support.
+
+#### Android Adapters
+
+Add adapters to your app's `android/app/build.gradle`:
+
+```gradle
+dependencies {
+    // CloudX Adapters - add the adapters you want to use
+    implementation 'io.cloudx:adapter-meta:0.5.0'      // Meta Audience Network
+    implementation 'io.cloudx:adapter-cloudx:0.5.0'    // CloudX Network
+    // Add other adapters as needed
+}
+```
+
+Or if using Kotlin DSL (`build.gradle.kts`):
+
+```kotlin
+dependencies {
+    // CloudX Adapters - add the adapters you want to use
+    implementation("io.cloudx:adapter-meta:0.5.0")      // Meta Audience Network
+    implementation("io.cloudx:adapter-cloudx:0.5.0")    // CloudX Network
+    // Add other adapters as needed
+}
+```
+
+#### iOS Adapters
+
+Add adapters to your app's `ios/Podfile`:
+
+```ruby
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
+  # CloudX Adapters - add the adapters you want to use
+  pod 'CloudXMetaAdapter', '~> 1.1.0'    # Meta Audience Network
+  pod 'CloudXAdapter', '~> 1.1.0'        # CloudX Network
+  # Add other adapters as needed
+end
+```
+
+Then run:
+```bash
+cd ios && pod install
+```
+
+**Available Adapters:**
+- **Meta Audience Network** - `adapter-meta` (Android) / `CloudXMetaAdapter` (iOS)
+- **CloudX Network** - `adapter-cloudx` (Android) / `CloudXAdapter` (iOS)
+- More adapters coming soon
+
 ## Quick Start
 
 ### 1. Initialize the SDK
