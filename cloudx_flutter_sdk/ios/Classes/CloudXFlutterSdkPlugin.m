@@ -1008,7 +1008,8 @@ static const CGFloat kDefaultBannerHeight = 50.0;
     }
     
     // STRATEGY 3: Search for wrapper containing this inner ad (last resort)
-    for (NSString *candidateAdId in self.adInstances) {
+    NSArray *candidateAdIds = [self.adInstances allKeys];
+    for (NSString *candidateAdId in candidateAdIds) {
         id instance = self.adInstances[candidateAdId];
         
         @try {
@@ -1107,7 +1108,8 @@ static const CGFloat kDefaultBannerHeight = 50.0;
     
     // STRATEGY 3: Search for wrapper containing this inner ad
     if (!adId) {
-        for (NSString *candidateAdId in self.adInstances) {
+        NSArray *candidateAdIds = [self.adInstances allKeys];
+        for (NSString *candidateAdId in candidateAdIds) {
             id instance = self.adInstances[candidateAdId];
             @try {
                 id innerAd = [instance valueForKey:@"ad"];
