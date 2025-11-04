@@ -401,52 +401,49 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
 
         logDebug("Creating programmatic $adType at position: $position")
 
-        // Run on UI thread to add view to activity
-        activity.runOnUiThread {
-            try {
-                // Create container layout that will overlay the Flutter view
-                // Using FrameLayout because it supports gravity directly
-                val containerLayout = FrameLayout(activity)
+        try {
+            // Create container layout that will overlay the Flutter view
+            // Using FrameLayout because it supports gravity directly
+            val containerLayout = FrameLayout(activity)
 
-                // Get gravity for positioning
-                val gravity = getGravityFromPosition(position)
+            // Get gravity for positioning
+            val gravity = getGravityFromPosition(position)
 
-                logDebug("Creating programmatic $adType with gravity: $gravity for position: $position")
+            logDebug("Creating programmatic $adType with gravity: $gravity for position: $position")
 
-                // Create layout params with gravity for the ad view
-                val adViewLayoutParams = FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    gravity  // Apply gravity directly to FrameLayout.LayoutParams
+            // Create layout params with gravity for the ad view
+            val adViewLayoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                gravity  // Apply gravity directly to FrameLayout.LayoutParams
+            )
+
+            // Remove ad view from any existing parent
+            (adView.parent as? ViewGroup)?.removeView(adView)
+
+            // Add ad view to container with gravity-based positioning
+            containerLayout.addView(adView, adViewLayoutParams)
+
+            // Set initial visibility to GONE (will be shown with showAd)
+            containerLayout.visibility = View.GONE
+
+            // Add container to activity's content view
+            activity.addContentView(
+                containerLayout,
+                FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT
                 )
+            )
 
-                // Remove ad view from any existing parent
-                (adView.parent as? ViewGroup)?.removeView(adView)
+            // Store container for show/hide operations
+            programmaticBannerContainers[adId] = containerLayout
 
-                // Add ad view to container with gravity-based positioning
-                containerLayout.addView(adView, adViewLayoutParams)
-
-                // Set initial visibility to GONE (will be shown with showAd)
-                containerLayout.visibility = View.GONE
-
-                // Add container to activity's content view
-                activity.addContentView(
-                    containerLayout,
-                    FrameLayout.LayoutParams(
-                        FrameLayout.LayoutParams.MATCH_PARENT,
-                        FrameLayout.LayoutParams.MATCH_PARENT
-                    )
-                )
-
-                // Store container for show/hide operations
-                programmaticBannerContainers[adId] = containerLayout
-
-                logDebug("Successfully created programmatic $adType: $adId at position: $position")
-                result.success(true)
-            } catch (e: Exception) {
-                logError("Failed to create programmatic $adType layout", e)
-                result.error("AD_CREATION_FAILED", "Failed to create programmatic $adType: ${e.message}", null)
-            }
+            logDebug("Successfully created programmatic $adType: $adId at position: $position")
+            result.success(true)
+        } catch (e: Exception) {
+            logError("Failed to create programmatic $adType layout", e)
+            result.error("AD_CREATION_FAILED", "Failed to create programmatic $adType: ${e.message}", null)
         }
     }
 
@@ -639,10 +636,8 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
                 val container = programmaticBannerContainers[adId]
                 if (container != null) {
                     // Show programmatic banner container
-                    activity.runOnUiThread {
-                        container.visibility = View.VISIBLE
-                        logDebug("Showing programmatic banner: $adId")
-                    }
+                    container.visibility = View.VISIBLE
+                    logDebug("Showing programmatic banner: $adId")
                 } else {
                     // Widget-based banner (visibility controlled by PlatformView)
                     adInstance.visibility = View.VISIBLE
@@ -668,10 +663,8 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
             val container = programmaticBannerContainers[adId]
             if (container != null) {
                 // Hide programmatic banner container
-                activityRef?.get()?.runOnUiThread {
-                    container.visibility = View.GONE
-                    logDebug("Hiding programmatic banner: $adId")
-                }
+                container.visibility = View.GONE
+                logDebug("Hiding programmatic banner: $adId")
             } else {
                 // Widget-based banner
                 adInstance.visibility = View.GONE
@@ -714,12 +707,10 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
                 // Clean up programmatic banner container if exists
                 val container = programmaticBannerContainers[adId]
                 if (container != null) {
-                    activityRef?.get()?.runOnUiThread {
-                        // Remove container from activity
-                        val parent = container.parent as? ViewGroup
-                        parent?.removeView(container)
-                        logDebug("Removed programmatic banner container: $adId")
-                    }
+                    // Remove container from activity
+                    val parent = container.parent as? ViewGroup
+                    parent?.removeView(container)
+                    logDebug("Removed programmatic banner container: $adId")
                     programmaticBannerContainers.remove(adId)
                 }
             }
@@ -790,9 +781,7 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
             eventData["data"] = data
         }
 
-        activityRef?.get()?.runOnUiThread {
-            eventSink?.success(eventData)
-        }
+        eventSink?.success(eventData)
     }
 
     // Helper to get default SharedPreferences (replaces deprecated PreferenceManager)
