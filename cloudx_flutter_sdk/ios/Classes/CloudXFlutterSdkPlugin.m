@@ -18,9 +18,8 @@ static const CGFloat kDefaultBannerHeight = 50.0;
 @property (nonatomic, strong) FlutterEventSink eventSink;
 @property (nonatomic, strong) NSLock *eventSinkLock;
 
-// Simple state management - just store instances and pending results
+// Simple state management - just store instances
 @property (nonatomic, strong) NSMutableDictionary<NSString *, id> *adInstances;
-@property (nonatomic, strong) NSMutableDictionary<NSString *, FlutterResult> *pendingResults;
 // Map CloudX internal placement IDs to Flutter adIds
 @property (nonatomic, strong) NSMutableDictionary<NSString *, NSString *> *placementToAdIdMap;
 // Map adId to position for programmatic ads
@@ -296,7 +295,6 @@ static const CGFloat kDefaultBannerHeight = 50.0;
         _logger = [[CLXLogger alloc] initWithCategory:@"CloudX-Flutter"];
         _eventSinkLock = [[NSLock alloc] init];
         _adInstances = [NSMutableDictionary dictionary];
-        _pendingResults = [NSMutableDictionary dictionary];
         _placementToAdIdMap = [NSMutableDictionary dictionary];
         _adPositions = [NSMutableDictionary dictionary];
     }
@@ -865,7 +863,6 @@ static const CGFloat kDefaultBannerHeight = 50.0;
         }
 
         [self.adInstances removeObjectForKey:adId];
-        [self.pendingResults removeObjectForKey:adId];
         [self.adPositions removeObjectForKey:adId];
 
         // Clean up placement mappings for this adId
