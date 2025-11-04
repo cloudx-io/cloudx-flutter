@@ -583,7 +583,7 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
             result.error("AD_NOT_FOUND", "Ad instance not found", null)
             return
         }
-        
+
         when (adInstance) {
             is CloudXInterstitialAd -> {
                 adInstance.load()
@@ -774,14 +774,26 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
     }
 
     private fun sendEventToFlutter(eventName: String, adId: String, data: Map<String, Any?>? = null) {
-        val eventData = mutableMapOf<String, Any?>()
-        eventData["event"] = eventName
-        eventData["adId"] = adId
-        if (data != null) {
-            eventData["data"] = data
-        }
+        try {
+            val sink = eventSink
+            if (sink == null) {
+                logWarning("Cannot send event '$eventName' for adId '$adId': EventSink is null")
+                return
+            }
 
-        eventSink?.success(eventData)
+            val eventData = mutableMapOf<String, Any?>()
+            eventData["event"] = eventName
+            eventData["adId"] = adId
+            if (data != null) {
+                eventData["data"] = data
+            }
+
+            sink.success(eventData)
+        } catch (e: IllegalStateException) {
+            logError("EventSink error sending event '$eventName' for adId '$adId': Stream may be closed", e)
+        } catch (e: Exception) {
+            logError("Unexpected error sending event '$eventName' for adId '$adId'", e)
+        }
     }
 
     // Helper to get default SharedPreferences (replaces deprecated PreferenceManager)
