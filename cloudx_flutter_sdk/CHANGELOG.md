@@ -5,6 +5,25 @@ All notable changes to the CloudX Flutter SDK will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2025-11-04
+
+### Changed
+- **BREAKING**: Ad network adapters are now optional dependencies
+  - Choose which ad networks you want to support by adding adapters to your app
+  - Reduces SDK size and gives you full control over dependencies
+  - See README for simple adapter installation instructions
+- Updated to CloudX Android SDK 0.6.1 with latest improvements
+
+### Fixed
+- Improved stability and performance across Android and iOS
+- Fixed memory leaks that could occur during ad lifecycle management
+- Fixed rare crashes when rapidly creating/destroying ads
+- Better thread safety for more reliable ad delivery
+
+### Documentation
+- Added clear instructions for installing ad network adapters
+- Updated all examples to use latest SDK versions
+
 ## [0.1.2] - 2025-10-31
 
 ### Fixed
