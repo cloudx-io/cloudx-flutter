@@ -13,7 +13,7 @@ exposing all ad types (banner, interstitial, rewarded, native, MREC), privacy & 
   s.source           = { :path => '.' }
   s.source_files     = 'Classes/**/*'
   s.dependency 'Flutter'
-  s.dependency 'CloudXCore', '~> 1.1.40'
+  s.dependency 'CloudXCore', '~> 1.1.60'
   s.platform = :ios, '14.0'
 
   # Flutter.framework does not contain a i386 slice.

@@ -32,12 +32,9 @@ target 'Runner' do
   use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-  
-  # Override CloudXCore to use local development version
-  pod 'CloudXCore', :path => '../../../cloudx-ios/core/'
-  
-  # Add CloudXMetaAdapter from local development version
-  pod 'CloudXMetaAdapter', :path => '../../../cloudx-ios/adapter-meta/'
+
+  # Optional ad network adapters
+  pod 'CloudXMetaAdapter', '~> 1.1.68'
 end
 
 post_install do |installer|
