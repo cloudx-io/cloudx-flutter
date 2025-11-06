@@ -5,6 +5,16 @@ All notable changes to the CloudX Flutter SDK will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-11-06
+
+### Changed
+- Updated CloudX iOS SDK dependency from 1.1.40 to 1.1.60
+- Updated CloudXMetaAdapter to 1.1.68 (optional dependency)
+
+### Fixed
+- Removed local pod overrides from demo app for proper CocoaPods integration
+- Improved dependency management by separating core SDK from optional adapters
+
 ## [0.2.0] - 2025-11-04
 
 ### Changed
