@@ -483,7 +483,99 @@ Wait for user to type "resolved", then continue.
 git push origin develop
 ```
 
-**Step 6: Report Completion**
+**Step 6: Publish to Public Repository**
+
+Ask user:
+```
+? Publish release to public repository (cloudx-flutter-public)? (y/n)
+  [Recommended: yes]
+```
+
+If yes, proceed with publishing. If no, skip to Step 7.
+
+**Step 6a: Clone/Update Public Repo**
+
+Check if public repo exists locally:
+```bash
+if [ -d "../cloudx-flutter-public" ]; then
+  cd ../cloudx-flutter-public
+  git pull origin main
+else
+  cd ..
+  git clone git@github.com:cloudx-io/cloudx-flutter-public.git
+  cd cloudx-flutter-public
+fi
+```
+
+**Step 6b: Get Git-Tracked Files from Release**
+
+Get list of all files tracked by git in the release branch:
+```bash
+cd ../cloudx-flutter  # Back to private repo
+git checkout release/<version>
+git ls-files > /tmp/release-files.txt
+```
+
+**Step 6c: Copy Files to Public Repo**
+
+Clear public repo (except .git):
+```bash
+cd ../cloudx-flutter-public
+# Remove all files except .git
+find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+```
+
+Copy all git-tracked files from private repo:
+```bash
+cd ../cloudx-flutter
+while IFS= read -r file; do
+  mkdir -p "../cloudx-flutter-public/$(dirname "$file")"
+  cp "$file" "../cloudx-flutter-public/$file"
+done < /tmp/release-files.txt
+```
+
+**Step 6d: Commit to Public Repo**
+
+```bash
+cd ../cloudx-flutter-public
+git add -A  # Captures additions, modifications, AND deletions
+git commit -m "Release v<version>
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+Show diff summary:
+```bash
+git diff HEAD~1 --stat
+```
+
+**Step 6e: Push to Public Repo**
+
+Ask user for final confirmation:
+```
+📋 Public Release Summary
+
+Files changed in cloudx-flutter-public:
+  <show git diff --stat>
+
+Ready to push to public repository? (y/n)
+```
+
+If yes:
+```bash
+git push origin main
+```
+
+**Step 6f: Return to Private Repo**
+
+```bash
+cd ../cloudx-flutter
+git checkout develop
+```
+
+**Step 7: Report Completion**
 
 ```
 ✅ Production Release v<version> Complete!
@@ -493,16 +585,18 @@ Summary:
   ✓ Tagged commit: <commit-hash>
   ✓ Merged release/<version> → develop
   ✓ Release branch kept for historical reference
+  ✓ Published to cloudx-flutter-public
 
-Git tag: v<version>
-Status: Ready for public repository copy
+Private repo tag: v<version>
+Public repo: https://github.com/cloudx-io/cloudx-flutter-public
+Public repo commit: <public-commit-hash>
 
 Next steps:
-1. Copy release to public repository (separate workflow)
-2. Publish to pub.dev when ready
-3. Create GitHub release notes (optional)
+1. Publish to pub.dev when ready
+2. Create GitHub release notes (optional)
+3. Announce release to customers
 
-Release v<version> is now finalized in this repository.
+Release v<version> is now live!
 ```
 
 ### Error Handling
