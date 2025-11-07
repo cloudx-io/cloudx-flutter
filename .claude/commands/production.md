@@ -14,7 +14,7 @@ Finalizes a release after QA approval:
 - Creates git tag (e.g., v0.4.0)
 - Merges release branch back to develop
 - Handles version conflicts (keeps develop's newer version)
-- Publishes to public repository (cloudx-flutter-public)
+- Publishes to public repository (cloudx-flutter)
 - Keeps release branch for historical reference
 
 ## Pre-flight Checks
@@ -38,7 +38,7 @@ The agent validates:
 8. Handles version conflicts automatically (keeps develop's version)
 9. Pushes develop
 10. **Publishes to public repository**
-    - Asks if you want to publish to cloudx-flutter-public
+    - Asks if you want to publish to cloudx-flutter (public repo)
     - Copies all git-tracked files from release branch
     - Creates clean "Release vX.Y.Z" commit
     - Shows diff summary
@@ -59,7 +59,7 @@ When merging release → develop, version conflicts are expected:
 - Release is finalized in private repository (tagged)
 - Release branch kept for historical reference
 - Tag indicates release is in production
-- Published to cloudx-flutter-public (customer-facing)
+- Published to cloudx-flutter (customer-facing public repo)
 - Ready to publish to pub.dev
 
 ## Public Repository Publishing

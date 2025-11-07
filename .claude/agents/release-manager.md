@@ -487,7 +487,7 @@ git push origin develop
 
 Ask user:
 ```
-? Publish release to public repository (cloudx-flutter-public)? (y/n)
+? Publish release to public repository (cloudx-flutter)? (y/n)
   [Recommended: yes]
 ```
 
@@ -497,13 +497,13 @@ If yes, proceed with publishing. If no, skip to Step 7.
 
 Check if public repo exists locally:
 ```bash
-if [ -d "../cloudx-flutter-public" ]; then
-  cd ../cloudx-flutter-public
+if [ -d "../cloudx-flutter" ]; then
+  cd ../cloudx-flutter
   git pull origin main
 else
   cd ..
-  git clone git@github.com:cloudx-io/cloudx-flutter-public.git
-  cd cloudx-flutter-public
+  git clone git@github.com:cloudx-io/cloudx-flutter.git
+  cd cloudx-flutter
 fi
 ```
 
@@ -511,7 +511,7 @@ fi
 
 Get list of all files tracked by git in the release branch:
 ```bash
-cd ../cloudx-flutter  # Back to private repo
+cd ../cloudx-flutter-private  # Back to private repo
 git checkout release/<version>
 git ls-files > /tmp/release-files.txt
 ```
@@ -520,24 +520,24 @@ git ls-files > /tmp/release-files.txt
 
 Clear public repo (except .git):
 ```bash
-cd ../cloudx-flutter-public
+cd ../cloudx-flutter
 # Remove all files except .git
 find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
 ```
 
 Copy all git-tracked files from private repo:
 ```bash
-cd ../cloudx-flutter
+cd ../cloudx-flutter-private
 while IFS= read -r file; do
-  mkdir -p "../cloudx-flutter-public/$(dirname "$file")"
-  cp "$file" "../cloudx-flutter-public/$file"
+  mkdir -p "../cloudx-flutter/$(dirname "$file")"
+  cp "$file" "../cloudx-flutter/$file"
 done < /tmp/release-files.txt
 ```
 
 **Step 6d: Commit to Public Repo**
 
 ```bash
-cd ../cloudx-flutter-public
+cd ../cloudx-flutter
 git add -A  # Captures additions, modifications, AND deletions
 git commit -m "Release v<version>
 
@@ -557,7 +557,7 @@ Ask user for final confirmation:
 ```
 📋 Public Release Summary
 
-Files changed in cloudx-flutter-public:
+Files changed in cloudx-flutter (public repo):
   <show git diff --stat>
 
 Ready to push to public repository? (y/n)
@@ -571,7 +571,7 @@ git push origin main
 **Step 6f: Return to Private Repo**
 
 ```bash
-cd ../cloudx-flutter
+cd ../cloudx-flutter-private
 git checkout develop
 ```
 
@@ -585,10 +585,10 @@ Summary:
   ✓ Tagged commit: <commit-hash>
   ✓ Merged release/<version> → develop
   ✓ Release branch kept for historical reference
-  ✓ Published to cloudx-flutter-public
+  ✓ Published to cloudx-flutter (public repo)
 
 Private repo tag: v<version>
-Public repo: https://github.com/cloudx-io/cloudx-flutter-public
+Public repo: https://github.com/cloudx-io/cloudx-flutter
 Public repo commit: <public-commit-hash>
 
 Next steps:

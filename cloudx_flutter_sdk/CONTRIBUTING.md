@@ -14,8 +14,8 @@ This guide is for developers working on the CloudX Flutter SDK itself.
 ### Clone and Setup
 
 ```bash
-git clone https://github.com/cloudx-io/cloudx-flutter.git
-cd cloudx-flutter/cloudx_flutter_sdk
+git clone https://github.com/cloudx-io/cloudx-flutter-private.git
+cd cloudx-flutter-private/cloudx_flutter_sdk
 flutter pub get
 ```
 
@@ -205,7 +205,7 @@ flutter pub publish
 
 ### 5. Create GitHub Release (optional)
 
-1. Go to https://github.com/cloudx-io/cloudx-flutter/releases
+1. Go to https://github.com/cloudx-io/cloudx-flutter-private/releases
 2. Click "Draft a new release"
 3. Select tag `v0.2.0`
 4. Title: `v0.2.0 - [Brief Title]`
@@ -329,7 +329,7 @@ flutter run
 
 ## Getting Help
 
-- Check existing issues: https://github.com/cloudx-io/cloudx-flutter/issues
+- Check existing issues: https://github.com/cloudx-io/cloudx-flutter-private/issues
 - Review CLAUDE.md for AI assistant guidance
 - Contact CloudX team
 
