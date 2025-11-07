@@ -534,41 +534,95 @@ while IFS= read -r file; do
 done < /tmp/release-files.txt
 ```
 
-**Step 6d: Commit to Public Repo**
+**Step 6d: Create Release Branch in Public Repo**
 
 ```bash
 cd ../cloudx-flutter
+git checkout -b release/<version>
 git add -A  # Captures additions, modifications, AND deletions
 git commit -m "Release v<version>
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
+git push -u origin release/<version>
 ```
+
+**Step 6e: Create Pull Request**
 
 Show diff summary:
 ```bash
-git diff HEAD~1 --stat
+git diff main --stat
 ```
 
-**Step 6e: Push to Public Repo**
-
-Ask user for final confirmation:
-```
-📋 Public Release Summary
-
-Files changed in cloudx-flutter (public repo):
-  <show git diff --stat>
-
-Ready to push to public repository? (y/n)
-```
-
-If yes:
+Create PR:
 ```bash
-git push origin main
+gh pr create \
+  --repo cloudx-io/cloudx-flutter \
+  --base main \
+  --head release/<version> \
+  --title "Release v<version>" \
+  --body "Release v<version> from private repository.
+
+Ready for final review before publishing to customers."
 ```
 
-**Step 6f: Return to Private Repo**
+Show PR URL to user:
+```
+📋 Public Release PR Created
+
+PR: <PR-URL>
+Branch: release/<version>
+Files changed: <show summary>
+
+Please review the PR. This is your final gate before customers see these changes.
+
+? Merge PR now or review later? (merge/later)
+```
+
+**Step 6f: Merge PR (Optional)**
+
+If user chooses "merge":
+```bash
+gh pr merge <PR-number> \
+  --repo cloudx-io/cloudx-flutter \
+  --merge \
+  --delete-branch
+```
+
+If user chooses "later":
+```
+⏸ PR created but not merged
+
+You can review and merge the PR manually:
+  <PR-URL>
+
+After merging, the release will be live on the public repo.
+```
+
+**Step 6g: Create GitHub Release (if merged)**
+
+If PR was merged, extract CHANGELOG notes for this version:
+```bash
+# Extract version notes from CHANGELOG.md
+# Find section between [<version>] and previous version
+```
+
+Create GitHub Release in public repo:
+```bash
+gh release create v<version> \
+  --repo cloudx-io/cloudx-flutter \
+  --title "v<version>" \
+  --notes "<extracted-changelog-notes>" \
+  --target main
+```
+
+Verify release created:
+```bash
+gh release view v<version> --repo cloudx-io/cloudx-flutter
+```
+
+**Step 6h: Return to Private Repo**
 
 ```bash
 cd ../cloudx-flutter-private
@@ -577,26 +631,56 @@ git checkout develop
 
 **Step 7: Report Completion**
 
+If PR was merged:
 ```
 ✅ Production Release v<version> Complete!
 
 Summary:
-  ✓ Created tag v<version>
+  ✓ Created tag v<version> in private repo
   ✓ Tagged commit: <commit-hash>
-  ✓ Merged release/<version> → develop
-  ✓ Release branch kept for historical reference
+  ✓ Merged release/<version> → develop (private repo)
+  ✓ Release branch kept for historical reference (private repo)
   ✓ Published to cloudx-flutter (public repo)
+  ✓ Created GitHub Release in public repo
 
-Private repo tag: v<version>
-Public repo: https://github.com/cloudx-io/cloudx-flutter
-Public repo commit: <public-commit-hash>
+Private repo: cloudx-flutter-private
+  - Tag: v<version>
+  - Commit: <commit-hash>
+
+Public repo: cloudx-flutter
+  - Release: https://github.com/cloudx-io/cloudx-flutter/releases/tag/v<version>
+  - Main branch updated
 
 Next steps:
 1. Publish to pub.dev when ready
-2. Create GitHub release notes (optional)
-3. Announce release to customers
+2. Announce release to customers
 
 Release v<version> is now live!
+```
+
+If PR not merged yet:
+```
+✅ Production Release v<version> Prepared!
+
+Summary:
+  ✓ Created tag v<version> in private repo
+  ✓ Tagged commit: <commit-hash>
+  ✓ Merged release/<version> → develop (private repo)
+  ✓ Release branch kept for historical reference (private repo)
+  ✓ Created PR in public repo (awaiting review)
+
+Private repo: cloudx-flutter-private
+  - Tag: v<version>
+
+Public repo PR: <PR-URL>
+  - Status: Awaiting review and merge
+
+Next steps:
+1. Review and merge PR: <PR-URL>
+2. After merge, GitHub Release will be visible
+3. Publish to pub.dev when ready
+
+Release is ready but not yet public. Merge PR to make it live.
 ```
 
 ### Error Handling
