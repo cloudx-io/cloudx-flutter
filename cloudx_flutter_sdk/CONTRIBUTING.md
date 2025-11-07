@@ -61,15 +61,16 @@ See `.claude/commands/update-version.md` for full documentation.
 
 ### Manual Version Updates (Alternative)
 
-If you prefer manual updates:
+If you prefer manual updates without using the agent:
 
 **Flutter SDK:**
 ```bash
 # 1. Update version in pubspec.yaml
 vim pubspec.yaml  # Change: version: 0.1.0 → 0.2.0
 
-# 2. Sync to platform files
-./tool/sync_version.sh
+# 2. Update platform files
+vim android/build.gradle  # Update version variable
+vim ios/cloudx_flutter.podspec  # Update s.version
 
 # 3. Update documentation references in README.md files
 
@@ -114,7 +115,6 @@ cloudx_flutter_sdk/
 ├── ios/                  # iOS (Objective-C) implementation
 │   ├── Classes/
 │   └── cloudx_flutter.podspec
-├── tool/                 # Development scripts
 ├── pubspec.yaml          # Package metadata & version
 ├── README.md             # User documentation
 ├── CHANGELOG.md          # Release history
@@ -220,23 +220,13 @@ flutter pub publish
 
 The `/update-version` slash command (see Version Management section above) provides automated, context-aware version updates across the entire codebase.
 
-### `tool/sync_version.sh` (Legacy)
+### GitFlow Release Management
 
-Legacy script that synchronizes Flutter SDK version from `pubspec.yaml` to platform-specific files.
-
-**Usage:**
-```bash
-./tool/sync_version.sh
-```
-
-**What it does:**
-- Reads version from `pubspec.yaml`
-- Updates `android/build.gradle`
-- Updates `ios/cloudx_flutter.podspec`
-
-**Note:** For more comprehensive updates (including documentation and CHANGELOG), use `/update-version` instead.
-
-See `tool/README.md` for more details.
+Release workflow commands (see Release Process section below):
+- `/release <version>` - Create release branch
+- `/qa-fix` - Apply bug fixes during QA
+- `/production` - Finalize and tag release
+- `/hotfix` - Post-production emergency fixes
 
 ---
 
