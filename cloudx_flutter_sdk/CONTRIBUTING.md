@@ -23,37 +23,79 @@ flutter pub get
 
 ## Version Management
 
-**Single Source of Truth:** Version is defined **only** in `pubspec.yaml`.
+This project manages three distinct SDK versions:
+- **Flutter SDK Version** - The Flutter plugin wrapper (pubspec.yaml, build.gradle, podspec)
+- **iOS SDK Version** - Native CloudXCore dependency (podspec)
+- **Android SDK Version** - Native Android SDK dependency (build.gradle)
 
-### Updating the SDK Version
+### Intelligent Version Updates (Recommended)
 
-When releasing a new version:
+Use the `/update-version` slash command with Claude Code for intelligent, context-aware version updates:
 
+```bash
+# Update Flutter SDK version
+/update-version flutter-sdk 0.4.0
+
+# Update iOS native SDK version
+/update-version ios-sdk 1.1.65
+
+# Update Android native SDK version
+/update-version android-sdk 0.7.0
+```
+
+**What the agent does:**
+1. Searches entire codebase for all version references
+2. Categorizes references (code, docs, historical changelog entries, examples)
+3. Shows you exactly what will be updated (and what won't be)
+4. Updates code files, documentation, and CHANGELOG.md consistently
+5. Validates all changes and offers to create a git commit
+
+**Benefits:**
+- ✓ Finds all references automatically (including new docs you've added)
+- ✓ Understands context (won't update historical CHANGELOG entries)
+- ✓ Updates everything consistently
+- ✓ No manual file editing needed
+- ✓ Comprehensive validation
+
+See `.claude/commands/update-version.md` for full documentation.
+
+### Manual Version Updates (Alternative)
+
+If you prefer manual updates:
+
+**Flutter SDK:**
 ```bash
 # 1. Update version in pubspec.yaml
 vim pubspec.yaml  # Change: version: 0.1.0 → 0.2.0
 
-# 2. Sync to all platform files
+# 2. Sync to platform files
 ./tool/sync_version.sh
 
-# 3. Update CHANGELOG.md
-vim CHANGELOG.md  # Add release notes
+# 3. Update documentation references in README.md files
 
-# 4. Commit all version changes
-git add pubspec.yaml android/build.gradle ios/cloudx_flutter.podspec CHANGELOG.md
-git commit -m "Bump version to 0.2.0"
-
-# 5. Create and push tag
-git tag -a v0.2.0 -m "CloudX Flutter SDK v0.2.0"
-git push origin main
-git push origin v0.2.0
+# 4. Update CHANGELOG.md
 ```
 
-The `sync_version.sh` script automatically updates:
-- `android/build.gradle`
-- `ios/cloudx_flutter.podspec`
+**iOS SDK:**
+```bash
+# 1. Update podspec dependency
+vim ios/cloudx_flutter.podspec  # Change: s.dependency 'CloudXCore', '~> x.y.z'
 
-See `tool/README.md` for more details about development tools.
+# 2. Update documentation (README.md, CLAUDE.md)
+
+# 3. Update CHANGELOG.md with iOS SDK update note
+```
+
+**Android SDK:**
+```bash
+# 1. Update build.gradle dependencies
+vim android/build.gradle  # Change: implementation "io.cloudx:sdk:x.y.z"
+vim ../cloudx_flutter_demo_app/android/app/build.gradle.kts  # Update all adapters
+
+# 2. Update documentation (README.md)
+
+# 3. Update CHANGELOG.md with Android SDK update note
+```
 
 ---
 
@@ -124,16 +166,16 @@ Bad:
 ### 1. Prepare Release
 
 ```bash
-# Update version
+# Update Flutter SDK version using intelligent agent (recommended)
+/update-version flutter-sdk 0.2.0
+# Agent will update pubspec.yaml, build.gradle, podspec, docs, and CHANGELOG
+
+# OR manually update:
 vim pubspec.yaml  # Bump version
-
-# Sync versions
-./tool/sync_version.sh
-
-# Update changelog
+./tool/sync_version.sh  # Sync to platform files
 vim CHANGELOG.md  # Add release notes
 
-# Commit
+# Commit (if not done by agent)
 git add pubspec.yaml android/build.gradle ios/cloudx_flutter.podspec CHANGELOG.md
 git commit -m "Release v0.2.0"
 ```
@@ -174,9 +216,13 @@ flutter pub publish
 
 ## Development Tools
 
-### `tool/sync_version.sh`
+### Intelligent Version Management
 
-Synchronizes version from `pubspec.yaml` to platform-specific files.
+The `/update-version` slash command (see Version Management section above) provides automated, context-aware version updates across the entire codebase.
+
+### `tool/sync_version.sh` (Legacy)
+
+Legacy script that synchronizes Flutter SDK version from `pubspec.yaml` to platform-specific files.
 
 **Usage:**
 ```bash
@@ -187,6 +233,8 @@ Synchronizes version from `pubspec.yaml` to platform-specific files.
 - Reads version from `pubspec.yaml`
 - Updates `android/build.gradle`
 - Updates `ios/cloudx_flutter.podspec`
+
+**Note:** For more comprehensive updates (including documentation and CHANGELOG), use `/update-version` instead.
 
 See `tool/README.md` for more details.
 
