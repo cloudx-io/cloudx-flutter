@@ -1,0 +1,15 @@
+# Temporary Test File
+
+This file is intentionally created to test the GitFlow release management system.
+
+**Purpose**: Validate the release workflow including:
+- File creation in a release
+- Version bumping
+- QA testing process
+- Production finalization
+- File deletion in a subsequent release
+
+**Created**: 2025-11-09
+**Test Phase**: Release #1 - File Addition
+
+This file should be deleted in the next release to complete the test cycle.
