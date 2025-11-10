@@ -140,7 +140,41 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 git push -u origin release/<version>
 ```
 
-**Step 8: Verify and Report**
+**Step 8: Return to Develop and Clear CHANGELOG**
+```bash
+git checkout develop
+```
+
+- Read `cloudx_flutter_sdk/CHANGELOG.md` on develop
+- Clear the `## [Unreleased]` section content (keep the section header and category headers, but remove all entries)
+- The [Unreleased] section should be empty with just category placeholders:
+  ```markdown
+  ## [Unreleased]
+
+  ### Added
+
+  ### Changed
+
+  ### Fixed
+  ```
+- Use Edit tool to make the change
+- Commit the change:
+  ```bash
+  git add cloudx_flutter_sdk/CHANGELOG.md
+  git commit -m "Clear CHANGELOG [Unreleased] section after release branch creation"
+  ```
+- Note: This ensures develop is ready for NEW features for the next version
+
+**Step 9: Bump Develop Version**
+Invoke the version-updater agent using the Task tool:
+```
+Task: "Update Flutter SDK version to <next-version>"
+```
+Where <next-version> is X.Y+1.0 (e.g., if release is 0.6.0, next version is 0.7.0)
+
+Wait for version-updater agent to complete. If it fails, stop and report the error.
+
+**Step 10: Verify and Report**
 - Verify branch exists on remote: `git branch -r | grep release/<version>`
 - Show completion summary:
 
