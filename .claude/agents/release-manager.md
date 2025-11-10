@@ -620,9 +620,11 @@ If user chooses "merge":
 ```bash
 gh pr merge <PR-number> \
   --repo cloudx-io/cloudx-flutter \
-  --merge \
+  --squash \
   --delete-branch
 ```
+
+Note: Uses `--squash` to create one clean release commit on main instead of a merge commit.
 
 If user chooses "later":
 ```
