@@ -71,7 +71,8 @@ class CloudX {
       debugPrint('⚠️ CloudX iOS SDK is not yet production-ready.');
       debugPrint('⚠️ Currently only Android is fully supported.');
       debugPrint(
-          '⚠️ For iOS alpha testing, use: CloudX.initialize(appKey: "...", allowIosExperimental: true)',);
+        '⚠️ For iOS alpha testing, use: CloudX.initialize(appKey: "...", allowIosExperimental: true)',
+      );
       debugPrint('⚠️ For production iOS access, contact the CloudX team.');
       debugPrint('⚠️ SDK initialization skipped on iOS.');
       return false;
