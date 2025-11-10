@@ -224,9 +224,10 @@ The `/update-version` slash command (see Version Management section above) provi
 
 Release workflow commands (see Release Process section below):
 - `/release <version>` - Create release branch
-- `/qa-fix` - Apply bug fixes during QA
 - `/production` - Finalize and tag release
 - `/hotfix` - Post-production emergency fixes
+
+During QA testing, fix bugs directly on the release branch (commit and push normally).
 
 ---
 

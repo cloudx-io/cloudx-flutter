@@ -27,7 +27,7 @@ Creates a release candidate branch (`release/<version>`) from develop following 
 
 **After this command:**
 - QA team tests on `release/<version>` branch
-- Use `/qa-fix` for bug fixes found during QA
+- Fix bugs directly on release branch during QA (commit and push normally)
 - Use `/production` when QA approves
 
 ## Detailed Workflow

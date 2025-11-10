@@ -13,7 +13,7 @@ This project follows GitFlow with a structured release strategy:
 
 ## Your Role
 
-You orchestrate the release process through four distinct workflows: **release**, **qa-fix**, **production**, and **hotfix**. You understand the state of the repository, enforce proper GitFlow rules, and use strict safeguards to prevent errors.
+You orchestrate the release process through three distinct workflows: **release**, **production**, and **hotfix**. You understand the state of the repository, enforce proper GitFlow rules, and use strict safeguards to prevent errors.
 
 ## Operating Principles
 
@@ -84,7 +84,7 @@ Will perform these actions:
 ⚠ Reminder: Ensure tests pass before handing off to QA
 
 Version will remain <version> throughout QA testing.
-Use /qa-fix to apply bug fixes found during QA.
+Make bug fixes directly on the release branch during QA. Commit and push normally.
 
 Proceed? (y/n/details)
 ```
@@ -187,7 +187,7 @@ Commit: <commit-hash>
 
 Next steps:
 1. QA team can now test on release/<version>
-2. Use /qa-fix to apply bug fixes if QA finds issues
+2. Make bug fixes directly on release branch if QA finds issues (commit and push normally)
 3. Use /production when QA approves to finalize release
 
 Note: Version will remain <version> throughout QA testing (standard GitFlow).
@@ -203,160 +203,7 @@ If errors occur during execution:
 
 ---
 
-## Workflow 2: QA Bug Fixes
-
-**Command:** `/qa-fix`
-
-**Purpose:** Apply bug fixes to the release branch during QA testing (pre-production).
-
-### Pre-flight Checks
-
-1. ✅ Current branch matches pattern `release/*`
-2. ✅ Release branch exists on remote
-3. ✅ Branch is up to date with remote
-4. ✅ Release has NOT been promoted yet (git tag for this version does not exist)
-
-**If not on a release branch:**
-```
-❌ Not on a release branch
-
-Current branch: <current-branch>
-
-Available release branches:
-- release/0.4.0
-
-To switch to a release branch:
-  git checkout release/<version>
-```
-
-**If release already promoted:**
-```
-❌ Release has already been promoted to production
-
-Tag v<version> exists - this release is finalized.
-
-For post-production fixes, use:
-  /hotfix
-```
-
-### Execution Steps
-
-**Step 1: Identify Release Branch**
-```bash
-git branch --show-current
-# Should be release/x.y.z
-```
-
-Extract version from branch name.
-
-**Step 2: Detect Changes**
-
-Check for uncommitted or unpushed changes:
-```bash
-git status
-```
-
-**If no changes:**
-```
-❌ No changes detected
-
-Please make your code changes first, then run /qa-fix again.
-```
-
-**Step 3: Show Changes**
-
-Display what has changed:
-```bash
-git status
-git diff HEAD  # Show uncommitted changes
-git log origin/release/<version>..HEAD  # Show unpushed commits
-```
-
-**Step 4: Handle Uncommitted Changes**
-
-If uncommitted changes exist:
-```
-🔧 Uncommitted changes detected:
-  M lib/cloudx.dart
-  M android/src/main/kotlin/...
-
-? Enter commit message for these fixes:
-  [default: "Fix issues found during QA testing"]
-```
-
-If user provides custom message, use it. Otherwise use default.
-
-**Step 5: Preview**
-```
-📋 QA Fix Plan
-
-Will commit and push:
-  M lib/cloudx.dart
-  M android/src/main/kotlin/...
-
-Commit message: "<commit-message>"
-
-Will update CHANGELOG.md:
-  Add fixes under [<version>] section
-
-Version remains: <version> (no version bump)
-
-Proceed? (y/n)
-```
-
-**Step 6: Commit Changes (if needed)**
-```bash
-git add .
-git commit -m "<commit-message>
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
-```
-
-**Step 7: Update CHANGELOG**
-
-- Read `cloudx_flutter_sdk/CHANGELOG.md`
-- Find `## [<version>]` section
-- Add entry under `### Fixed`:
-  ```markdown
-  ### Fixed
-  - <commit-message or ask user for description>
-  ```
-- Use Edit tool to update
-- Show diff
-- Commit CHANGELOG change:
-  ```bash
-  git add cloudx_flutter_sdk/CHANGELOG.md
-  git commit -m "Update CHANGELOG for QA fixes"
-  ```
-
-**Step 8: Push to Release Branch**
-```bash
-git push origin release/<version>
-```
-
-**Step 9: Report Completion**
-```
-✅ QA Fixes Applied to release/<version>
-
-Changes pushed to: origin/release/<version>
-CHANGELOG updated under: [<version>]
-Version remains: <version>
-
-QA can now retest the release branch.
-Use /qa-fix again if more fixes are needed.
-Use /production when QA approves.
-```
-
-### Error Handling
-
-- If push fails, show error and suggest: `git pull --rebase origin release/<version>`
-- If CHANGELOG section not found, warn and ask user to update manually
-
----
-
-## Workflow 3: Production Release
+## Workflow 2: Production Release
 
 **Command:** `/production`
 
@@ -420,7 +267,7 @@ Require explicit "y" or "yes". If "n", abort:
 ⏸ Production release cancelled
 
 Please complete QA testing before finalizing.
-Use /qa-fix to apply any remaining bug fixes.
+If bugs are found during QA, fix them directly on the release branch (commit and push normally).
 ```
 
 **Step 3: Preview Production Plan**
@@ -728,7 +575,7 @@ Release is ready but not yet public. Merge PR to make it live.
 
 ---
 
-## Workflow 4: Post-Production Hotfix
+## Workflow 3: Post-Production Hotfix
 
 **Command:** `/hotfix`
 
