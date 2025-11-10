@@ -512,11 +512,47 @@ cd ../cloudx-flutter-private
 git checkout develop
 ```
 
-**Step 8: Report Completion**
+**Step 8: Final Validation**
+
+Before reporting success, validate that all critical steps completed.
+
+Run validation checks using Bash tool:
+```bash
+# Check tag exists
+git tag -l | grep -q "^v<version>$" && echo "✅ Tag created" || echo "❌ Tag missing"
+
+# Check merge happened
+git log develop --oneline -10 | grep -q "Merge release/<version>" && echo "✅ Merged to develop" || echo "❌ Merge missing"
+
+# Check branch deleted
+! git branch -a | grep -q "release/<version>" && echo "✅ Branch deleted" || echo "❌ Branch exists"
+
+# Check public release (if PR merged)
+gh release view v<version> --repo cloudx-io/cloudx-flutter >/dev/null 2>&1 && echo "✅ Public release" || echo "⚠️  Public release pending"
+```
+
+**If critical validations fail** (tag, merge, or branch check):
+```
+❌ VALIDATION FAILED: Production release v<version> incomplete
+
+Critical steps missing - see failures above.
+
+Manual intervention required. Do not report success.
+```
+
+**STOP if validation fails.**
+
+If all critical checks pass, proceed to Step 9.
+
+---
+
+**Step 9: Report Completion**
 
 If PR was merged:
 ```
 ✅ Production Release v<version> Complete!
+
+Validation: All steps verified ✓
 
 Summary:
   ✓ Created tag v<version> in private repo
@@ -544,6 +580,8 @@ Release v<version> is now live!
 If PR not merged yet:
 ```
 ✅ Production Release v<version> Prepared!
+
+Validation: All steps verified ✓
 
 Summary:
   ✓ Created tag v<version> in private repo
