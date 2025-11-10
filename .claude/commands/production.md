@@ -68,7 +68,7 @@ When merging release → develop, version conflicts are expected:
 
 **Private repo (cloudx-flutter-private):**
 - Release is finalized and tagged (v0.4.0)
-- Release branch kept for historical reference
+- Release branch deleted (tag preserves release state)
 - Merged back to develop
 
 **Public repo (cloudx-flutter):**
