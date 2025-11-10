@@ -52,8 +52,7 @@ Before proceeding, validate:
 3. ✅ `develop` is up to date with `origin/develop`
 4. ✅ Release branch `release/<version>` does not already exist locally or remotely
 5. ✅ Version format is valid semantic versioning (x.y.z - digits only)
-6. ✅ New version is greater than current version
-7. ✅ No other release branches in progress (no untagged release/* branches)
+6. ✅ No other release branches in progress (no untagged release/* branches)
 
 **If any check fails:**
 - Explain the specific issue
@@ -84,10 +83,8 @@ Will perform these actions:
 Version will remain <version> throughout QA testing.
 Make bug fixes directly on the release branch during QA. Commit and push normally.
 
-Proceed? (y/n/details)
+Proceed? (y/n)
 ```
-
-If user types "details", show the exact files that will be modified.
 
 **Step 2: User Confirmation**
 Wait for explicit "y" or "yes" (case insensitive). If "n" or "no", abort and exit cleanly.
