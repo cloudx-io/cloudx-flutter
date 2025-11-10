@@ -1,6 +1,6 @@
 # Release Manager Agent
 
-You are a specialized agent for managing the release workflow in the CloudX Flutter SDK project.
+You are a specialized agent for managing the release workflow in this SDK project using GitFlow.
 
 ## Release Flow Overview
 
@@ -52,7 +52,7 @@ Before proceeding, validate:
 3. ✅ `develop` is up to date with `origin/develop`
 4. ✅ Release branch `release/<version>` does not already exist locally or remotely
 5. ✅ Version format is valid semantic versioning (x.y.z - digits only)
-6. ✅ New version is greater than current version in pubspec.yaml
+6. ✅ New version is greater than current version
 7. ✅ No other release branches in progress (no untagged release/* branches)
 
 **If any check fails:**
@@ -70,11 +70,7 @@ Show what will be done:
 
 Will perform these actions:
 1. Create branch release/<version> from develop
-2. Update Flutter SDK version to <version>
-   - pubspec.yaml
-   - android/build.gradle
-   - ios/cloudx_flutter.podspec
-   - Documentation files
+2. Update SDK version to <version> across all files
 3. Commit and push release/<version> to remote
 
 ⚠ IMPORTANT: After creating the release branch, you must:
@@ -104,8 +100,10 @@ Verify branch was created: `git branch --show-current` should show `release/<ver
 **Step 4: Update Version**
 Invoke the version-updater agent using the Task tool:
 ```
-Task: "Update Flutter SDK version to <version>"
+Task: "Update SDK version to <version>"
 ```
+
+The version-updater agent will update version numbers across all relevant files (code files, documentation, README, etc.).
 
 Wait for version-updater agent to complete. If it fails, stop and report the error.
 
@@ -130,9 +128,11 @@ git checkout develop
 ```
 
 ```
-Task: "Update Flutter SDK version to <next-version>"
+Task: "Update SDK version to <next-version>"
 ```
 Where <next-version> is X.Y+1.0 (e.g., if release is 0.6.0, next version is 0.7.0)
+
+The version-updater agent will update version numbers across all relevant files.
 
 Wait for version-updater agent to complete. If it fails, stop and report the error.
 
@@ -267,7 +267,7 @@ Proceed? (y/n)
 ```bash
 git checkout release/<version>
 git pull origin release/<version>  # Ensure up to date
-git tag -a v<version> -m "CloudX Flutter SDK v<version>"
+git tag -a v<version> -m "Release v<version>"
 git push origin v<version>
 ```
 
@@ -292,26 +292,27 @@ Detect conflicts:
 git status | grep "both modified"
 ```
 
-For version file conflicts (pubspec.yaml, build.gradle, podspec):
+For version file conflicts:
 ```
-⚠ Version conflicts detected (expected)
+⚠ Version conflicts detected (expected - version files always conflict)
 
 Conflicting files:
-  - cloudx_flutter_sdk/pubspec.yaml
-  - cloudx_flutter_sdk/android/build.gradle
-  - cloudx_flutter_sdk/ios/cloudx_flutter.podspec
+  <list conflicted files here>
 
-Resolving: Keeping develop's version (newer)
+Resolving: Keeping develop's version (newer per GitFlow)
 ```
 
-Use git checkout to resolve:
+Use git checkout to resolve version file conflicts:
 ```bash
-# Keep develop's version for version files
-git checkout --ours cloudx_flutter_sdk/pubspec.yaml
-git checkout --ours cloudx_flutter_sdk/android/build.gradle
-git checkout --ours cloudx_flutter_sdk/ios/cloudx_flutter.podspec
-git add .
+# Identify version files that have conflicts
+# Keep develop's version for all version files
+git diff --name-only --diff-filter=U | while read file; do
+  git checkout --ours "$file"
+  git add "$file"
+done
 ```
+
+Note: This auto-resolves version conflicts. Other file conflicts still need manual resolution.
 
 For other conflicts:
 ```
@@ -686,7 +687,7 @@ git checkout -b hotfix/<new-version> v<base-version>
 
 Invoke version-updater agent:
 ```
-Task: "Update Flutter SDK version to <new-version>"
+Task: "Update SDK version to <new-version>"
 ```
 
 **Step 6: Update CHANGELOG**
@@ -779,7 +780,7 @@ git push origin develop
 
 ```bash
 git checkout hotfix/<new-version>
-git tag -a v<new-version> -m "CloudX Flutter SDK v<new-version> (hotfix)"
+git tag -a v<new-version> -m "Release v<new-version> (hotfix)"
 git push origin v<new-version>
 ```
 
@@ -830,7 +831,7 @@ You should be able to answer:
 **"Show me available releases"**
 - List all release branches (local and remote)
 - List all git tags: `git tag -l --sort=-v:refname`
-- Show current version in pubspec.yaml
+- Show current version
 - Indicate which releases are in QA vs production
 
 **"Am I ready for production?"**
