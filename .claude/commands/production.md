@@ -87,12 +87,55 @@ The agent creates a PR in the public repo for final review:
 6. **GitHub Release** - Automatic creation with CHANGELOG notes
 7. **Cleanup** - Release branch deleted after merge
 
+**Technical Implementation:**
+```bash
+# 1. Clone public repo to temp location
+cd /tmp && rm -rf cloudx-flutter-public
+git clone git@github.com:cloudx-io/cloudx-flutter.git cloudx-flutter-public
+
+# 2. Export all git-tracked files from private repo release branch
+cd /path/to/private-repo
+git archive release/X.Y.Z | tar -x -C /tmp/cloudx-flutter-public/
+
+# 3. Create release branch in public repo
+cd /tmp/cloudx-flutter-public
+git checkout -b release/X.Y.Z
+
+# 4. Commit and push
+git add -A
+git commit -m "Release X.Y.Z\n\n<CHANGELOG content>"
+git push -u origin release/X.Y.Z
+
+# 5. Create PR
+gh pr create --repo cloudx-io/cloudx-flutter \
+  --title "Release X.Y.Z" \
+  --body "<CHANGELOG content>" \
+  --base main \
+  --head release/X.Y.Z
+
+# 6. After PR is merged, create GitHub Release
+gh release create vX.Y.Z --repo cloudx-io/cloudx-flutter \
+  --title "Release X.Y.Z" \
+  --notes "<CHANGELOG content>"
+```
+
 **Benefits:**
 - ✅ Final review before customers see changes
 - ✅ CI can run on PR (future)
 - ✅ Clean commit history in public repo
 - ✅ Professional GitHub Release with notes
 - ✅ No internal files leaked (only git-tracked files)
+
+**Important:** Always use PR workflow (never push directly to main)
+
+**Validation Checklist:**
+- [ ] Cloned public repo to /tmp
+- [ ] Used `git archive` to export files
+- [ ] Created release/X.Y.Z branch (not main)
+- [ ] Created PR (verify PR URL returned)
+- [ ] PR targets main branch
+- [ ] If PR merge approved: GitHub Release created
+- [ ] Cleanup: /tmp directory removed
 
 ## Notes
 
