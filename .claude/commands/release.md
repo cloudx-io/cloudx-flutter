@@ -27,7 +27,7 @@ Creates a release candidate branch (`release/<version>`) from develop following 
 - ⚠️ **YOU MUST** manually update CHANGELOG.md on the release branch with all changes
 - QA team tests on `release/<version>` branch
 - Fix bugs directly on release branch during QA (commit and push normally)
-- Use `/production` when QA approves (will review CHANGELOG before publishing)
+- Use `/publish` when QA approves (will review CHANGELOG before publishing)
 
 ## Detailed Workflow
 

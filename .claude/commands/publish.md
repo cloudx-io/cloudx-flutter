@@ -1,17 +1,17 @@
 ---
-description: Finalize release by tagging and merging back to develop
+description: Publish release to production
 ---
 
-Invoke the release-manager agent to finalize a release and promote it to production.
+Invoke the release-manager agent to publish a release to production.
 
-**IMPORTANT FOR CLAUDE:** When you see this command, you MUST invoke the release-manager agent using the Task tool. Do NOT manually execute the steps. The agent handles the entire production workflow automatically.
+**IMPORTANT FOR CLAUDE:** When you see this command, you MUST invoke the release-manager agent using the Task tool. Do NOT manually execute the steps. The agent handles the entire publish workflow automatically.
 
 ```
 Use: Task tool with subagent_type="general-purpose"
-Prompt: "You are the release-manager agent. Finalize production release following Workflow 3 in .claude/agents/release-manager.md"
+Prompt: "You are the release-manager agent. Publish release to production following Workflow 2 in .claude/agents/release-manager.md"
 ```
 
-**Usage:** `/production`
+**Usage:** `/publish`
 
 **Note:** No arguments needed - agent will find the release branch.
 
@@ -41,4 +41,4 @@ When merging release → develop, version conflicts are expected and handled aut
 
 ## Detailed Workflow
 
-See `.claude/agents/release-manager.md` **Workflow 3: Production Release** (lines 364-738) for complete implementation details.
+See `.claude/agents/release-manager.md` **Workflow 2: Production Release** for complete implementation details.

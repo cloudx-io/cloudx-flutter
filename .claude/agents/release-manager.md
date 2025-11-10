@@ -157,7 +157,7 @@ Commit: <commit-hash>
 After CHANGELOG is updated:
 - QA team can test on release/<version>
 - Make bug fixes directly on release branch if QA finds issues (commit and push normally)
-- Use /production when QA approves to finalize release
+- Use /publish when QA approves to publish the release
 
 Note: Version will remain <version> throughout QA testing (standard GitFlow).
 ```
@@ -172,11 +172,11 @@ If errors occur during execution:
 
 ---
 
-## Workflow 2: Production Release
+## Workflow 2: Publish Release
 
-**Command:** `/production`
+**Command:** `/publish`
 
-**Purpose:** Finalize the release by creating tags, merging back to develop, and preparing for public repo copy.
+**Purpose:** Publish the release to production by creating tags, merging back to develop, and publishing to public repository.
 
 ### Pre-flight Checks
 
