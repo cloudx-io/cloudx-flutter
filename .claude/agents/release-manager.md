@@ -557,34 +557,18 @@ else
 fi
 ```
 
-**Step 7b: Get Git-Tracked Files from Release**
+**Step 7b: Export Files from Release Branch**
 
-Get list of all files tracked by git in the release branch:
+Export all git-tracked files from the release branch to the public repo:
 ```bash
-cd ../cloudx-flutter-private  # Back to private repo
+cd ../cloudx-flutter-private  # Private repo
 git checkout release/<version>
-git ls-files > /tmp/release-files.txt
+git archive release/<version> | tar -x -C ../cloudx-flutter
 ```
 
-**Step 7c: Copy Files to Public Repo**
+This exports all git-tracked files while preserving directory structure.
 
-Clear public repo (except .git):
-```bash
-cd ../cloudx-flutter
-# Remove all files except .git
-find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
-```
-
-Copy all git-tracked files from private repo:
-```bash
-cd ../cloudx-flutter-private
-while IFS= read -r file; do
-  mkdir -p "../cloudx-flutter/$(dirname "$file")"
-  cp "$file" "../cloudx-flutter/$file"
-done < /tmp/release-files.txt
-```
-
-**Step 7d: Create Release Branch in Public Repo**
+**Step 7c: Create Release Branch in Public Repo**
 
 ```bash
 cd ../cloudx-flutter
@@ -598,7 +582,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 git push -u origin release/<version>
 ```
 
-**Step 7e: Create Pull Request**
+**Step 7d: Create Pull Request**
 
 Show diff summary:
 ```bash
@@ -630,7 +614,7 @@ Please review the PR. This is your final gate before customers see these changes
 ? Merge PR now or review later? (merge/later)
 ```
 
-**Step 7f: Merge PR (Optional)**
+**Step 7e: Merge PR (Optional)**
 
 If user chooses "merge":
 ```bash
@@ -650,7 +634,7 @@ You can review and merge the PR manually:
 After merging, the release will be live on the public repo.
 ```
 
-**Step 7g: Create GitHub Release (if merged)**
+**Step 7f: Create GitHub Release (if merged)**
 
 If PR was merged, extract CHANGELOG notes for this version:
 ```bash
@@ -672,7 +656,7 @@ Verify release created:
 gh release view v<version> --repo cloudx-io/cloudx-flutter
 ```
 
-**Step 7h: Return to Private Repo**
+**Step 7g: Return to Private Repo**
 
 ```bash
 cd ../cloudx-flutter-private

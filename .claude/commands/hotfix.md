@@ -8,7 +8,7 @@ Invoke the release-manager agent to create an emergency hotfix for a production 
 
 ```
 Use: Task tool with subagent_type="general-purpose"
-Prompt: "You are the release-manager agent. Create hotfix following the hotfix workflow in .claude/agents/release-manager.md"
+Prompt: "You are the release-manager agent. Create hotfix following Workflow 4 in .claude/agents/release-manager.md"
 ```
 
 **Usage:** `/hotfix`
@@ -17,66 +17,25 @@ Prompt: "You are the release-manager agent. Create hotfix following the hotfix w
 
 ## What This Does
 
-Creates a hotfix for a production release following GitFlow hotfix workflow:
-- Creates `hotfix/<new-version>` branch from a production tag
-- Bumps patch version (e.g., 0.4.0 → 0.4.1)
-- Updates CHANGELOG.md with new version section
-- You make code fixes
-- Commits and pushes changes
-- Merges back to develop
-- Creates new git tag
+Creates a hotfix for a production release (bypasses normal release cycle):
+- ✅ Lists available production tags
+- ✅ Creates `hotfix/<new-version>` branch from selected tag
+- ✅ Increments patch version (0.4.0 → 0.4.1)
+- ✅ Updates CHANGELOG and version files
+- ✅ You make code fixes
+- ✅ Merges hotfix → develop
+- ✅ Creates new git tag
 
-## Pre-flight Checks
+**When to use:**
+- Critical bug in production
+- Can't wait for normal release cycle
+- Don't want to include unreleased develop features
 
-The agent validates:
-- At least one git tag exists (production releases exist)
-- Working directory is clean
-- You confirm which version to hotfix
-
-## Process
-
-1. Lists available production releases (git tags)
-2. Asks which version needs a hotfix
-3. Calculates new patch version (0.4.0 → 0.4.1)
-4. Shows preview of hotfix plan
-5. Creates hotfix branch from tag
-6. Updates version and CHANGELOG
-7. Waits for you to make code fixes (type 'ready' when done)
-8. Commits fixes
-9. Merges to develop
-10. Creates new tag
-11. Reports completion
-
-## Interactive Workflow
-
-```bash
-# 1. Run hotfix command
-/hotfix
-
-# 2. Select which production version to hotfix
-# Agent: "Which version needs a hotfix? [v0.4.0]"
-
-# 3. Review plan and confirm
-
-# 4. Agent creates branch and updates version
-
-# 5. Make your code fixes
-
-# 6. Type 'ready' when fixes are complete
-
-# 7. Follow remaining prompts
-```
-
-## After Hotfix
-
+**After this command:**
 - Deploy hotfix to production
-- Copy to public repository
-- Notify customers of the hotfix
+- Manually publish to public repository if needed
+- Notify customers
 
-## Notes
+## Detailed Workflow
 
-- Creates proper GitFlow hotfix branch
-- Automatically bumps patch version
-- Merges back to develop (handles version conflicts)
-- Creates new git tag for the hotfix
-- For QA fixes (pre-production), use `/qa-fix` instead
+See `.claude/agents/release-manager.md` **Workflow 4: Post-Production Hotfix** (lines 740-972) for complete implementation details.
