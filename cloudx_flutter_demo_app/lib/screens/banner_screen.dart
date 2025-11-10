@@ -360,7 +360,7 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.blue.withValues(alpha: 0.2),
+                    color: Colors.blue.withOpacity(0.2),
                     blurRadius: 8,
                     spreadRadius: 2,
                   ),
