@@ -10,10 +10,13 @@ Invoke the release-manager agent to prepare a new release following GitFlow stan
 
 ## What This Does
 
-Creates a release candidate branch (`release/<version>`) from develop with:
-- Updated version numbers (pubspec.yaml, build.gradle, podspec, docs)
-- Updated CHANGELOG.md with release date
+Creates a release candidate branch (`release/<version>`) from develop following GitFlow best practices:
+- Validates develop is already at target version (or bumps if needed)
+- Creates release branch with CHANGELOG.md update
+- Automatically bumps develop to next version (X.Y+1.0)
 - All changes committed and pushed to remote
+
+**GitFlow Best Practice:** develop should be at the release version before branching, then immediately bumped to the next version after.
 
 **Important:** Version stays the same throughout QA testing (standard GitFlow).
 
@@ -25,18 +28,20 @@ The agent validates:
 - develop is up to date with remote
 - Version format is valid (x.y.z)
 - Release branch doesn't already exist
-- New version is greater than current version
+- Current version on develop matches or is less than target version
 - No other release in progress
 
 ## Process
 
 1. Shows preview of all actions
 2. Asks for confirmation
-3. Creates release branch
-4. Updates versions via version-updater agent
-5. Updates CHANGELOG.md
-6. Commits and pushes changes
-7. Reports completion
+3. **If needed:** Bumps develop to target version (X.Y.Z)
+4. Creates release branch from develop
+5. Updates CHANGELOG.md on release branch
+6. Commits and pushes release branch
+7. **Returns to develop and bumps to next version (X.Y+1.0)**
+8. Commits and pushes develop
+9. Reports completion
 
 ## After Release Preparation
 
@@ -50,3 +55,5 @@ The agent validates:
 - Shows all git commands for transparency
 - Reminds you to run tests before QA
 - Version stays <version> throughout QA (no bumps for fixes)
+- Follows GitFlow best practice: develop is always ahead of the current release
+- After this command, develop will be at version X.Y+1.0, ready for next release

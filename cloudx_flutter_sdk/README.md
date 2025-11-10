@@ -30,7 +30,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  cloudx_flutter: ^0.3.0
+  cloudx_flutter: ^0.4.0
 ```
 
 Then run:
@@ -47,7 +47,7 @@ dependencies:
   cloudx_flutter:
     git:
       url: https://github.com/cloudx-io/cloudx-flutter.git
-      ref: v0.3.0  # Use specific version tag
+      ref: v0.4.0  # Use specific version tag
       path: cloudx_flutter_sdk
 ```
 
