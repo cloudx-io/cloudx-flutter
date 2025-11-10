@@ -13,10 +13,10 @@ Prompt: "You are the release-manager agent. Prepare release <version> following 
 ```
 
 **What happens:**
-- Creates `release/<version>` branch from develop
-- Updates version in all platform files (pubspec.yaml, build.gradle, podspec)
+- Creates `release/<version>` branch from develop (version already correct)
+- Pushes release branch to remote
 - Bumps develop to next version (e.g., 0.8.0 → 0.9.0)
-- Commits and pushes both branches
+- Commits and pushes develop
 
 **After this:**
 - ⚠️ **Manually update CHANGELOG.md** on release branch with all changes since last release

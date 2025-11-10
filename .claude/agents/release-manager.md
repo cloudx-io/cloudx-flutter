@@ -69,14 +69,15 @@ Show what will be done:
 📋 Release Preparation Plan for v<version>
 
 Will perform these actions:
-1. Create branch release/<version> from develop
-2. Update SDK version to <version> across all files
-3. Commit and push release/<version> to remote
+1. Create branch release/<version> from develop (version already correct)
+2. Push release/<version> to remote
+3. Bump develop to next version (<next-version>)
+4. Push develop to remote
 
 ⚠ IMPORTANT: After creating the release branch, you must:
   - Manually update CHANGELOG.md on the release branch
   - Add [<version>] - YYYY-MM-DD section with all changes since last release
-  - The /production command will review the CHANGELOG before publishing
+  - The /publish command will review the CHANGELOG before publishing
 
 ⚠ Reminder: Ensure tests pass before handing off to QA
 
@@ -97,46 +98,38 @@ git checkout -b release/<version>
 ```
 Verify branch was created: `git branch --show-current` should show `release/<version>`
 
-**Step 4: Update Version**
-Invoke the version-updater agent using the Task tool:
-```
-Task: "Update SDK version to <version>"
-```
-
-The version-updater agent will update version numbers across all relevant files (code files, documentation, README, etc.).
-
-Wait for version-updater agent to complete. If it fails, stop and report the error.
-
-**Step 5: Commit Changes**
-```bash
-git add .
-git commit -m "Prepare release <version>
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
-```
-
-**Step 6: Push Release Branch**
+**Step 4: Push Release Branch**
 ```bash
 git push -u origin release/<version>
 ```
 
-**Step 7: Return to Develop and Bump Version**
+**Step 5: Return to Develop and Bump Version**
 ```bash
 git checkout develop
 ```
 
+Invoke the version-updater agent using the Task tool:
 ```
 Task: "Update SDK version to <next-version>"
 ```
-Where <next-version> is X.Y+1.0 (e.g., if release is 0.6.0, next version is 0.7.0)
+Where <next-version> is X.Y+1.0 (e.g., if release is 0.8.0, next version is 0.9.0)
 
 The version-updater agent will update version numbers across all relevant files.
 
 Wait for version-updater agent to complete. If it fails, stop and report the error.
 
-**Step 8: Verify and Report**
+**Step 6: Commit and Push Develop**
+```bash
+git add .
+git commit -m "Bump version to <next-version>
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+git push origin develop
+```
+
+**Step 7: Verify and Report**
 - Verify branch exists on remote: `git branch -r | grep release/<version>`
 - Show completion summary:
 
@@ -149,7 +142,7 @@ Commit: <commit-hash>
 
 ⚠️  NEXT STEP REQUIRED: Update CHANGELOG.md on release branch
    1. git checkout release/<version>
-   2. Edit cloudx_flutter_sdk/CHANGELOG.md
+   2. Edit CHANGELOG.md
    3. Add section: ## [<version>] - YYYY-MM-DD
    4. Document all changes since last release
    5. git add CHANGELOG.md && git commit && git push
@@ -622,7 +615,7 @@ Release is ready but not yet public. Merge PR to make it live.
 
 No git tags exist yet. Please create a release first:
   /release <version>
-  /production
+  /publish
 ```
 
 ### Execution Steps
