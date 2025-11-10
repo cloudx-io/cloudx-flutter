@@ -4,6 +4,32 @@ This directory contains specialized Claude Code subagents for the CloudX Flutter
 
 ## Available Agents
 
+### 🔧 **SDK Maintenance Agents**
+
+#### `cloudx-flutter-agent-maintainer`
+**When to use:** After making Flutter SDK API changes to sync agent documentation in cloudx-sdk-agents repo
+- **Autonomous detection** of version changes and API modifications
+- Auto-syncs agent docs with SDK changes
+- Updates SDK_VERSION.yaml tracking file
+- No manual specification of changes needed
+
+**Example invocation:**
+```
+Sync cloudx-sdk-agents with latest Flutter SDK changes
+@cloudx-flutter-agent-maintainer
+```
+
+**Key features:**
+- Detects version bumps by comparing pubspec.yaml with SDK_VERSION.yaml
+- Detects API changes by diffing lib/cloudx.dart and widget files
+- Automatically determines what needs updating (version strings, API references, or both)
+- Generates comprehensive sync reports
+- Runs validation scripts
+
+**Related agents:** version-updater (updates this SDK), release-manager (for releases)
+
+---
+
 ### 🎯 **Core Development Agents**
 
 #### `flutter-expert`
