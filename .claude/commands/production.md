@@ -135,12 +135,14 @@ gh release create vX.Y.Z --repo cloudx-io/cloudx-flutter \
 - [ ] Created PR (verify PR URL returned)
 - [ ] PR targets main branch
 - [ ] If PR merge approved: GitHub Release created
+- [ ] Deleted release branch in public repo (after merge)
+- [ ] Deleted release branch in private repo (after merge to develop)
 - [ ] Cleanup: /tmp directory removed
 
 ## Notes
 
 - Follows GitFlow merge-back pattern
-- Release branch is kept (not deleted)
+- Release branch is deleted after merge (tag preserves release state)
 - Tag v<version> indicates production status
 - Shows all git commands for transparency
 - Safe to abort before execution
