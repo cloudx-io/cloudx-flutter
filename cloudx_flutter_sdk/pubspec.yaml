@@ -8,7 +8,7 @@ documentation: https://github.com/cloudx-io/cloudx-flutter
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
-  flutter: ">=3.0.0"
+  flutter: ">=3.24.0"
 
 dependencies:
   flutter:
