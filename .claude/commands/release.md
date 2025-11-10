@@ -1,34 +1,27 @@
 ---
-description: Create a release candidate branch from develop for QA testing
+description: Prepare release branch for QA testing
 ---
 
-Invoke the release-manager agent to prepare a new release following GitFlow standards.
+Invoke release-manager agent to prepare a new release following GitFlow.
 
-**IMPORTANT FOR CLAUDE:** When you see this command, you MUST invoke the release-manager agent using the Task tool. Do NOT manually execute the steps. The agent is defined in `.claude/agents/release-manager.md` and handles the entire workflow automatically.
+**Usage:** `/release <version>` (e.g., `/release 0.8.0`)
 
+**Agent Invocation:**
 ```
-Use: Task tool with subagent_type="general-purpose"
+Task tool with subagent_type="general-purpose"
 Prompt: "You are the release-manager agent. Prepare release <version> following Workflow 1 in .claude/agents/release-manager.md"
 ```
 
-**Usage:** `/release <version>`
+**What happens:**
+- Creates `release/<version>` branch from develop
+- Updates version in all platform files (pubspec.yaml, build.gradle, podspec)
+- Bumps develop to next version (e.g., 0.8.0 → 0.9.0)
+- Commits and pushes both branches
 
-**Example:** `/release 0.4.0`
+**After this:**
+- ⚠️ **Manually update CHANGELOG.md** on release branch with all changes since last release
+- QA tests on release branch
+- Fix bugs directly on release branch (commit and push normally)
+- Run `/publish` when QA approves
 
-## What This Does
-
-Creates a release candidate branch (`release/<version>`) from develop following GitFlow:
-- ✅ Validates pre-flight checks (clean working directory, up to date, etc.)
-- ✅ Creates release branch with version updates
-- ✅ Bumps develop to next version (X.Y+1.0)
-- ✅ All changes committed and pushed
-
-**After this command:**
-- ⚠️ **YOU MUST** manually update CHANGELOG.md on the release branch with all changes
-- QA team tests on `release/<version>` branch
-- Fix bugs directly on release branch during QA (commit and push normally)
-- Use `/publish` when QA approves (will review CHANGELOG before publishing)
-
-## Detailed Workflow
-
-See `.claude/agents/release-manager.md` **Workflow 1: Release Preparation** (lines 41-210) for complete implementation details.
+See `.claude/agents/release-manager.md` Workflow 1 for full details.

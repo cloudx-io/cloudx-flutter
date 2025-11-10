@@ -1,41 +1,28 @@
 ---
-description: Create emergency fixes for production releases (post-production)
+description: Emergency fix for production release
 ---
 
-Invoke the release-manager agent to create an emergency hotfix for a production release.
+Invoke release-manager agent to create an emergency hotfix for a production release.
 
-**IMPORTANT FOR CLAUDE:** When you see this command, you MUST invoke the release-manager agent using the Task tool. Do NOT manually execute the steps. The agent handles the entire hotfix workflow automatically.
+**Usage:** `/hotfix` (interactive - agent prompts which version to fix)
 
+**Agent Invocation:**
 ```
-Use: Task tool with subagent_type="general-purpose"
-Prompt: "You are the release-manager agent. Create hotfix following Workflow 4 in .claude/agents/release-manager.md"
+Task tool with subagent_type="general-purpose"
+Prompt: "You are the release-manager agent. Create hotfix following Workflow 3 in .claude/agents/release-manager.md"
 ```
 
-**Usage:** `/hotfix`
+**What happens:**
+- Lists available production tags
+- Creates `hotfix/<new-version>` branch from selected tag (e.g., v0.8.0 → hotfix/0.8.1)
+- Bumps patch version automatically
+- You make code fixes
+- Merges hotfix → develop
+- Creates new production tag
 
-**Note:** No arguments needed - agent will guide you interactively.
-
-## What This Does
-
-Creates a hotfix for a production release (bypasses normal release cycle):
-- ✅ Lists available production tags
-- ✅ Creates `hotfix/<new-version>` branch from selected tag
-- ✅ Increments patch version (0.4.0 → 0.4.1)
-- ✅ Updates CHANGELOG and version files
-- ✅ You make code fixes
-- ✅ Merges hotfix → develop
-- ✅ Creates new git tag
-
-**When to use:**
-- Critical bug in production
+**Use when:**
+- Critical production bug
 - Can't wait for normal release cycle
-- Don't want to include unreleased develop features
+- Don't want unreleased develop features included
 
-**After this command:**
-- Deploy hotfix to production
-- Manually publish to public repository if needed
-- Notify customers
-
-## Detailed Workflow
-
-See `.claude/agents/release-manager.md` **Workflow 4: Post-Production Hotfix** (lines 740-972) for complete implementation details.
+See `.claude/agents/release-manager.md` Workflow 3 for full details.
