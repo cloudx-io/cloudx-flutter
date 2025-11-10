@@ -33,15 +33,16 @@ The agent validates:
 
 ## Process
 
-1. Shows preview of all actions
-2. Asks for confirmation
-3. **If needed:** Bumps develop to target version (X.Y.Z)
-4. Creates release branch from develop
-5. Updates CHANGELOG.md on release branch
-6. Commits and pushes release branch
-7. **Returns to develop and bumps to next version (X.Y+1.0)**
-8. Commits and pushes develop
-9. Reports completion
+1. **CHANGELOG Review Gate** - Shows [Unreleased] section and asks "Is CHANGELOG complete?"
+2. Shows preview of all actions
+3. Asks for confirmation
+4. **If needed:** Bumps develop to target version (X.Y.Z)
+5. Creates release branch from develop
+6. Updates CHANGELOG.md on release branch (converts [Unreleased] → [X.Y.Z] - date)
+7. Commits and pushes release branch
+8. **Returns to develop and bumps to next version (X.Y+1.0)**
+9. Commits and pushes develop
+10. Reports completion
 
 ## After Release Preparation
 
@@ -57,3 +58,28 @@ The agent validates:
 - Version stays <version> throughout QA (no bumps for fixes)
 - Follows GitFlow best practice: develop is always ahead of the current release
 - After this command, develop will be at version X.Y+1.0, ready for next release
+
+## CHANGELOG Best Practices
+
+This project follows [Keep a Changelog](https://keepachangelog.com/) format.
+
+**Before running this command:**
+- Update the [Unreleased] section on develop as you develop features
+- Document all changes using the standard categories
+- The agent will show you the [Unreleased] content and ask if it's complete
+- If not complete, abort and update CHANGELOG before creating release
+
+**Standard Categories (from Keep a Changelog):**
+- **Added**: New features
+- **Changed**: Changes in existing functionality
+- **Deprecated**: Soon-to-be removed features
+- **Removed**: Removed features
+- **Fixed**: Bug fixes
+- **Security**: Vulnerability fixes
+
+**Good CHANGELOG entries:**
+- Be specific: "Added support for rewarded video ads" not "Added features"
+- User-focused: "Fixed crash when loading ads" not "Fixed null pointer"
+- Use proper categories as defined above
+
+**Reference:** https://keepachangelog.com/

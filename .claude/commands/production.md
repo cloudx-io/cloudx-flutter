@@ -30,14 +30,15 @@ The agent validates:
 
 1. Identifies release branch
 2. **QA Approval Gate** - Asks "Has QA approved?"
-3. Shows preview of production plan
-4. Asks for confirmation
-5. Creates git tag on release branch
-6. Pushes tag to remote
-7. Merges release → develop
-8. Handles version conflicts automatically (keeps develop's version)
-9. Pushes develop
-10. **Publishes to public repository via PR**
+3. **CHANGELOG Review Gate** - Shows [X.Y.Z] release notes and asks "CHANGELOG ready to publish?"
+4. Shows preview of production plan
+5. Asks for confirmation
+6. Creates git tag on release branch
+7. Pushes tag to remote
+8. Merges release → develop
+9. Handles version conflicts automatically (keeps develop's version)
+10. Pushes develop
+11. **Publishes to public repository via PR**
     - Asks if you want to publish to cloudx-flutter (public repo)
     - Copies all git-tracked files from release branch
     - Creates release/X.Y.Z branch in public repo
@@ -101,3 +102,22 @@ The agent creates a PR in the public repo for final review:
 - Shows all git commands for transparency
 - Safe to abort before execution
 - Handles merge conflicts gracefully
+
+## CHANGELOG Review Gate
+
+This project follows [Keep a Changelog](https://keepachangelog.com/) format.
+
+**During this command:**
+- Agent shows the [X.Y.Z] release notes from CHANGELOG
+- Review for accuracy, completeness, and professionalism
+- These notes will appear in GitHub Release (public-facing)
+- If CHANGELOG needs updates, abort and use `/qa-fix` to update it
+
+**What to check:**
+- All features/fixes documented?
+- Proper categories used (Added/Changed/Deprecated/Removed/Fixed/Security)?
+- No internal jargon or references?
+- Professional tone for customers?
+- No typos or formatting issues?
+
+**Reference:** https://keepachangelog.com/

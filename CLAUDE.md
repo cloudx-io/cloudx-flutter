@@ -209,3 +209,50 @@ The demo app supports three environments (dev/staging/production) with different
 3. Use demo app's Logs screen to see delegate callback timeline with full CLXAd metadata
 4. Banner/MREC/Native ads render via PlatformView - check native view hierarchy if not displaying
 5. Interstitial/Rewarded ads are full-screen modal - check view controller hierarchy if not showing
+
+## Release Management & CHANGELOG
+
+This project follows GitFlow and maintains a CHANGELOG using the [Keep a Changelog](https://keepachangelog.com/) format.
+
+### CHANGELOG Guidelines
+
+**Format Standard:** [Keep a Changelog 1.0.0](https://keepachangelog.com/)
+
+**Categories (use exactly these):**
+- **Added** - New features
+- **Changed** - Changes in existing functionality
+- **Deprecated** - Soon-to-be removed features
+- **Removed** - Removed features
+- **Fixed** - Bug fixes
+- **Security** - Vulnerability fixes
+
+**Best Practices:**
+1. **Update continuously** - Add entries to [Unreleased] as you develop, don't wait until release time
+2. **Be specific** - "Added support for rewarded video ads" not "Added features"
+3. **User-focused** - "Fixed crash when loading ads" not "Fixed null pointer exception in AdManager.java:142"
+4. **One change per line** - Each bullet should describe a single change
+5. **Link issues/PRs** - Reference GitHub issues when relevant
+
+**Workflow Integration:**
+- `/release` command reviews CHANGELOG before creating release branch (Gate 1)
+- `/production` command reviews CHANGELOG before publishing (Gate 2)
+- CHANGELOG content appears in GitHub Releases for customers
+
+**Example Entry:**
+```markdown
+## [Unreleased]
+
+### Added
+- Support for rewarded video ads with completion callbacks (#123)
+- New `setUserAge()` method for age-based targeting
+
+### Changed
+- Updated CloudX iOS SDK from 1.1.60 to 1.1.65
+- Improved ad loading performance by 15%
+
+### Fixed
+- Fixed crash when rapidly loading/destroying interstitial ads (#145)
+- Resolved memory leak in banner ad auto-refresh
+```
+
+**Reference:** See `cloudx_flutter_sdk/CHANGELOG.md` for the project's CHANGELOG file.
