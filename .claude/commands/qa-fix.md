@@ -4,6 +4,13 @@ description: Apply bug fixes to release branch during QA testing (pre-production
 
 Invoke the release-manager agent to fix bugs found during QA testing on a release branch.
 
+**IMPORTANT FOR CLAUDE:** When you see this command, you MUST invoke the release-manager agent using the Task tool. Do NOT manually execute the steps. The agent handles the QA fix workflow automatically.
+
+```
+Use: Task tool with subagent_type="general-purpose"
+Prompt: "You are the release-manager agent. Apply QA fixes following the qa-fix workflow in .claude/agents/release-manager.md"
+```
+
 **Usage:** `/qa-fix`
 
 **Note:** No arguments needed - run this while on a release branch.

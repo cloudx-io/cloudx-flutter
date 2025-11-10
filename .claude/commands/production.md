@@ -4,6 +4,13 @@ description: Finalize release by tagging and merging back to develop
 
 Invoke the release-manager agent to finalize a release and promote it to production.
 
+**IMPORTANT FOR CLAUDE:** When you see this command, you MUST invoke the release-manager agent using the Task tool. Do NOT manually execute the steps. The agent handles the entire production workflow automatically.
+
+```
+Use: Task tool with subagent_type="general-purpose"
+Prompt: "You are the release-manager agent. Finalize production release following the production workflow in .claude/agents/release-manager.md"
+```
+
 **Usage:** `/production`
 
 **Note:** No arguments needed - agent will find the release branch.

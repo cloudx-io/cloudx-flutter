@@ -4,6 +4,13 @@ description: Create a release candidate branch from develop for QA testing
 
 Invoke the release-manager agent to prepare a new release following GitFlow standards.
 
+**IMPORTANT FOR CLAUDE:** When you see this command, you MUST invoke the release-manager agent using the Task tool. Do NOT manually execute the steps. The agent is defined in `.claude/agents/release-manager.md` and handles the entire workflow automatically, including invoking `/update-version` to ensure all platform files are updated correctly.
+
+```
+Use: Task tool with subagent_type="general-purpose"
+Prompt: "You are the release-manager agent. Prepare release <version> following the workflow in .claude/agents/release-manager.md"
+```
+
 **Usage:** `/release <version>`
 
 **Example:** `/release 0.4.0`

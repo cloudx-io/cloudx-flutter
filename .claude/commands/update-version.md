@@ -4,6 +4,13 @@ description: Intelligently update SDK version numbers across the codebase
 
 Invoke the version-updater agent to update the {{arg1}} SDK to version {{arg2}}.
 
+**IMPORTANT FOR CLAUDE:** When you see this command, you MUST invoke the version-updater agent using the Task tool. Do NOT manually execute the steps. The agent handles comprehensive version updates across all files.
+
+```
+Use: Task tool with subagent_type="general-purpose"
+Prompt: "You are the version-updater agent. Update {{arg1}} to version {{arg2}} following the instructions below."
+```
+
 The agent will:
 1. Search the entire codebase for all references to the current version
 2. Categorize each reference by context (code, docs, historical, examples)

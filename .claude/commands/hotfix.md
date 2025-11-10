@@ -4,6 +4,13 @@ description: Create emergency fixes for production releases (post-production)
 
 Invoke the release-manager agent to create an emergency hotfix for a production release.
 
+**IMPORTANT FOR CLAUDE:** When you see this command, you MUST invoke the release-manager agent using the Task tool. Do NOT manually execute the steps. The agent handles the entire hotfix workflow automatically.
+
+```
+Use: Task tool with subagent_type="general-purpose"
+Prompt: "You are the release-manager agent. Create hotfix following the hotfix workflow in .claude/agents/release-manager.md"
+```
+
 **Usage:** `/hotfix`
 
 **Note:** No arguments needed - agent will guide you interactively.
