@@ -227,11 +227,12 @@ This project follows GitFlow and maintains a CHANGELOG using the [Keep a Changel
 - **Security** - Vulnerability fixes
 
 **Best Practices:**
-1. **Update continuously** - Add entries to [Unreleased] as you develop, don't wait until release time
-2. **Be specific** - "Added support for rewarded video ads" not "Added features"
-3. **User-focused** - "Fixed crash when loading ads" not "Fixed null pointer exception in AdManager.java:142"
-4. **One change per line** - Each bullet should describe a single change
-5. **Link issues/PRs** - Reference GitHub issues when relevant
+1. **Customer-facing only** - CHANGELOG is for customers. Only document changes that affect SDK users (new features, bug fixes, API changes). Do NOT include internal changes (refactoring, CI/CD updates, documentation improvements, tooling changes)
+2. **Update continuously** - Add entries to [Unreleased] as you develop, don't wait until release time
+3. **Be specific** - "Added support for rewarded video ads" not "Added features"
+4. **User-focused** - "Fixed crash when loading ads" not "Fixed null pointer exception in AdManager.java:142"
+5. **One change per line** - Each bullet should describe a single change
+6. **Link issues/PRs** - Reference GitHub issues when relevant
 
 **Workflow Integration:**
 - `/release` command reviews CHANGELOG before creating release branch (Gate 1)
@@ -254,5 +255,14 @@ This project follows GitFlow and maintains a CHANGELOG using the [Keep a Changel
 - Fixed crash when rapidly loading/destroying interstitial ads (#145)
 - Resolved memory leak in banner ad auto-refresh
 ```
+
+**What NOT to include:**
+- ❌ "Updated release workflow documentation"
+- ❌ "Refactored internal event handling"
+- ❌ "Added CHANGELOG review gates"
+- ❌ "Improved CI/CD pipeline"
+- ❌ "Updated CLAUDE.md with best practices"
+
+These are internal changes that don't affect SDK users.
 
 **Reference:** See `cloudx_flutter_sdk/CHANGELOG.md` for the project's CHANGELOG file.
