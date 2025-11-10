@@ -75,11 +75,12 @@ Will perform these actions:
    - android/build.gradle
    - ios/cloudx_flutter.podspec
    - Documentation files
-3. Update CHANGELOG.md
-   - Move [Unreleased] → [<version>] (YYYY-MM-DD)
-   - Create new [Unreleased] section
-4. Commit changes
-5. Push release/<version> to remote
+3. Commit and push release/<version> to remote
+
+⚠ IMPORTANT: After creating the release branch, you must:
+  - Manually update CHANGELOG.md on the release branch
+  - Add [<version>] - YYYY-MM-DD section with all changes since last release
+  - The /production command will review the CHANGELOG before publishing
 
 ⚠ Reminder: Ensure tests pass before handing off to QA
 
@@ -108,24 +109,7 @@ Task: "Update Flutter SDK version to <version>"
 
 Wait for version-updater agent to complete. If it fails, stop and report the error.
 
-**Step 5: Update CHANGELOG.md**
-- Read `cloudx_flutter_sdk/CHANGELOG.md`
-- Find the `## [Unreleased]` section
-- Replace `## [Unreleased]` with `## [<version>] - YYYY-MM-DD` (use today's date in ISO format)
-- Add a new `## [Unreleased]` section at the top:
-  ```markdown
-  ## [Unreleased]
-
-  ### Added
-
-  ### Changed
-
-  ### Fixed
-  ```
-- Use Edit tool to make the change
-- Show the diff to the user
-
-**Step 6: Commit Changes**
+**Step 5: Commit Changes**
 ```bash
 git add .
 git commit -m "Prepare release <version>
@@ -135,38 +119,16 @@ git commit -m "Prepare release <version>
 Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
 
-**Step 7: Push Release Branch**
+**Step 6: Push Release Branch**
 ```bash
 git push -u origin release/<version>
 ```
 
-**Step 8: Return to Develop and Clear CHANGELOG**
+**Step 7: Return to Develop and Bump Version**
 ```bash
 git checkout develop
 ```
 
-- Read `cloudx_flutter_sdk/CHANGELOG.md` on develop
-- Clear the `## [Unreleased]` section content (keep the section header and category headers, but remove all entries)
-- The [Unreleased] section should be empty with just category placeholders:
-  ```markdown
-  ## [Unreleased]
-
-  ### Added
-
-  ### Changed
-
-  ### Fixed
-  ```
-- Use Edit tool to make the change
-- Commit the change:
-  ```bash
-  git add cloudx_flutter_sdk/CHANGELOG.md
-  git commit -m "Clear CHANGELOG [Unreleased] section after release branch creation"
-  ```
-- Note: This ensures develop is ready for NEW features for the next version
-
-**Step 9: Bump Develop Version**
-Invoke the version-updater agent using the Task tool:
 ```
 Task: "Update Flutter SDK version to <next-version>"
 ```
@@ -174,7 +136,7 @@ Where <next-version> is X.Y+1.0 (e.g., if release is 0.6.0, next version is 0.7.
 
 Wait for version-updater agent to complete. If it fails, stop and report the error.
 
-**Step 10: Verify and Report**
+**Step 8: Verify and Report**
 - Verify branch exists on remote: `git branch -r | grep release/<version>`
 - Show completion summary:
 
@@ -185,10 +147,17 @@ Branch: release/<version>
 Status: Pushed to remote
 Commit: <commit-hash>
 
-Next steps:
-1. QA team can now test on release/<version>
-2. Make bug fixes directly on release branch if QA finds issues (commit and push normally)
-3. Use /production when QA approves to finalize release
+⚠️  NEXT STEP REQUIRED: Update CHANGELOG.md on release branch
+   1. git checkout release/<version>
+   2. Edit cloudx_flutter_sdk/CHANGELOG.md
+   3. Add section: ## [<version>] - YYYY-MM-DD
+   4. Document all changes since last release
+   5. git add CHANGELOG.md && git commit && git push
+
+After CHANGELOG is updated:
+- QA team can test on release/<version>
+- Make bug fixes directly on release branch if QA finds issues (commit and push normally)
+- Use /production when QA approves to finalize release
 
 Note: Version will remain <version> throughout QA testing (standard GitFlow).
 ```

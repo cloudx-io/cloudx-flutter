@@ -19,16 +19,15 @@ Prompt: "You are the release-manager agent. Prepare release <version> following 
 
 Creates a release candidate branch (`release/<version>`) from develop following GitFlow:
 - ✅ Validates pre-flight checks (clean working directory, up to date, etc.)
-- ✅ Shows CHANGELOG review gate
-- ✅ Creates release branch with CHANGELOG update
-- ✅ Clears [Unreleased] on develop for next version
+- ✅ Creates release branch with version updates
 - ✅ Bumps develop to next version (X.Y+1.0)
 - ✅ All changes committed and pushed
 
 **After this command:**
+- ⚠️ **YOU MUST** manually update CHANGELOG.md on the release branch with all changes
 - QA team tests on `release/<version>` branch
 - Fix bugs directly on release branch during QA (commit and push normally)
-- Use `/production` when QA approves
+- Use `/production` when QA approves (will review CHANGELOG before publishing)
 
 ## Detailed Workflow
 
