@@ -434,9 +434,10 @@ Will perform these actions:
 3. Merge release/<version> → develop
    - On version conflicts: keep develop's version (newer)
 4. Push develop
+5. Delete release/<version> branch (local and remote)
 
-Release branch will be kept for historical reference.
-Tag v<version> indicates this release is in production.
+Tag v<version> preserves the release state.
+Release branch will be deleted after merge (GitFlow best practice).
 
 Next steps after this command:
 - Copy release to separate public repository (separate process)
@@ -517,7 +518,22 @@ Wait for user to type "resolved", then continue.
 git push origin develop
 ```
 
-**Step 6: Publish to Public Repository**
+**Step 6: Delete Release Branch**
+
+After successfully merging to develop, delete the release branch:
+```bash
+git branch -d release/<version>
+git push origin --delete release/<version>
+```
+
+Verify branch is deleted:
+```bash
+git branch -a | grep release/<version>  # Should return nothing
+```
+
+Note: The tag v<version> preserves the release state. The branch is no longer needed (GitFlow best practice).
+
+**Step 7: Publish to Public Repository**
 
 Ask user:
 ```
@@ -525,9 +541,9 @@ Ask user:
   [Recommended: yes]
 ```
 
-If yes, proceed with publishing. If no, skip to Step 7.
+If yes, proceed with publishing. If no, skip to Step 8.
 
-**Step 6a: Clone/Update Public Repo**
+**Step 7a: Clone/Update Public Repo**
 
 Check if public repo exists locally:
 ```bash
@@ -541,7 +557,7 @@ else
 fi
 ```
 
-**Step 6b: Get Git-Tracked Files from Release**
+**Step 7b: Get Git-Tracked Files from Release**
 
 Get list of all files tracked by git in the release branch:
 ```bash
@@ -550,7 +566,7 @@ git checkout release/<version>
 git ls-files > /tmp/release-files.txt
 ```
 
-**Step 6c: Copy Files to Public Repo**
+**Step 7c: Copy Files to Public Repo**
 
 Clear public repo (except .git):
 ```bash
@@ -568,7 +584,7 @@ while IFS= read -r file; do
 done < /tmp/release-files.txt
 ```
 
-**Step 6d: Create Release Branch in Public Repo**
+**Step 7d: Create Release Branch in Public Repo**
 
 ```bash
 cd ../cloudx-flutter
@@ -582,7 +598,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 git push -u origin release/<version>
 ```
 
-**Step 6e: Create Pull Request**
+**Step 7e: Create Pull Request**
 
 Show diff summary:
 ```bash
@@ -614,7 +630,7 @@ Please review the PR. This is your final gate before customers see these changes
 ? Merge PR now or review later? (merge/later)
 ```
 
-**Step 6f: Merge PR (Optional)**
+**Step 7f: Merge PR (Optional)**
 
 If user chooses "merge":
 ```bash
@@ -634,7 +650,7 @@ You can review and merge the PR manually:
 After merging, the release will be live on the public repo.
 ```
 
-**Step 6g: Create GitHub Release (if merged)**
+**Step 7g: Create GitHub Release (if merged)**
 
 If PR was merged, extract CHANGELOG notes for this version:
 ```bash
@@ -656,14 +672,14 @@ Verify release created:
 gh release view v<version> --repo cloudx-io/cloudx-flutter
 ```
 
-**Step 6h: Return to Private Repo**
+**Step 7h: Return to Private Repo**
 
 ```bash
 cd ../cloudx-flutter-private
 git checkout develop
 ```
 
-**Step 7: Report Completion**
+**Step 8: Report Completion**
 
 If PR was merged:
 ```
@@ -673,7 +689,7 @@ Summary:
   ✓ Created tag v<version> in private repo
   ✓ Tagged commit: <commit-hash>
   ✓ Merged release/<version> → develop (private repo)
-  ✓ Release branch kept for historical reference (private repo)
+  ✓ Deleted release/<version> branch (tag preserves release state)
   ✓ Published to cloudx-flutter (public repo)
   ✓ Created GitHub Release in public repo
 
@@ -700,7 +716,7 @@ Summary:
   ✓ Created tag v<version> in private repo
   ✓ Tagged commit: <commit-hash>
   ✓ Merged release/<version> → develop (private repo)
-  ✓ Release branch kept for historical reference (private repo)
+  ✓ Deleted release/<version> branch (tag preserves release state)
   ✓ Created PR in public repo (awaiting review)
 
 Private repo: cloudx-flutter-private

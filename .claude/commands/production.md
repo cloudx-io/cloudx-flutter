@@ -21,8 +21,8 @@ Finalizes a release after QA approval:
 - Creates git tag (e.g., v0.4.0)
 - Merges release branch back to develop
 - Handles version conflicts (keeps develop's newer version)
+- Deletes release branch (tag preserves release state)
 - Publishes to public repository (cloudx-flutter)
-- Keeps release branch for historical reference
 
 ## Pre-flight Checks
 
