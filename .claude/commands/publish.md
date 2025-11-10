@@ -2,7 +2,7 @@
 description: Publish release to production
 ---
 
-Invoke release-manager agent to publish the release after QA approval.
+Invoke release-manager agent to publish the release to production.
 
 **Usage:** `/publish` (no arguments - automatically finds release branch)
 
@@ -13,7 +13,6 @@ Prompt: "You are the release-manager agent. Publish release to production follow
 ```
 
 **What happens:**
-- QA approval gate
 - CHANGELOG review gate (ensures release notes are ready)
 - Creates git tag (e.g., v0.8.0)
 - Merges release branch → develop (handles version conflicts automatically)

@@ -174,7 +174,6 @@ If errors occur during execution:
 2. ✅ Release branch is up to date with remote
 3. ✅ Working directory is clean
 4. ✅ Git tag for this version does NOT already exist
-5. ✅ User confirms QA has approved
 
 **If no release branch exists:**
 ```
@@ -209,24 +208,55 @@ git branch -a | grep "release/"
 
 Extract version from branch name (e.g., `release/0.4.0` → `0.4.0`)
 
-**Step 2: QA Approval Gate**
+**Step 2: CHANGELOG Review Gate**
 
-Ask user:
+Read the CHANGELOG.md file and verify that it has a properly formatted section for the release version:
+
+```bash
+# Check if CHANGELOG has [<version>] section with proper date
+grep -A 5 "## \[<version>\]" cloudx_flutter_sdk/CHANGELOG.md
 ```
-🚀 Production Release Readiness Check
+
+Required format:
+```markdown
+## [<version>] - YYYY-MM-DD
+
+### Category
+- Customer-facing change description
+```
+
+**If CHANGELOG missing or incomplete:**
+```
+❌ CHANGELOG Review Failed (Gate 2)
 
 Release: v<version>
-Branch: release/<version>
+Issue: CHANGELOG.md is missing release notes for v<version>
 
-❓ Has QA approved this release and it's ready for production? (y/n)
+The CHANGELOG must have a properly formatted section:
+  ## [<version>] - YYYY-MM-DD
+
+  ### Category (Added/Changed/Fixed/etc)
+  - Customer-facing change description
+
+Please update CHANGELOG.md on the release/<version> branch:
+  1. git checkout release/<version>
+  2. Edit cloudx_flutter_sdk/CHANGELOG.md
+  3. Add/update section for [<version>]
+  4. git add CHANGELOG.md && git commit && git push
+
+Then run /publish again.
 ```
 
-Require explicit "y" or "yes". If "n", abort:
-```
-⏸ Production release cancelled
+**STOP if CHANGELOG check fails.**
 
-Please complete QA testing before finalizing.
-If bugs are found during QA, fix them directly on the release branch (commit and push normally).
+**If CHANGELOG looks good:**
+```
+✅ CHANGELOG Review Passed (Gate 2)
+
+Found release notes for v<version>:
+  <show excerpt from CHANGELOG>
+
+Proceeding with production release...
 ```
 
 **Step 3: Preview Production Plan**
