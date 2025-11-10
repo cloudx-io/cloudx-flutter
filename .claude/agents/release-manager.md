@@ -425,14 +425,25 @@ PR: <PR-URL>
 Branch: release/<version>
 Files changed: <show summary>
 
-Please review the PR. This is your final gate before customers see these changes.
+⚠️  IMPORTANT: This is your final review gate before customers see changes.
 
-? Merge PR now or review later? (merge/later)
+Review the PR at the URL above to verify what will be published.
 ```
 
-**Step 7e: Merge PR (Optional)**
+**STOP and ask user:**
+```
+? Do you want to merge the PR now or review it later?
+  [merge] - Merge PR and create GitHub Release immediately
+  [later] - Leave PR open for manual review and merge later
+```
 
-If user chooses "merge":
+Wait for explicit user response. Do NOT proceed without user input.
+
+**Step 7e: Merge PR (Only If User Approves)**
+
+**CRITICAL**: Do NOT merge automatically. Wait for user to explicitly choose "merge".
+
+If user responds "merge":
 ```bash
 gh pr merge <PR-number> \
   --repo cloudx-io/cloudx-flutter \
@@ -442,15 +453,25 @@ gh pr merge <PR-number> \
 
 Note: Uses `--squash` to create one clean release commit on main instead of a merge commit.
 
-If user chooses "later":
+Show confirmation:
+```
+✅ PR merged successfully
+✅ Release branch deleted in public repo
+```
+
+If user responds "later" or wants to review:
 ```
 ⏸ PR created but not merged
 
-You can review and merge the PR manually:
+You can review and merge the PR manually at:
   <PR-URL>
 
-After merging, the release will be live on the public repo.
+The workflow is paused. After you review and merge the PR manually, the release will be live.
+
+Note: GitHub Release will need to be created manually if merged outside this workflow.
 ```
+
+**STOP workflow here if user chose "later". Do not proceed to Step 7f.**
 
 **Step 7f: Create GitHub Release (if merged)**
 
