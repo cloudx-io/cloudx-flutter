@@ -241,7 +241,17 @@ preflight_checks() {
         print_success "No other release branches in progress"
     fi
 
-    # Check 6: Version update script exists (optional)
+    # Check 6: Version tag doesn't already exist
+    if git show-ref --verify --quiet "refs/tags/v$version"; then
+        print_error "Tag 'v$version' already exists - this version has already been released"
+        echo "  Use a different version number or delete the tag if this is intentional"
+        echo "  Existing tags: $(git tag -l | tail -5 | tr '\n' ' ')"
+        failed=true
+    else
+        print_success "Version tag doesn't exist"
+    fi
+
+    # Check 7: Version update script exists (optional)
     if [[ ! -f "scripts/update-version.sh" ]]; then
         print_warning "Version update script not found: scripts/update-version.sh"
         print_warning "Version will need to be updated manually on main"
