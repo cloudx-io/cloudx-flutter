@@ -125,7 +125,7 @@ Updates Flutter SDK version across critical files:
   - cloudx_flutter_sdk/pubspec.yaml
   - cloudx_flutter_sdk/android/build.gradle
   - cloudx_flutter_sdk/ios/cloudx_flutter.podspec
-  - README.md (root and SDK)
+  - cloudx_flutter_sdk/README.md
 
 Usage: $0 <new-version> [options]
 
@@ -192,23 +192,16 @@ update_readmes() {
     local old_version="$1"
     local new_version="$2"
 
-    print_info "Updating README files..."
+    print_info "Updating SDK README..."
 
-    # Update root README.md
-    if [[ -f "README.md" ]]; then
-        sed -i.bak "s/cloudx_flutter: \^$old_version/cloudx_flutter: ^$new_version/g" README.md
-        sed -i.bak "s/ref: v$old_version/ref: v$new_version/g" README.md
-        rm -f README.md.bak
-    fi
-
-    # Update SDK README.md
+    # Update SDK README.md (the only README with version references)
     if [[ -f "cloudx_flutter_sdk/README.md" ]]; then
         sed -i.bak "s/cloudx_flutter: \^$old_version/cloudx_flutter: ^$new_version/g" cloudx_flutter_sdk/README.md
         sed -i.bak "s/ref: v$old_version/ref: v$new_version/g" cloudx_flutter_sdk/README.md
         rm -f cloudx_flutter_sdk/README.md.bak
     fi
 
-    print_success "Updated README files"
+    print_success "Updated SDK README"
 }
 
 update_all_files() {
@@ -243,7 +236,6 @@ create_commit() {
     git add cloudx_flutter_sdk/pubspec.yaml \
             cloudx_flutter_sdk/android/build.gradle \
             cloudx_flutter_sdk/ios/cloudx_flutter.podspec \
-            README.md \
             cloudx_flutter_sdk/README.md
 
     # Create commit
@@ -274,7 +266,6 @@ show_diff() {
         git diff HEAD cloudx_flutter_sdk/pubspec.yaml \
                       cloudx_flutter_sdk/android/build.gradle \
                       cloudx_flutter_sdk/ios/cloudx_flutter.podspec \
-                      README.md \
                       cloudx_flutter_sdk/README.md || true
         echo ""
     fi
@@ -366,7 +357,6 @@ main() {
         echo "  ✓ cloudx_flutter_sdk/pubspec.yaml"
         echo "  ✓ cloudx_flutter_sdk/android/build.gradle"
         echo "  ✓ cloudx_flutter_sdk/ios/cloudx_flutter.podspec"
-        echo "  ✓ README.md"
         echo "  ✓ cloudx_flutter_sdk/README.md"
         echo ""
     fi
