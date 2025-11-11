@@ -10,6 +10,9 @@ jobs:
     name: Validate & Analyze
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: cloudx_flutter_sdk
 
     steps:
       - name: Checkout code
@@ -31,7 +34,6 @@ jobs:
 
       - name: Verify version matches pubspec.yaml
         run: |
-          cd cloudx_flutter_sdk
           PUBSPEC_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: *//' | tr -d '\r\n')
           TAG_VERSION="${{ steps.version.outputs.version }}"
 
@@ -46,30 +48,25 @@ jobs:
           echo "✓ Version validation passed"
 
       - name: Install dependencies
-        run: |
-          cd cloudx_flutter_sdk
-          flutter pub get
+        run: flutter pub get
 
       - name: Run Flutter analyze
-        run: |
-          cd cloudx_flutter_sdk
-          flutter analyze
+        run: flutter analyze
 
       - name: Check Dart formatting
-        run: |
-          cd cloudx_flutter_sdk
-          dart format --set-exit-if-changed lib/
+        run: dart format --set-exit-if-changed lib/
 
       - name: Dry run publish
-        run: |
-          cd cloudx_flutter_sdk
-          dart pub publish --dry-run
+        run: dart pub publish --dry-run
 
   publish:
     name: Publish to pub.dev
     needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: cloudx_flutter_sdk
     permissions:
       contents: read # Required to checkout code
       id-token: write # Required for OIDC authentication to pub.dev
@@ -86,14 +83,10 @@ jobs:
           cache: true
 
       - name: Install dependencies
-        run: |
-          cd cloudx_flutter_sdk
-          flutter pub get
+        run: flutter pub get
 
       - name: Publish to pub.dev
-        run: |
-          cd cloudx_flutter_sdk
-          dart pub publish --force
+        run: dart pub publish --force
 
   release:
     name: Create GitHub Release
@@ -117,7 +110,5 @@ jobs:
             CloudX Flutter SDK v${{ steps.version.outputs.version }} has been published to pub.dev.
 
             For full release notes and changelog, visit: https://pub.dev/packages/cloudx_flutter/versions/${{ steps.version.outputs.version }}
-          draft: false
-          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
