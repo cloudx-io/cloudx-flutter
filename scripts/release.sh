@@ -388,30 +388,25 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
     git push -u origin "release/$version"
     print_success "Pushed release/$version to remote"
 
-    # Step 4: Return to main
-    print_info "Returning to main branch..."
-    git checkout main
-
-    # Step 5: Verify and report
+    # Step 4: Verify and report
+    # Stay on release branch for CHANGELOG updates
     echo ""
     print_header "✅ Release v$version Preparation Complete"
     echo ""
 
-    # Get commit hash
-    git checkout "release/$version" --quiet
+    # Get commit hash (we're already on the release branch)
     local release_commit=$(git rev-parse --short HEAD)
-    git checkout main --quiet
 
-    echo "Branch: release/$version"
+    echo "Branch: release/$version (currently checked out)"
     echo "Status: Pushed to remote"
     echo "Commit: $release_commit"
     echo ""
 
-    print_warning "Next: Update CHANGELOG.md on release/$version branch"
+    print_warning "Next: Update CHANGELOG.md (you're on the release branch now)"
     echo ""
     echo "After CHANGELOG is updated:"
-    echo "  - Hand off to QA for testing on release/$version"
-    echo "  - Fix bugs directly on release branch (commit and push normally)"
+    echo "  - Hand off to QA for testing"
+    echo "  - Fix bugs directly on this branch (commit and push normally)"
     echo "  - Run scripts/publish.sh when QA approves"
     echo ""
 }
