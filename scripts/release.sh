@@ -19,10 +19,9 @@
 #   2 - User cancelled
 #
 # What this does:
-#   1. Creates release/<version> branch from main (version already correct)
-#   2. Pushes release branch to remote
-#   3. Bumps main to next version (e.g., 0.8.0 → 0.9.0)
-#   4. Commits and pushes main
+#   1. Creates release/<version> branch from main
+#   2. Updates version to <version> on release branch
+#   3. Pushes release branch to remote
 #
 # After running this:
 #   - Update CHANGELOG.md on release branch
@@ -114,20 +113,6 @@ validate_version() {
     return 0
 }
 
-# Calculate next minor version (e.g., 0.8.0 → 0.9.0)
-calculate_next_version() {
-    local version="$1"
-
-    # Extract major, minor, patch
-    local major=$(echo "$version" | cut -d. -f1)
-    local minor=$(echo "$version" | cut -d. -f2)
-    local patch=$(echo "$version" | cut -d. -f3)
-
-    # Increment minor, reset patch
-    minor=$((minor + 1))
-    echo "${major}.${minor}.0"
-}
-
 # Show help message
 show_help() {
     cat << EOF
@@ -151,10 +136,9 @@ Exit codes:
   2 - User cancelled
 
 What this does:
-  1. Creates release/<version> branch from main (version already correct)
-  2. Pushes release branch to remote
-  3. Bumps main to next version (e.g., 0.8.0 → 0.9.0)
-  4. Commits and pushes main
+  1. Creates release/<version> branch from main
+  2. Updates version to <version> on release branch
+  3. Pushes release branch to remote
 
 After running this:
   - Update CHANGELOG.md on release branch
@@ -322,9 +306,6 @@ main() {
         exit 1
     fi
 
-    # Calculate next version for main branch
-    local next_version=$(calculate_next_version "$version")
-
     # Run pre-flight checks
     preflight_checks "$version"
 
@@ -336,14 +317,13 @@ main() {
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         echo ""
         echo "Will perform these actions:"
-        echo "  1. Create branch release/$version from main (version already correct)"
-        echo "  2. Push release/$version to remote"
-        echo "  3. Bump main to next version ($next_version)"
-        echo "  4. Push main to remote"
+        echo "  1. Create branch release/$version from main"
+        echo "  2. Update version to $version on release branch"
+        echo "  3. Push release/$version to remote"
         echo ""
         print_warning "After this completes, you must update CHANGELOG.md on the release branch"
         echo ""
-        echo "Version will remain $version throughout QA testing."
+        echo "Main branch will remain at current version until release is published."
         echo "Fix bugs directly on release branch during QA (commit and push normally)."
         echo ""
     fi
@@ -370,56 +350,47 @@ main() {
     fi
     print_success "Created branch release/$version"
 
-    # Step 2: Push release branch
-    print_info "Pushing release/$version to remote..."
-    git push -u origin "release/$version"
-    print_success "Pushed release/$version to remote"
-
-    # Step 3: Return to main branch and bump version
-    echo ""
-    print_header "📦 Bumping Main Branch Version"
-    echo ""
-
-    print_info "Checking out main..."
-    git checkout main
-
-    print_info "Updating version to $next_version..."
+    # Step 2: Update version on release branch
+    print_info "Updating version to $version on release branch..."
 
     # Run version update script if it exists
     if [[ -f "scripts/update-version.sh" ]]; then
-        scripts/update-version.sh "$next_version" -y --no-commit -q
+        scripts/update-version.sh "$version" -y --no-commit -q
 
         if [[ $? -ne 0 ]]; then
             print_error "Failed to update version"
             exit 1
         fi
 
-        print_success "Updated version to $next_version"
-    else
-        print_warning "Version update script not found: scripts/update-version.sh"
-        print_warning "Please update version manually before continuing"
-        echo ""
-        if ! confirm "Have you updated the version to $next_version?"; then
-            print_error "Version not updated. Please update manually and re-run script."
-            exit 1
-        fi
-    fi
+        print_success "Updated version to $version"
 
-    # Step 4: Commit and push main branch
-    print_info "Committing version bump..."
-
-    git add .
-    git commit -m "Bump version to $next_version
+        # Commit version change
+        git add .
+        git commit -m "Release v$version
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
 
-    print_success "Committed version bump"
+        print_success "Committed version update"
+    else
+        print_warning "Version update script not found: scripts/update-version.sh"
+        print_warning "Please update version to $version manually on release branch"
+        echo ""
+        if ! confirm "Have you updated the version to $version?"; then
+            print_error "Version not updated. Please update manually."
+            exit 1
+        fi
+    fi
 
-    print_info "Pushing main to remote..."
-    git push origin main
-    print_success "Pushed main to remote"
+    # Step 3: Push release branch
+    print_info "Pushing release/$version to remote..."
+    git push -u origin "release/$version"
+    print_success "Pushed release/$version to remote"
+
+    # Step 4: Return to main
+    print_info "Returning to main branch..."
+    git checkout main
 
     # Step 5: Verify and report
     echo ""
