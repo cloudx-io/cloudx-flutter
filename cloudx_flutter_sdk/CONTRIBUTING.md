@@ -172,7 +172,7 @@ Bad:
 
 # OR manually update:
 vim pubspec.yaml  # Bump version
-./tool/sync_version.sh  # Sync to platform files
+./scripts/sync_version.sh  # Sync to platform files
 vim CHANGELOG.md  # Add release notes
 
 # Commit (if not done by agent)
@@ -305,7 +305,7 @@ if ([@"newFeature" isEqualToString:call.method]) {
 
 Make sure script is executable:
 ```bash
-chmod +x tool/sync_version.sh
+chmod +x scripts/sync_version.sh
 ```
 
 ### pub.dev publish fails

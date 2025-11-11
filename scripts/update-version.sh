@@ -3,7 +3,7 @@
 # CloudX Flutter SDK - Version Updater Script
 # Updates Flutter SDK version across critical files
 #
-# Usage: ./tool/update-version.sh <new-version> [options]
+# Usage: ./scripts/update-version.sh <new-version> [options]
 #
 # Arguments:
 #   new-version    Version in x.y.z format (e.g., 0.9.0)
@@ -20,9 +20,9 @@
 #   2 - User cancelled
 #
 # Examples:
-#   ./tool/update-version.sh 0.9.0                      # Interactive mode
-#   ./tool/update-version.sh 0.9.0 -y                   # Auto-confirm
-#   ./tool/update-version.sh 0.9.0 -y --no-commit       # For release scripts
+#   ./scripts/update-version.sh 0.9.0                      # Interactive mode
+#   ./scripts/update-version.sh 0.9.0 -y                   # Auto-confirm
+#   ./scripts/update-version.sh 0.9.0 -y --no-commit       # For release scripts
 
 set -e  # Exit on error
 
