@@ -68,11 +68,26 @@ jobs:
   publish:
     name: Publish to pub.dev
     needs: validate
+    runs-on: ubuntu-latest
     permissions:
       id-token: write # Required for OIDC authentication to pub.dev
-    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
-    with:
-      working-directory: cloudx_flutter_sdk
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: Install dependencies
+        run: |
+          cd cloudx_flutter_sdk
+          dart pub get
+
+      - name: Publish to pub.dev
+        run: |
+          cd cloudx_flutter_sdk
+          dart pub publish --force
 
   release:
     name: Create GitHub Release
