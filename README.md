@@ -18,4 +18,4 @@ Complete documentation including installation, usage examples, API reference, an
 
 ## License
 
-Business Source License 1.1 - See LICENSE file for details.
+MIT License - See LICENSE file for details.
