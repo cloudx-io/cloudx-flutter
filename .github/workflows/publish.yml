@@ -1,0 +1,99 @@
+name: Publish to pub.dev
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+' # Match v0.11.0, v1.2.3, etc.
+
+permissions:
+  id-token: write # Required for OIDC authentication to pub.dev
+  contents: write # Required for creating GitHub releases
+
+jobs:
+  publish:
+    name: Publish Package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: 'stable'
+          cache: true
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "version=$TAG_VERSION" >> $GITHUB_OUTPUT
+          echo "Publishing version: $TAG_VERSION"
+
+      - name: Verify version matches pubspec.yaml
+        run: |
+          cd cloudx_flutter_sdk
+          PUBSPEC_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: *//' | tr -d '\r\n')
+          TAG_VERSION="${{ steps.version.outputs.version }}"
+
+          echo "Tag version: $TAG_VERSION"
+          echo "pubspec.yaml version: $PUBSPEC_VERSION"
+
+          if [ "$TAG_VERSION" != "$PUBSPEC_VERSION" ]; then
+            echo "❌ Error: Tag version ($TAG_VERSION) does not match pubspec.yaml version ($PUBSPEC_VERSION)"
+            exit 1
+          fi
+
+          echo "✓ Version validation passed"
+
+      - name: Install dependencies
+        run: |
+          cd cloudx_flutter_sdk
+          flutter pub get
+
+      - name: Run Flutter analyze
+        run: |
+          cd cloudx_flutter_sdk
+          flutter analyze
+
+      - name: Check Dart formatting
+        run: |
+          cd cloudx_flutter_sdk
+          dart format --set-exit-if-changed lib/
+
+      - name: Dry run publish
+        run: |
+          cd cloudx_flutter_sdk
+          dart pub publish --dry-run
+
+      - name: Publish to pub.dev
+        run: |
+          cd cloudx_flutter_sdk
+          dart pub publish --force
+
+      - name: Extract changelog for this version
+        id: changelog
+        run: |
+          cd cloudx_flutter_sdk
+          VERSION="${{ steps.version.outputs.version }}"
+
+          # Extract the changelog section for this version
+          CHANGELOG_CONTENT=$(sed -n "/## \[$VERSION\]/,/## \[/p" CHANGELOG.md | sed '$d' | tail -n +2)
+
+          # Save to file for multiline handling
+          echo "$CHANGELOG_CONTENT" > /tmp/changelog.txt
+
+          echo "Changelog content:"
+          cat /tmp/changelog.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: /tmp/changelog.txt
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
