@@ -80,10 +80,17 @@ jobs:
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
 
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: 'stable'
+          cache: true
+
       - name: Install dependencies
         run: |
           cd cloudx_flutter_sdk
-          dart pub get
+          flutter pub get
 
       - name: Publish to pub.dev
         run: |
