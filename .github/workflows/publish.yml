@@ -5,15 +5,11 @@ on:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+' # Match v0.11.0, v1.2.3, etc.
 
-permissions:
-  id-token: write # Required for OIDC authentication to pub.dev
-  contents: write # Required for creating GitHub releases
-
 jobs:
-  publish:
-    name: Publish Package
+  validate:
+    name: Validate & Analyze
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
@@ -69,10 +65,31 @@ jobs:
           cd cloudx_flutter_sdk
           dart pub publish --dry-run
 
-      - name: Publish to pub.dev
+  publish:
+    name: Publish to pub.dev
+    needs: validate
+    permissions:
+      id-token: write # Required for OIDC authentication to pub.dev
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+    with:
+      working-directory: cloudx_flutter_sdk
+
+  release:
+    name: Create GitHub Release
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
         run: |
-          cd cloudx_flutter_sdk
-          dart pub publish --force
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "version=$TAG_VERSION" >> $GITHUB_OUTPUT
 
       - name: Extract changelog for this version
         id: changelog
