@@ -70,6 +70,7 @@ jobs:
     needs: validate
     runs-on: ubuntu-latest
     permissions:
+      contents: read # Required to checkout code
       id-token: write # Required for OIDC authentication to pub.dev
 
     steps:
