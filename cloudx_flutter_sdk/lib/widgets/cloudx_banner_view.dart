@@ -87,29 +87,25 @@ class _CloudXBannerViewState extends State<CloudXBannerView> {
   }
 
   Future<void> _loadAd() async {
-    try {
-      final createdAdId = await CloudX.createBanner(
-        placementName: widget.placementName,
-        adId: _adId,
-        listener: widget.listener,
-      );
+    final createdAdId = await CloudX.createBanner(
+      placementName: widget.placementName,
+      adId: _adId,
+      listener: widget.listener,
+    );
 
-      if (createdAdId == null) {
-        // Error will be reported via listener callback
-        return;
-      }
-
-      // Mark as created so the platform view can be shown
-      if (mounted) {
-        setState(() {
-          _isCreated = true;
-        });
-      }
-
-      await CloudX.loadBanner(adId: _adId);
-    } catch (e) {
-      // Error will be reported via listener callback
+    if (createdAdId == null) {
+      widget.listener?.onAdLoadFailed('Failed to create ad');
+      return;
     }
+
+    // Mark as created so the platform view can be shown
+    if (mounted) {
+      setState(() {
+        _isCreated = true;
+      });
+    }
+
+    await CloudX.loadBanner(adId: _adId);
   }
 
   @override

@@ -87,29 +87,25 @@ class _CloudXMRECViewState extends State<CloudXMRECView> {
   }
 
   Future<void> _loadAd() async {
-    try {
-      final createdAdId = await CloudX.createMREC(
-        placementName: widget.placementName,
-        adId: _adId,
-        listener: widget.listener,
-      );
+    final createdAdId = await CloudX.createMREC(
+      placementName: widget.placementName,
+      adId: _adId,
+      listener: widget.listener,
+    );
 
-      if (createdAdId == null) {
-        // Error will be reported via listener callback
-        return;
-      }
-
-      // Mark as created so the platform view can be shown
-      if (mounted) {
-        setState(() {
-          _isCreated = true;
-        });
-      }
-
-      await CloudX.loadMREC(adId: _adId);
-    } catch (e) {
-      // Error will be reported via listener callback
+    if (createdAdId == null) {
+      widget.listener?.onAdLoadFailed('Failed to create ad');
+      return;
     }
+
+    // Mark as created so the platform view can be shown
+    if (mounted) {
+      setState(() {
+        _isCreated = true;
+      });
+    }
+
+    await CloudX.loadMREC(adId: _adId);
   }
 
   @override
