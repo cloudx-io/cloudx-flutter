@@ -302,10 +302,11 @@ static const CGFloat kDefaultBannerHeight = 50.0;
     } else if ([call.method isEqualToString:@"getSDKVersion"]) {
         result([[CloudXCore shared] sdkVersion]);
     } else if ([call.method isEqualToString:@"setUserID"]) {
-        [[CloudXCore shared] setHashedUserID:call.arguments[@"userID"]];
+        NSString *userId = [self stringFromArguments:call.arguments key:@"userID"];
+        [[CloudXCore shared] setHashedUserID:userId];
         result(@YES);
     } else if ([call.method isEqualToString:@"setEnvironment"]) {
-        NSString *environment = call.arguments[@"environment"];
+        NSString *environment = [self stringFromArguments:call.arguments key:@"environment"];
         [CLXURLProvider setEnvironment:environment];
         result(@YES);
     } else if ([call.method isEqualToString:@"setLoggingEnabled"]) {
@@ -318,7 +319,8 @@ static const CGFloat kDefaultBannerHeight = 50.0;
     }
     // Privacy & Compliance Methods
     else if ([call.method isEqualToString:@"setCCPAPrivacyString"]) {
-        [CloudXCore setCCPAPrivacyString:call.arguments[@"ccpaString"]];
+        NSString *ccpaString = [self stringFromArguments:call.arguments key:@"ccpaString"];
+        [CloudXCore setCCPAPrivacyString:ccpaString];
         result(@YES);
     } else if ([call.method isEqualToString:@"setIsUserConsent"]) {
         [CloudXCore setIsUserConsent:[call.arguments[@"isUserConsent"] boolValue]];
@@ -327,26 +329,69 @@ static const CGFloat kDefaultBannerHeight = 50.0;
         [CloudXCore setIsAgeRestrictedUser:[call.arguments[@"isAgeRestrictedUser"] boolValue]];
         result(@YES);
     } else if ([call.method isEqualToString:@"setGPPString"]) {
-        // TODO: CloudXCore does not support GPP yet - no-op for now
+        // Global Privacy Platform string storage per IAB GPP Framework
+        // Key: IABGPP_HDR_GppString (IAB standard key for GPP consent string)
+        NSString *gppString = [self stringFromArguments:call.arguments key:@"gppString"];
+        if (gppString) {
+            [[NSUserDefaults standardUserDefaults] setObject:gppString forKey:@"IABGPP_HDR_GppString"];
+        } else {
+            [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"IABGPP_HDR_GppString"];
+        }
         result(@YES);
     } else if ([call.method isEqualToString:@"getGPPString"]) {
-        // TODO: CloudXCore does not support GPP yet - return nil
-        result(nil);
+        NSString *gppString = [[NSUserDefaults standardUserDefaults] stringForKey:@"IABGPP_HDR_GppString"];
+        result(gppString);
     } else if ([call.method isEqualToString:@"setGPPSid"]) {
-        // TODO: CloudXCore does not support GPP yet - no-op for now
+        // Global Privacy Platform Section IDs per IAB GPP Framework
+        // Key: IABGPP_GppSID (IAB standard key for GPP section IDs)
+        // Format: Underscore-delimited string of integers (e.g., "7_8_9")
+        NSArray *gppSid = [self arrayFromArguments:call.arguments key:@"gppSid"];
+        if (gppSid && [gppSid isKindOfClass:[NSArray class]]) {
+            // Validate all elements are numbers and convert to underscore-delimited string
+            NSMutableArray *stringValues = [NSMutableArray array];
+            for (id element in gppSid) {
+                if ([element isKindOfClass:[NSNumber class]]) {
+                    [stringValues addObject:[element stringValue]];
+                } else {
+                    [self.logger debug:[NSString stringWithFormat:
+                        @"Skipping non-numeric GPP section ID: %@", element]];
+                }
+            }
+
+            if (stringValues.count > 0) {
+                NSString *gppSidString = [stringValues componentsJoinedByString:@"_"];
+                [[NSUserDefaults standardUserDefaults] setObject:gppSidString forKey:@"IABGPP_GppSID"];
+            } else {
+                [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"IABGPP_GppSID"];
+            }
+        } else {
+            [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"IABGPP_GppSID"];
+        }
         result(@YES);
     } else if ([call.method isEqualToString:@"getGPPSid"]) {
-        // TODO: CloudXCore does not support GPP yet - return nil
-        result(nil);
+        NSString *gppSidString = [[NSUserDefaults standardUserDefaults] stringForKey:@"IABGPP_GppSID"];
+        if (gppSidString) {
+            // Parse underscore-delimited string back to array of integers
+            NSArray *stringComponents = [gppSidString componentsSeparatedByString:@"_"];
+            NSMutableArray *intArray = [NSMutableArray array];
+            for (NSString *component in stringComponents) {
+                [intArray addObject:@([component integerValue])];
+            }
+            result(intArray);
+        } else {
+            result(nil);
+        }
     }
     // Targeting Methods
     else if ([call.method isEqualToString:@"setUserKeyValue"]) {
-        [[CloudXCore shared] setUserKeyValue:call.arguments[@"key"]
-                                       value:call.arguments[@"value"]];
+        NSString *key = [self stringFromArguments:call.arguments key:@"key"];
+        NSString *value = [self stringFromArguments:call.arguments key:@"value"];
+        [[CloudXCore shared] setUserKeyValue:key value:value];
         result(@YES);
     } else if ([call.method isEqualToString:@"setAppKeyValue"]) {
-        [[CloudXCore shared] setAppKeyValue:call.arguments[@"key"]
-                                      value:call.arguments[@"value"]];
+        NSString *key = [self stringFromArguments:call.arguments key:@"key"];
+        NSString *value = [self stringFromArguments:call.arguments key:@"value"];
+        [[CloudXCore shared] setAppKeyValue:key value:value];
         result(@YES);
     } else if ([call.method isEqualToString:@"clearAllKeyValues"]) {
         [[CloudXCore shared] clearAllKeyValues];
@@ -389,7 +434,7 @@ static const CGFloat kDefaultBannerHeight = 50.0;
 #pragma mark - SDK Initialization
 
 - (void)initSDK:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *appKey = arguments[@"appKey"];
+    NSString *appKey = [self stringFromArguments:arguments key:@"appKey"];
     NSNumber *testModeNum = arguments[@"testMode"];
     BOOL testMode = testModeNum ? [testModeNum boolValue] : NO;
 
@@ -405,7 +450,6 @@ static const CGFloat kDefaultBannerHeight = 50.0;
     // Configure test mode via UserDefaults (must be set before SDK initialization)
     [[NSUserDefaults standardUserDefaults] setBool:testMode forKey:@"CLXCore_Internal_ForceTestMode"];
     [[NSUserDefaults standardUserDefaults] setBool:testMode forKey:@"CLXMetaTestModeEnabled"];
-    [[NSUserDefaults standardUserDefaults] synchronize];
 
     [[CloudXCore shared] initializeSDKWithAppKey:appKey
                                       completion:^(BOOL success, NSError * _Nullable error) {
@@ -427,9 +471,9 @@ static const CGFloat kDefaultBannerHeight = 50.0;
 #pragma mark - Ad Creation
 
 - (void)createBanner:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *adId = arguments[@"adId"];
-    NSString *placementName = arguments[@"placementName"];
-    NSString *position = arguments[@"position"];  // Optional: for programmatic banners
+    NSString *adId = [self stringFromArguments:arguments key:@"adId"];
+    NSString *placementName = [self stringFromArguments:arguments key:@"placementName"];
+    NSString *position = [self stringFromArguments:arguments key:@"position"];  // Optional: for programmatic banners
 
     if (!placementName || !adId) {
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
@@ -466,8 +510,8 @@ static const CGFloat kDefaultBannerHeight = 50.0;
 }
 
 - (void)createInterstitial:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *placementName = arguments[@"placementName"];
-    NSString *adId = arguments[@"adId"];
+    NSString *placementName = [self stringFromArguments:arguments key:@"placementName"];
+    NSString *adId = [self stringFromArguments:arguments key:@"adId"];
 
     if (!placementName || !adId) {
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
@@ -492,8 +536,8 @@ static const CGFloat kDefaultBannerHeight = 50.0;
 }
 
 - (void)createRewarded:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *placementName = arguments[@"placementName"];
-    NSString *adId = arguments[@"adId"];
+    NSString *placementName = [self stringFromArguments:arguments key:@"placementName"];
+    NSString *adId = [self stringFromArguments:arguments key:@"adId"];
 
     if (!placementName || !adId) {
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
@@ -518,12 +562,12 @@ static const CGFloat kDefaultBannerHeight = 50.0;
 }
 
 - (void)createNative:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *placementName = arguments[@"placementName"];
-    NSString *adId = arguments[@"adId"];
-    
+    NSString *placementName = [self stringFromArguments:arguments key:@"placementName"];
+    NSString *adId = [self stringFromArguments:arguments key:@"adId"];
+
     if (!placementName || !adId) {
-        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
-                                  message:@"placementName and adId are required" 
+        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
+                                  message:@"placementName and adId are required"
                                   details:nil]);
         return;
     }
@@ -545,9 +589,9 @@ static const CGFloat kDefaultBannerHeight = 50.0;
 }
 
 - (void)createMREC:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *placementName = arguments[@"placementName"];
-    NSString *adId = arguments[@"adId"];
-    NSString *position = arguments[@"position"];  // Optional: for programmatic MRECs
+    NSString *placementName = [self stringFromArguments:arguments key:@"placementName"];
+    NSString *adId = [self stringFromArguments:arguments key:@"adId"];
+    NSString *position = [self stringFromArguments:arguments key:@"position"];  // Optional: for programmatic MRECs
 
     if (!placementName || !adId) {
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
@@ -583,11 +627,11 @@ static const CGFloat kDefaultBannerHeight = 50.0;
 #pragma mark - Ad Operations
 
 - (void)loadAd:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *adId = arguments[@"adId"];
-    
+    NSString *adId = [self stringFromArguments:arguments key:@"adId"];
+
     if (!adId) {
-        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
-                                  message:@"adId is required" 
+        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
+                                  message:@"adId is required"
                                   details:nil]);
         return;
     }
@@ -695,7 +739,7 @@ static const CGFloat kDefaultBannerHeight = 50.0;
 }
 
 - (void)showAd:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *adId = arguments[@"adId"];
+    NSString *adId = [self stringFromArguments:arguments key:@"adId"];
 
     if (!adId) {
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
@@ -748,11 +792,11 @@ static const CGFloat kDefaultBannerHeight = 50.0;
 }
 
 - (void)hideAd:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *adId = arguments[@"adId"];
-    
+    NSString *adId = [self stringFromArguments:arguments key:@"adId"];
+
     if (!adId) {
-        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
-                                  message:@"adId is required" 
+        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
+                                  message:@"adId is required"
                                   details:nil]);
         return;
     }
@@ -795,11 +839,11 @@ static const CGFloat kDefaultBannerHeight = 50.0;
 }
 
 - (void)isAdReady:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *adId = arguments[@"adId"];
-    
+    NSString *adId = [self stringFromArguments:arguments key:@"adId"];
+
     if (!adId) {
-        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS" 
-                                  message:@"adId is required" 
+        result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
+                                  message:@"adId is required"
                                   details:nil]);
         return;
     }
@@ -822,7 +866,7 @@ static const CGFloat kDefaultBannerHeight = 50.0;
 }
 
 - (void)destroyAd:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *adId = arguments[@"adId"];
+    NSString *adId = [self stringFromArguments:arguments key:@"adId"];
 
     if (!adId) {
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
@@ -872,7 +916,7 @@ static const CGFloat kDefaultBannerHeight = 50.0;
 }
 
 - (void)startAutoRefresh:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *adId = arguments[@"adId"];
+    NSString *adId = [self stringFromArguments:arguments key:@"adId"];
 
     if (!adId) {
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
@@ -895,7 +939,7 @@ static const CGFloat kDefaultBannerHeight = 50.0;
 }
 
 - (void)stopAutoRefresh:(NSDictionary *)arguments result:(FlutterResult)result {
-    NSString *adId = arguments[@"adId"];
+    NSString *adId = [self stringFromArguments:arguments key:@"adId"];
 
     if (!adId) {
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
@@ -918,6 +962,20 @@ static const CGFloat kDefaultBannerHeight = 50.0;
 }
 
 #pragma mark - Helper Methods
+
+/// Type-safe helper to convert NSNull to nil for string values
+/// When Flutter sends null, it becomes NSNull (singleton object) not Objective-C nil
+/// This helper ensures we pass nil to native APIs that expect it
+- (NSString *)stringFromArguments:(NSDictionary *)arguments key:(NSString *)key {
+    id value = arguments[key];
+    return (value == [NSNull null]) ? nil : value;
+}
+
+/// Type-safe helper to convert NSNull to nil for array values
+- (NSArray *)arrayFromArguments:(NSDictionary *)arguments key:(NSString *)key {
+    id value = arguments[key];
+    return (value == [NSNull null]) ? nil : value;
+}
 
 - (UIViewController *)getTopViewController {
     UIViewController *topController = [UIApplication sharedApplication].keyWindow.rootViewController;
