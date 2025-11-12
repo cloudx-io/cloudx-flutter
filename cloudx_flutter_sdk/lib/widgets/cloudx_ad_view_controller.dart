@@ -11,13 +11,13 @@ import 'package:flutter/foundation.dart';
 /// final controller = CloudXAdViewController();
 ///
 /// CloudXBannerView(
-///   placement: 'home_banner',
+///   placementName: 'home_banner',
 ///   controller: controller,
 /// )
 ///
 /// // Or with MREC:
 /// CloudXMRECView(
-///   placement: 'home_mrec',
+///   placementName: 'home_mrec',
 ///   controller: controller,
 /// )
 ///
