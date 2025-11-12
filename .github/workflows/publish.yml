@@ -6,87 +6,12 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+' # Match v0.11.0, v1.2.3, etc.
 
 jobs:
-  validate:
-    name: Validate & Analyze
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    defaults:
-      run:
-        working-directory: cloudx_flutter_sdk
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.24.5'
-          channel: 'stable'
-          cache: true
-
-      - name: Extract version from tag
-        id: version
-        run: |
-          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
-          echo "version=$TAG_VERSION" >> $GITHUB_OUTPUT
-          echo "Publishing version: $TAG_VERSION"
-
-      - name: Verify version matches pubspec.yaml
-        run: |
-          PUBSPEC_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: *//' | tr -d '\r\n')
-          TAG_VERSION="${{ steps.version.outputs.version }}"
-
-          echo "Tag version: $TAG_VERSION"
-          echo "pubspec.yaml version: $PUBSPEC_VERSION"
-
-          if [ "$TAG_VERSION" != "$PUBSPEC_VERSION" ]; then
-            echo "❌ Error: Tag version ($TAG_VERSION) does not match pubspec.yaml version ($PUBSPEC_VERSION)"
-            exit 1
-          fi
-
-          echo "✓ Version validation passed"
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Run Flutter analyze
-        run: flutter analyze
-
-      - name: Check Dart formatting
-        run: dart format --set-exit-if-changed lib/
-
-      - name: Dry run publish
-        run: dart pub publish --dry-run
-
   publish:
-    name: Publish to pub.dev
-    needs: validate
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    defaults:
-      run:
-        working-directory: cloudx_flutter_sdk
     permissions:
-      contents: read # Required to checkout code
       id-token: write # Required for OIDC authentication to pub.dev
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.24.5'
-          channel: 'stable'
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Publish to pub.dev
-        run: dart pub publish --force
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+    with:
+      working-directory: cloudx_flutter_sdk
 
   release:
     name: Create GitHub Release
