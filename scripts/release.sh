@@ -366,11 +366,7 @@ main() {
 
         # Commit version change
         git add .
-        git commit -m "Release v$version
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
+        git commit -m "Release v$version"
 
         print_success "Committed version update"
     else

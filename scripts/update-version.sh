@@ -242,11 +242,7 @@ create_commit() {
     local commit_msg="Update Flutter SDK version to $new_version
 
 - Updated version from $old_version to $new_version
-- Updated pubspec.yaml, build.gradle, and podspec
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
+- Updated pubspec.yaml, build.gradle, and podspec"
 
     git commit -m "$commit_msg"
 

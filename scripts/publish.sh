@@ -329,11 +329,7 @@ main() {
     git pull origin main --quiet
 
     # Attempt merge
-    if git merge --no-ff "release/$version" -m "Merge release/$version to main
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>" 2>/dev/null; then
+    if git merge --no-ff "release/$version" -m "Merge release/$version to main" 2>/dev/null; then
         print_success "Merged without conflicts"
     else
         # Conflicts detected
