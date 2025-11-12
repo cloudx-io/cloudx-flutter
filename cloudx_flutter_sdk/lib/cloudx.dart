@@ -55,31 +55,17 @@ class CloudX {
   ///
   /// [appKey] - Your CloudX app key
   /// [testMode] - Set to `true` to enable test mode (shows test ads)
-  /// [allowIosExperimental] - Set to `true` to enable iOS SDK (alpha/development only)
   ///
   /// Returns `true` if initialization was successful
   /// Returns `false` if initialization fails or platform is not supported
   ///
   /// **Platform Support:**
   /// - Android: ✅ Production-ready
-  /// - iOS: ⚠️ Alpha/Development only - requires `allowIosExperimental: true`
+  /// - iOS: ❌ Not supported (returns false)
   static Future<bool> initialize({
     required String appKey,
     bool testMode = false,
-    bool allowIosExperimental = false,
   }) async {
-    // Platform guard: iOS SDK is not production-ready
-    if (Platform.isIOS && !allowIosExperimental) {
-      debugPrint('⚠️ CloudX iOS SDK is not yet production-ready.');
-      debugPrint('⚠️ Currently only Android is fully supported.');
-      debugPrint(
-        '⚠️ For iOS alpha testing, use: CloudX.initialize(appKey: "...", allowIosExperimental: true)',
-      );
-      debugPrint('⚠️ For production iOS access, contact the CloudX team.');
-      debugPrint('⚠️ SDK initialization skipped on iOS.');
-      return false;
-    }
-
     final arguments = <String, dynamic>{
       'appKey': appKey,
       'testMode': testMode,
@@ -87,6 +73,14 @@ class CloudX {
 
     try {
       final result = await _invokeMethod<bool>('initSDK', arguments);
+
+      // Log warning on iOS since it's not supported
+      if (Platform.isIOS && (result == null || !result)) {
+        debugPrint('⚠️ CloudX iOS SDK is not yet supported.');
+        debugPrint('⚠️ Currently only Android is fully supported.');
+        debugPrint('⚠️ For production iOS access, contact the CloudX team.');
+      }
+
       await _ensureEventStreamInitialized();
       return result ?? false;
     } on PlatformException catch (e) {
@@ -105,7 +99,7 @@ class CloudX {
   ///
   /// Currently:
   /// - Android: Production-ready ✅
-  /// - iOS: Alpha/Development only ⚠️
+  /// - iOS: Not supported ❌
   static bool isPlatformSupported() {
     return !Platform.isIOS;
   }

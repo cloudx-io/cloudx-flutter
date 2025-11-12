@@ -20,9 +20,9 @@ A Flutter plugin for the CloudX Mobile Ads platform. Monetize your Flutter apps 
 | Platform | Status | Minimum Version |
 |----------|--------|-----------------|
 | **Android** | ✅ Production Ready | API 21 (Android 5.0) |
-| **iOS** | ⚠️ Alpha/Experimental | iOS 14.0 |
+| **iOS** | ❌ Not Supported | iOS 14.0 |
 
-**Note:** iOS support requires setting `allowIosExperimental: true` during initialization.
+**Note:** iOS SDK is not yet available for production use. Contact CloudX for access.
 
 ## Installation
 
@@ -143,7 +143,6 @@ await CloudX.setEnvironment('production'); // 'dev', 'staging', or 'production'
 final success = await CloudX.initialize(
   appKey: 'YOUR_APP_KEY',
   testMode: false, // Set to true to enable test ads (development only)
-  allowIosExperimental: true, // Required for iOS
 );
 
 if (success) {
@@ -640,16 +639,9 @@ if (!success) {
 
 ## Common Issues
 
-### iOS: "Experimental API" Error
+### iOS: SDK Not Supported
 
-**Solution:** Set `allowIosExperimental: true` during initialization:
-
-```dart
-await CloudX.initialize(
-  appKey: 'YOUR_KEY',
-  allowIosExperimental: true,
-);
-```
+**Note:** iOS SDK is currently not available for production use. The SDK will return `false` during initialization on iOS. Contact CloudX for early access.
 
 ### Banner Not Showing
 
@@ -712,8 +704,8 @@ flutter run
 ## API Reference
 
 ### Initialization
-- `initialize({required String appKey, bool testMode, bool allowIosExperimental})` → `Future<bool>`
-- `isPlatformSupported()` → `Future<bool>`
+- `initialize({required String appKey, bool testMode})` → `Future<bool>`
+- `isPlatformSupported()` → `bool`
 - `getVersion()` → `Future<String>`
 - `setEnvironment(String environment)` → `Future<void>`
 - `setLoggingEnabled(bool enabled)` → `Future<void>`

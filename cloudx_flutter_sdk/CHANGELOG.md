@@ -137,7 +137,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `CloudXInterstitialListener` for interstitial ads
 - **Platform Support**:
   - ✅ Android: Production-ready (API 21+)
-  - ⚠️ iOS: Alpha/Experimental (iOS 14.0+, requires `allowIosExperimental: true`)
+  - ⚠️ iOS: Alpha/Experimental (iOS 14.0+)
 - **Ad Positioning**: 8 position options for programmatic ad placement
 - **Widget Controllers**: `CloudXAdViewController` for programmatic control of widget-based ads
 
