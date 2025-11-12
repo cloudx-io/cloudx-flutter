@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'release/**'
+      - 'hotfix/**'
+  pull_request:
+    branches:
+      - main
+      - 'release/**'
+      - 'hotfix/**'
+
+jobs:
+  analyze:
+    name: Analyze & Format Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          cd cloudx_flutter_sdk
+          flutter pub get
+
+      - name: Run Flutter analyze
+        run: |
+          cd cloudx_flutter_sdk
+          flutter analyze
+
+      - name: Check Dart formatting
+        run: |
+          cd cloudx_flutter_sdk
+          dart format --set-exit-if-changed lib/
+
+  build-demo-app:
+    name: Build Android Demo App
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: 'stable'
+          cache: true
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Install dependencies (SDK)
+        run: |
+          cd cloudx_flutter_sdk
+          flutter pub get
+
+      - name: Install dependencies (Demo App)
+        run: |
+          cd cloudx_flutter_demo_app
+          flutter pub get
+
+      - name: Build Android Demo App (debug)
+        run: |
+          cd cloudx_flutter_demo_app
+          flutter build apk --debug
