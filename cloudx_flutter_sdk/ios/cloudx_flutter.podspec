@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'cloudx_flutter'
-  s.version          = '0.16.0'
+  s.version          = '0.17.0'
   s.summary          = 'Flutter SDK wrapper for CloudX (Android only)'
   s.description      = <<-DESC
 A Flutter plugin for CloudX ad monetization. Currently supports Android only.
