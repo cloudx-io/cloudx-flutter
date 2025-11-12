@@ -33,8 +33,8 @@ target 'Runner' do
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 
-  # Optional ad network adapters
-  pod 'CloudXMetaAdapter', '~> 1.1.68'
+  # Optional ad network adapters removed - iOS SDK not yet supported
+  # pod 'CloudXMetaAdapter', '~> 1.1.68'
 end
 
 post_install do |installer|

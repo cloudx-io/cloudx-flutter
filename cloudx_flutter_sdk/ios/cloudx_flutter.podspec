@@ -1,11 +1,11 @@
 Pod::Spec.new do |s|
   s.name             = 'cloudx_flutter'
   s.version          = '0.16.0'
-  s.summary          = 'Flutter SDK wrapper for CloudX Core Objective-C SDK'
+  s.summary          = 'Flutter SDK wrapper for CloudX (Android only)'
   s.description      = <<-DESC
-A Flutter plugin that provides a complete wrapper around the CloudX Core Objective-C SDK,
-exposing all ad types (banner, interstitial, rewarded, native, MREC), privacy & compliance APIs
-(CCPA, GDPR, COPPA, GPP), targeting APIs, and comprehensive ad lifecycle callbacks.
+A Flutter plugin for CloudX ad monetization. Currently supports Android only.
+iOS support is in development and not yet available for production use.
+For production iOS access, please contact the CloudX team.
                        DESC
   s.homepage         = 'https://github.com/cloudx-io/cloudx-flutter'
   s.license          = { :file => '../LICENSE' }
@@ -13,7 +13,7 @@ exposing all ad types (banner, interstitial, rewarded, native, MREC), privacy & 
   s.source           = { :path => '.' }
   s.source_files     = 'Classes/**/*'
   s.dependency 'Flutter'
-  s.dependency 'CloudXCore', '~> 1.1.60'
+  # CloudXCore dependency removed - iOS SDK not yet ready for production
   s.platform = :ios, '14.0'
 
   # Flutter.framework does not contain a i386 slice.

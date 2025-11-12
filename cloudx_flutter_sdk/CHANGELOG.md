@@ -5,19 +5,25 @@ All notable changes to the CloudX Flutter SDK will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.16.0] - 2025-11-11
-
-### Added
-- Test feature: Enhanced error logging for failed ad requests
-- Test feature: New callback for ad impression tracking with revenue data
+## [Unreleased]
 
 ### Changed
-- Test change: Improved ad loading performance by optimizing network calls
-- Test change: Updated minimum iOS deployment target to 14.0
+- **BREAKING**: iOS SDK support temporarily disabled - iOS native SDK not yet ready for production
+  - CloudXCore pod dependency removed from iOS plugin
+  - iOS plugin now returns failure signals for ad operations (no exceptions thrown)
+  - Setters (privacy, targeting) succeed silently on iOS
+  - Customers should implement fallback ad solutions for iOS until production-ready
+  - Android support unaffected and fully functional
+
+## [0.16.0] - 2025-11-11
 
 ### Fixed
-- Test fix: Resolved memory leak in banner ad auto-refresh mechanism
-- Test fix: Fixed crash when rapidly destroying interstitial ads
+- Fixed critical iOS crash when Dart sends null to native privacy methods
+- Fixed NSNull handling across all iOS platform channel parameters
+- Implemented GPP (Global Privacy Platform) support on iOS matching Android
+
+### Changed
+- Removed deprecated NSUserDefaults.synchronize() calls on iOS (iOS 12+)
 
 ## [0.12.0] - 2025-11-11
 
