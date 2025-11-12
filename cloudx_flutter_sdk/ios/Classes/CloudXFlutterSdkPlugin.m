@@ -302,7 +302,9 @@ static const CGFloat kDefaultBannerHeight = 50.0;
     } else if ([call.method isEqualToString:@"getSDKVersion"]) {
         result([[CloudXCore shared] sdkVersion]);
     } else if ([call.method isEqualToString:@"setUserID"]) {
-        [[CloudXCore shared] setHashedUserID:call.arguments[@"userID"]];
+        id userIdValue = call.arguments[@"userID"];
+        NSString *userId = (userIdValue == [NSNull null]) ? nil : userIdValue;
+        [[CloudXCore shared] setHashedUserID:userId];
         result(@YES);
     } else if ([call.method isEqualToString:@"setEnvironment"]) {
         NSString *environment = call.arguments[@"environment"];
@@ -318,7 +320,8 @@ static const CGFloat kDefaultBannerHeight = 50.0;
     }
     // Privacy & Compliance Methods
     else if ([call.method isEqualToString:@"setCCPAPrivacyString"]) {
-        NSString *ccpaString = [CloudXFlutterSdkPlugin nilIfNull:call.arguments[@"ccpaString"]];
+        id ccpaValue = call.arguments[@"ccpaString"];
+        NSString *ccpaString = (ccpaValue == [NSNull null]) ? nil : ccpaValue;
         [CloudXCore setCCPAPrivacyString:ccpaString];
         result(@YES);
     } else if ([call.method isEqualToString:@"setIsUserConsent"]) {
@@ -342,12 +345,18 @@ static const CGFloat kDefaultBannerHeight = 50.0;
     }
     // Targeting Methods
     else if ([call.method isEqualToString:@"setUserKeyValue"]) {
-        [[CloudXCore shared] setUserKeyValue:call.arguments[@"key"]
-                                       value:call.arguments[@"value"]];
+        id keyValue = call.arguments[@"key"];
+        id valueValue = call.arguments[@"value"];
+        NSString *key = (keyValue == [NSNull null]) ? nil : keyValue;
+        NSString *value = (valueValue == [NSNull null]) ? nil : valueValue;
+        [[CloudXCore shared] setUserKeyValue:key value:value];
         result(@YES);
     } else if ([call.method isEqualToString:@"setAppKeyValue"]) {
-        [[CloudXCore shared] setAppKeyValue:call.arguments[@"key"]
-                                      value:call.arguments[@"value"]];
+        id keyValue = call.arguments[@"key"];
+        id valueValue = call.arguments[@"value"];
+        NSString *key = (keyValue == [NSNull null]) ? nil : keyValue;
+        NSString *value = (valueValue == [NSNull null]) ? nil : valueValue;
+        [[CloudXCore shared] setAppKeyValue:key value:value];
         result(@YES);
     } else if ([call.method isEqualToString:@"clearAllKeyValues"]) {
         [[CloudXCore shared] clearAllKeyValues];
