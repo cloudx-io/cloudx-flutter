@@ -30,7 +30,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  cloudx_flutter: ^0.17.0
+  cloudx_flutter: ^0.18.0
 ```
 
 Then run:
