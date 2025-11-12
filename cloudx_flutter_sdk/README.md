@@ -38,19 +38,6 @@ Then run:
 flutter pub get
 ```
 
-**Alternative: Git Dependency**
-
-For the latest development version from GitHub:
-
-```yaml
-dependencies:
-  cloudx_flutter:
-    git:
-      url: https://github.com/cloudx-io/cloudx-flutter.git
-      ref: v0.17.0  # Use specific version tag
-      path: cloudx_flutter_sdk
-```
-
 ### Android Setup
 
 No additional configuration required. Minimum SDK is automatically set to API 21.
