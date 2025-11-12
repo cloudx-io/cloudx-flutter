@@ -459,85 +459,65 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
             return
         }
 
-        try {
-            val bannerAd = CloudX.createBanner(placementName)
-            bannerAd.listener = createAdViewListener(adId)
-            adInstances[adId] = bannerAd
+        val bannerAd = CloudX.createBanner(placementName)
+        bannerAd.listener = createAdViewListener(adId)
+        adInstances[adId] = bannerAd
 
-            // If position is specified, create programmatic banner overlay
-            if (position != null) {
-                createProgrammaticAdView(bannerAd, position, adId, "banner", result)
-            } else {
-                // Widget-based banner (will be embedded via PlatformView)
-                logDebug("Created widget-based banner: $adId")
-                result.success(true)
-            }
-        } catch (e: Exception) {
-            logError("Failed to create banner", e)
-            result.error("AD_CREATION_FAILED", "Failed to create banner: ${e.message}", null)
+        // If position is specified, create programmatic banner overlay
+        if (position != null) {
+            createProgrammaticAdView(bannerAd, position, adId, "banner", result)
+        } else {
+            // Widget-based banner (will be embedded via PlatformView)
+            logDebug("Created widget-based banner: $adId")
+            result.success(true)
         }
     }
 
     private fun createInterstitial(call: MethodCall, result: Result) {
         val placementName = call.argument<String>("placementName")
         val adId = call.argument<String>("adId")
-        
+
         if (placementName == null || adId == null) {
             result.error("INVALID_ARGUMENTS", "placementName and adId are required", null)
             return
         }
-        
-        try {
-            val interstitialAd = CloudX.createInterstitial(placementName)
-            interstitialAd.listener = createInterstitialListener(adId)
-            interstitialAd.revenueListener = createRevenueListener(adId)
-            adInstances[adId] = interstitialAd
-            result.success(true)
-        } catch (e: Exception) {
-            logError( "Failed to create interstitial", e)
-            result.error("AD_CREATION_FAILED", "Failed to create interstitial: ${e.message}", null)
-        }
+
+        val interstitialAd = CloudX.createInterstitial(placementName)
+        interstitialAd.listener = createInterstitialListener(adId)
+        interstitialAd.revenueListener = createRevenueListener(adId)
+        adInstances[adId] = interstitialAd
+        result.success(true)
     }
 
     private fun createRewarded(call: MethodCall, result: Result) {
         val placementName = call.argument<String>("placementName")
         val adId = call.argument<String>("adId")
-        
+
         if (placementName == null || adId == null) {
             result.error("INVALID_ARGUMENTS", "placementName and adId are required", null)
             return
         }
-        
-        try {
-            val rewardedAd = CloudX.createRewardedInterstitial(placementName)
-            rewardedAd.listener = createRewardedListener(adId)
-            rewardedAd.revenueListener = createRevenueListener(adId)
-            adInstances[adId] = rewardedAd
-            result.success(true)
-        } catch (e: Exception) {
-            logError( "Failed to create rewarded ad", e)
-            result.error("AD_CREATION_FAILED", "Failed to create rewarded ad: ${e.message}", null)
-        }
+
+        val rewardedAd = CloudX.createRewardedInterstitial(placementName)
+        rewardedAd.listener = createRewardedListener(adId)
+        rewardedAd.revenueListener = createRevenueListener(adId)
+        adInstances[adId] = rewardedAd
+        result.success(true)
     }
 
     private fun createNative(call: MethodCall, result: Result) {
         val placementName = call.argument<String>("placementName")
         val adId = call.argument<String>("adId")
-        
+
         if (placementName == null || adId == null) {
             result.error("INVALID_ARGUMENTS", "placementName and adId are required", null)
             return
         }
-        
-        try {
-            val nativeAd = CloudX.createNativeAdSmall(placementName)
-            nativeAd.listener = createAdViewListener(adId)
-            adInstances[adId] = nativeAd
-            result.success(true)
-        } catch (e: Exception) {
-            logError( "Failed to create native ad", e)
-            result.error("AD_CREATION_FAILED", "Failed to create native ad: ${e.message}", null)
-        }
+
+        val nativeAd = CloudX.createNativeAdSmall(placementName)
+        nativeAd.listener = createAdViewListener(adId)
+        adInstances[adId] = nativeAd
+        result.success(true)
     }
 
     private fun createMREC(call: MethodCall, result: Result) {
@@ -550,22 +530,17 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
             return
         }
 
-        try {
-            val mrecAd = CloudX.createMREC(placementName)
-            mrecAd.listener = createAdViewListener(adId)
-            adInstances[adId] = mrecAd
+        val mrecAd = CloudX.createMREC(placementName)
+        mrecAd.listener = createAdViewListener(adId)
+        adInstances[adId] = mrecAd
 
-            // If position is specified, create programmatic MREC overlay
-            if (position != null) {
-                createProgrammaticAdView(mrecAd, position, adId, "MREC", result)
-            } else {
-                // Widget-based MREC (will be embedded via PlatformView)
-                logDebug("Created widget-based MREC: $adId")
-                result.success(true)
-            }
-        } catch (e: Exception) {
-            logError("Failed to create MREC", e)
-            result.error("AD_CREATION_FAILED", "Failed to create MREC: ${e.message}", null)
+        // If position is specified, create programmatic MREC overlay
+        if (position != null) {
+            createProgrammaticAdView(mrecAd, position, adId, "MREC", result)
+        } else {
+            // Widget-based MREC (will be embedded via PlatformView)
+            logDebug("Created widget-based MREC: $adId")
+            result.success(true)
         }
     }
 
