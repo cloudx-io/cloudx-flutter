@@ -163,6 +163,7 @@ class _InitScreenState extends State<InitScreen> {
 
     final success = await CloudX.initialize(
       appKey: config.appKey,
+      testMode: true, // Enable test ads for demo app
       // Allow iOS experimental for demo/testing purposes
       allowIosExperimental: true,
     );
