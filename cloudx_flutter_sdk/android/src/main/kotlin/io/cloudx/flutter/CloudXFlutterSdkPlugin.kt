@@ -234,19 +234,21 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
 
     private fun initSDK(call: MethodCall, result: Result) {
         val appKey = call.argument<String>("appKey")
+        val testMode = call.argument<Boolean>("testMode") ?: false
 
         if (appKey == null) {
             result.error("INVALID_ARGUMENTS", "appKey is required", null)
             return
         }
 
-        logDebug( "Initializing CloudX SDK with appKey: $appKey, server: $initializationServer")
+        logDebug( "Initializing CloudX SDK with appKey: $appKey, testMode: $testMode, server: $initializationServer")
 
         val initParams = CloudXInitializationParams(
             appKey = appKey,
+            testMode = testMode,
             initServer = initializationServer
         )
-        
+
         CloudX.initialize(initParams, object : CloudXInitializationListener {
             override fun onInitialized() {
                 logDebug( "CloudX SDK initialized successfully")

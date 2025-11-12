@@ -54,6 +54,7 @@ class CloudX {
   /// Initialize the CloudX SDK
   ///
   /// [appKey] - Your CloudX app key
+  /// [testMode] - Set to `true` to enable test mode (shows test ads)
   /// [allowIosExperimental] - Set to `true` to enable iOS SDK (alpha/development only)
   ///
   /// Returns `true` if initialization was successful
@@ -64,6 +65,7 @@ class CloudX {
   /// - iOS: ⚠️ Alpha/Development only - requires `allowIosExperimental: true`
   static Future<bool> initialize({
     required String appKey,
+    bool testMode = false,
     bool allowIosExperimental = false,
   }) async {
     // Platform guard: iOS SDK is not production-ready
@@ -80,6 +82,7 @@ class CloudX {
 
     final arguments = <String, dynamic>{
       'appKey': appKey,
+      'testMode': testMode,
     };
 
     try {

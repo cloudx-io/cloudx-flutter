@@ -255,20 +255,14 @@ static const CGFloat kDefaultBannerHeight = 50.0;
 }
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
-  
-  // DEMO APP ONLY: Force test mode for all bid requests
-  [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"CLXCore_Internal_ForceTestMode"];
-  [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"CLXMetaTestModeEnabled"];
-  [[NSUserDefaults standardUserDefaults] synchronize];
-  
   FlutterMethodChannel* channel = [FlutterMethodChannel
       methodChannelWithName:@"cloudx_flutter_sdk"
             binaryMessenger:[registrar messenger]];
-  
+
   CloudXFlutterSdkPlugin* instance = [[CloudXFlutterSdkPlugin alloc] init];
   instance.channel = channel;
   [registrar addMethodCallDelegate:instance channel:channel];
-  
+
   // Set up event channel
   FlutterEventChannel* eventChannel = [FlutterEventChannel
                                        eventChannelWithName:@"cloudx_flutter_sdk_events"
@@ -279,11 +273,11 @@ static const CGFloat kDefaultBannerHeight = 50.0;
   // Register platform view factory for banner
   CloudXBannerPlatformViewFactory *bannerFactory = [[CloudXBannerPlatformViewFactory alloc] initWithPlugin:instance];
   [registrar registerViewFactory:bannerFactory withId:@"cloudx_banner_view"];
-  
+
   // Register platform view factory for native
   CloudXNativePlatformViewFactory *nativeFactory = [[CloudXNativePlatformViewFactory alloc] initWithPlugin:instance];
   [registrar registerViewFactory:nativeFactory withId:@"cloudx_native_view"];
-  
+
   // Register platform view factory for MREC
   CloudXMRECPlatformViewFactory *mrecFactory = [[CloudXMRECPlatformViewFactory alloc] initWithPlugin:instance];
   [registrar registerViewFactory:mrecFactory withId:@"cloudx_mrec_view"];
@@ -396,8 +390,10 @@ static const CGFloat kDefaultBannerHeight = 50.0;
 
 - (void)initSDK:(NSDictionary *)arguments result:(FlutterResult)result {
     NSString *appKey = arguments[@"appKey"];
+    NSNumber *testModeNum = arguments[@"testMode"];
+    BOOL testMode = testModeNum ? [testModeNum boolValue] : NO;
 
-    [self.logger info:[NSString stringWithFormat:@"Initializing SDK with appKey: %@", appKey]];
+    [self.logger info:[NSString stringWithFormat:@"Initializing SDK with appKey: %@, testMode: %@", appKey, testMode ? @"YES" : @"NO"]];
 
     if (!appKey) {
         result([FlutterError errorWithCode:@"INVALID_ARGUMENTS"
@@ -405,6 +401,11 @@ static const CGFloat kDefaultBannerHeight = 50.0;
                                   details:nil]);
         return;
     }
+
+    // Configure test mode via UserDefaults (must be set before SDK initialization)
+    [[NSUserDefaults standardUserDefaults] setBool:testMode forKey:@"CLXCore_Internal_ForceTestMode"];
+    [[NSUserDefaults standardUserDefaults] setBool:testMode forKey:@"CLXMetaTestModeEnabled"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
 
     [[CloudXCore shared] initializeSDKWithAppKey:appKey
                                       completion:^(BOOL success, NSError * _Nullable error) {

@@ -142,6 +142,7 @@ await CloudX.setEnvironment('production'); // 'dev', 'staging', or 'production'
 // Initialize the SDK
 final success = await CloudX.initialize(
   appKey: 'YOUR_APP_KEY',
+  testMode: false, // Set to true to enable test ads (development only)
   allowIosExperimental: true, // Required for iOS
 );
 
@@ -711,7 +712,7 @@ flutter run
 ## API Reference
 
 ### Initialization
-- `initialize({required String appKey, bool allowIosExperimental})` → `Future<bool>`
+- `initialize({required String appKey, bool testMode, bool allowIosExperimental})` → `Future<bool>`
 - `isPlatformSupported()` → `Future<bool>`
 - `getVersion()` → `Future<String>`
 - `setEnvironment(String environment)` → `Future<void>`
