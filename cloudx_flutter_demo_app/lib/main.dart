@@ -95,22 +95,23 @@ class _InitScreenState extends State<InitScreen> {
               Platform.isIOS ? DemoConfig.iosProduction : DemoConfig.androidProduction,
               const Color.fromRGBO(51, 179, 77, 1.0), // Green
             ),
-            if (_isSDKInitialized) ...[
-              const SizedBox(height: 48),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (_) => MainTabView(environment: _currentEnvironment!),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(200, 44),
-                ),
-                child: const Text('Continue to Demo'),
+            const SizedBox(height: 48),
+            ElevatedButton(
+              onPressed: () {
+                // Use current environment or default to production for testing
+                final env = _currentEnvironment ??
+                    (Platform.isIOS ? DemoConfig.iosProduction : DemoConfig.androidProduction);
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (_) => MainTabView(environment: env),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(200, 44),
               ),
-            ],
+              child: Text(_isSDKInitialized ? 'Continue to Demo' : 'Continue Anyway (Testing)'),
+            ),
           ],
         ),
       ),
