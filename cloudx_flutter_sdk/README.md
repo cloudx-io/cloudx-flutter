@@ -3,7 +3,7 @@
 [![pub package](https://img.shields.io/pub/v/cloudx_flutter.svg)](https://pub.dev/packages/cloudx_flutter)
 [![GitHub](https://img.shields.io/badge/github-cloudx--flutter-blue)](https://github.com/cloudx-io/cloudx-flutter)
 
-A Flutter plugin for the CloudX Mobile Ads platform. Monetize your Flutter apps with banner, MREC, and interstitial ads across iOS and Android.
+A Flutter plugin for the CloudX Mobile Ads platform. Monetize your Flutter apps with banner, MREC, and interstitial ads on Android.
 
 ## Features
 
@@ -22,7 +22,7 @@ A Flutter plugin for the CloudX Mobile Ads platform. Monetize your Flutter apps 
 | **Android** | ✅ Production Ready | API 21 (Android 5.0) |
 | **iOS** | ❌ Not Supported | iOS 14.0 |
 
-**Note:** iOS SDK is not yet available for production use. Contact CloudX for access.
+**Note:** iOS SDK is not yet available for production use.
 
 ## Installation
 
@@ -51,28 +51,13 @@ dependencies:
       path: cloudx_flutter_sdk
 ```
 
-### iOS Setup
-
-The SDK requires iOS 14.0+. Update your `ios/Podfile`:
-
-```ruby
-platform :ios, '14.0'
-```
-
-Then install pods:
-```bash
-cd ios && pod install
-```
-
 ### Android Setup
 
 No additional configuration required. Minimum SDK is automatically set to API 21.
 
-### Ad Network Adapters
+### Ad Network Adapters (Android)
 
 The CloudX SDK requires ad network adapters to serve ads. **Adapters are not included by default** - you must add them to your project based on which ad networks you want to support.
-
-#### Android Adapters
 
 Add adapters to your app's `android/app/build.gradle`:
 
@@ -96,32 +81,9 @@ dependencies {
 }
 ```
 
-#### iOS Adapters
-
-Add adapters to your app's `ios/Podfile`:
-
-```ruby
-target 'Runner' do
-  use_frameworks!
-  use_modular_headers!
-
-  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-
-  # CloudX Adapters - add the adapters you want to use
-  pod 'CloudXMetaAdapter', '~> 1.1.0'    # Meta Audience Network
-  pod 'CloudXAdapter', '~> 1.1.0'        # CloudX Network
-  # Add other adapters as needed
-end
-```
-
-Then run:
-```bash
-cd ios && pod install
-```
-
 **Available Adapters:**
-- **Meta Audience Network** - `adapter-meta` (Android) / `CloudXMetaAdapter` (iOS)
-- **CloudX Network** - `adapter-cloudx` (Android) / `CloudXAdapter` (iOS)
+- **Meta Audience Network** - `adapter-meta`
+- **CloudX Network** - `adapter-cloudx`
 - More adapters coming soon
 
 ## Quick Start
@@ -633,7 +595,7 @@ if (!success) {
   // Handle initialization failure
   // - Check network connection
   // - Verify app key is correct
-  // - Check platform support (iOS requires experimental flag)
+  // - Check platform support (iOS is not currently supported)
 }
 ```
 
@@ -641,7 +603,7 @@ if (!success) {
 
 ### iOS: SDK Not Supported
 
-**Note:** iOS SDK is currently not available for production use. The SDK will return `false` during initialization on iOS. Contact CloudX for early access.
+**Note:** iOS SDK is currently not available for production use. The SDK will return `false` during initialization on iOS.
 
 ### Banner Not Showing
 
@@ -691,15 +653,13 @@ flutter run
 - Flutter SDK: 3.0.0 or higher
 - Dart SDK: 3.0.0 or higher
 
-### iOS
-- iOS: 14.0 or higher
-- CocoaPods for dependency management
-- CloudXCore pod: ~> 1.1.40
-
 ### Android
 - Android API: 21 (Android 5.0) or higher
 - Gradle: 8.0+
 - CloudX Android SDK: 0.8.0
+
+### iOS
+**Note:** iOS is not currently supported. The SDK will compile on iOS but all ad operations will fail gracefully.
 
 ## API Reference
 
@@ -761,8 +721,8 @@ The following features are planned for future releases:
 ## Support
 
 For questions, issues, or feature requests:
-- Contact the CloudX team
 - Check the demo app for implementation examples
+- Review the API Reference section above
 
 ## License
 

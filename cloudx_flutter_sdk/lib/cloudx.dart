@@ -78,7 +78,6 @@ class CloudX {
       if (Platform.isIOS && (result == null || !result)) {
         debugPrint('⚠️ CloudX iOS SDK is not yet supported.');
         debugPrint('⚠️ Currently only Android is fully supported.');
-        debugPrint('⚠️ For production iOS access, contact the CloudX team.');
       }
 
       await _ensureEventStreamInitialized();

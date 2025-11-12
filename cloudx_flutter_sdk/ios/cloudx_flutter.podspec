@@ -5,7 +5,6 @@ Pod::Spec.new do |s|
   s.description      = <<-DESC
 A Flutter plugin for CloudX ad monetization. Currently supports Android only.
 iOS support is in development and not yet available for production use.
-For production iOS access, please contact the CloudX team.
                        DESC
   s.homepage         = 'https://github.com/cloudx-io/cloudx-flutter'
   s.license          = { :file => '../LICENSE' }
