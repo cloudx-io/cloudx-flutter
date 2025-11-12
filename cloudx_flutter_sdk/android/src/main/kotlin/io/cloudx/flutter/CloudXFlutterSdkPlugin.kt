@@ -46,8 +46,8 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
         private const val METHOD_CHANNEL = "cloudx_flutter_sdk"
         private const val EVENT_CHANNEL = "cloudx_flutter_sdk_events"
         private const val BANNER_VIEW_TYPE = "cloudx_banner_view"
-        private const val NATIVE_VIEW_TYPE = "cloudx_native_view"
         private const val MREC_VIEW_TYPE = "cloudx_mrec_view"
+        private const val NATIVE_VIEW_TYPE = "cloudx_native_view"
     }
 
     // Logging helpers
@@ -67,18 +67,18 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
         eventChannel = EventChannel(binding.binaryMessenger, EVENT_CHANNEL)
         eventChannel.setStreamHandler(this)
         
-        // Register platform views for banner/native/MREC ads
+        // Register platform views for banner/MREC/native ads
         binding.platformViewRegistry.registerViewFactory(
             BANNER_VIEW_TYPE,
             CloudXAdViewFactory(this, AdViewType.BANNER)
         )
         binding.platformViewRegistry.registerViewFactory(
-            NATIVE_VIEW_TYPE,
-            CloudXAdViewFactory(this, AdViewType.NATIVE)
-        )
-        binding.platformViewRegistry.registerViewFactory(
             MREC_VIEW_TYPE,
             CloudXAdViewFactory(this, AdViewType.MREC)
+        )
+        binding.platformViewRegistry.registerViewFactory(
+            NATIVE_VIEW_TYPE,
+            CloudXAdViewFactory(this, AdViewType.NATIVE)
         )
         
         logDebug( "Plugin attached to engine")
@@ -205,10 +205,10 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
             
             // Ad Creation Methods
             "createBanner" -> createBanner(call, result)
+            "createMREC" -> createMREC(call, result)
             "createInterstitial" -> createInterstitial(call, result)
             "createRewarded" -> createRewarded(call, result)
             "createNative" -> createNative(call, result)
-            "createMREC" -> createMREC(call, result)
             
             // Ad Operation Methods
             "loadAd" -> loadAd(call, result)
@@ -473,6 +473,30 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
         }
     }
 
+    private fun createMREC(call: MethodCall, result: Result) {
+        val placementName = call.argument<String>("placementName")
+        val adId = call.argument<String>("adId")
+        val position = call.argument<String>("position")
+
+        if (placementName == null || adId == null) {
+            result.error("INVALID_ARGUMENTS", "placementName and adId are required", null)
+            return
+        }
+
+        val mrecAd = CloudX.createMREC(placementName)
+        mrecAd.listener = createAdViewListener(adId)
+        adInstances[adId] = mrecAd
+
+        // If position is specified, create programmatic MREC overlay
+        if (position != null) {
+            createProgrammaticAdView(mrecAd, position, adId, "MREC", result)
+        } else {
+            // Widget-based MREC (will be embedded via PlatformView)
+            logDebug("Created widget-based MREC: $adId")
+            result.success(true)
+        }
+    }
+
     private fun createInterstitial(call: MethodCall, result: Result) {
         val placementName = call.argument<String>("placementName")
         val adId = call.argument<String>("adId")
@@ -518,30 +542,6 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
         nativeAd.listener = createAdViewListener(adId)
         adInstances[adId] = nativeAd
         result.success(true)
-    }
-
-    private fun createMREC(call: MethodCall, result: Result) {
-        val placementName = call.argument<String>("placementName")
-        val adId = call.argument<String>("adId")
-        val position = call.argument<String>("position")
-
-        if (placementName == null || adId == null) {
-            result.error("INVALID_ARGUMENTS", "placementName and adId are required", null)
-            return
-        }
-
-        val mrecAd = CloudX.createMREC(placementName)
-        mrecAd.listener = createAdViewListener(adId)
-        adInstances[adId] = mrecAd
-
-        // If position is specified, create programmatic MREC overlay
-        if (position != null) {
-            createProgrammaticAdView(mrecAd, position, adId, "MREC", result)
-        } else {
-            // Widget-based MREC (will be embedded via PlatformView)
-            logDebug("Created widget-based MREC: $adId")
-            result.success(true)
-        }
     }
 
     // ============================================================================

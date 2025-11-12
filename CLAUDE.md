@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-CloudX Flutter SDK is a Flutter plugin wrapper for the CloudX Core native SDK (iOS Objective-C and Android Kotlin). It provides comprehensive ad monetization capabilities including banner, interstitial, rewarded, native, and MREC ads, with full privacy compliance (CCPA/GDPR/COPPA/GPP) and targeting APIs.
+CloudX Flutter SDK is a Flutter plugin wrapper for the CloudX Core native SDK (iOS Objective-C and Android Kotlin). It provides comprehensive ad monetization capabilities including banner, MREC, interstitial, rewarded, and native ads, with full privacy compliance (CCPA/GDPR/COPPA/GPP) and targeting APIs.
 
 **Repository Structure:**
 - `cloudx_flutter_sdk/` - The Flutter plugin SDK package

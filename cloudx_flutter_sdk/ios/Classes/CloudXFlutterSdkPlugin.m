@@ -36,10 +36,10 @@
     }
     // Ad operations - return false (operation failed, but no exception)
     else if ([call.method isEqualToString:@"createBanner"] ||
+             [call.method isEqualToString:@"createMREC"] ||
              [call.method isEqualToString:@"createInterstitial"] ||
              [call.method isEqualToString:@"createRewarded"] ||
              [call.method isEqualToString:@"createNative"] ||
-             [call.method isEqualToString:@"createMREC"] ||
              [call.method isEqualToString:@"loadAd"] ||
              [call.method isEqualToString:@"showAd"] ||
              [call.method isEqualToString:@"hideAd"] ||

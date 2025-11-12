@@ -363,6 +363,75 @@ class CloudX {
   }
 
   // ============================================================================
+  // MARK: - MREC Ad Methods
+  // ============================================================================
+
+  /// Create an MREC (Medium Rectangle) ad
+  ///
+  /// If [adId] is not provided, one will be automatically generated.
+  /// Returns the adId (either provided or generated) for use with other methods.
+  static Future<String?> createMREC({
+    required String placementName,
+    String? adId,
+    CloudXAdViewListener? listener,
+    AdViewPosition? position,
+  }) async {
+    await _ensureEventStreamInitialized();
+
+    // Auto-generate adId if not provided
+    final id = adId ??
+        'mrec_${placementName}_${DateTime.now().millisecondsSinceEpoch}';
+
+    final success = await _invokeMethod<bool>('createMREC', {
+      'placementName': placementName,
+      'adId': id,
+      if (position != null) 'position': position.value,
+    });
+
+    if (success ?? false) {
+      if (listener != null) {
+        _listeners[id] = listener;
+      }
+      return id;
+    }
+
+    return null;
+  }
+
+  /// Load an MREC ad
+  static Future<bool> loadMREC({required String adId}) async {
+    return await _invokeMethod<bool>('loadAd', {'adId': adId}) ?? false;
+  }
+
+  /// Show an MREC ad
+  static Future<bool> showMREC({required String adId}) async {
+    return await _invokeMethod<bool>('showAd', {'adId': adId}) ?? false;
+  }
+
+  /// Check if MREC ad is ready to show
+  static Future<bool> isMRECReady({required String adId}) async {
+    return await _invokeMethod<bool>('isAdReady', {'adId': adId}) ?? false;
+  }
+
+  /// Start auto-refresh for banner or MREC ad
+  ///
+  /// Enables automatic ad refresh for the specified banner/MREC ad instance.
+  /// The refresh interval is configured server-side in CloudX dashboard.
+  static Future<bool> startAutoRefresh({required String adId}) async {
+    return await _invokeMethod<bool>('startAutoRefresh', {'adId': adId}) ??
+        false;
+  }
+
+  /// Stop auto-refresh for banner or MREC ad
+  ///
+  /// Disables automatic ad refresh for the specified banner/MREC ad instance.
+  /// Critical to call this when destroying ads to prevent background timers.
+  static Future<bool> stopAutoRefresh({required String adId}) async {
+    return await _invokeMethod<bool>('stopAutoRefresh', {'adId': adId}) ??
+        false;
+  }
+
+  // ============================================================================
   // MARK: - Interstitial Ad Methods
   // ============================================================================
 
@@ -521,75 +590,6 @@ class CloudX {
   // ignore: unused_element
   static Future<bool> _isNativeReady({required String adId}) async {
     return await _invokeMethod<bool>('isAdReady', {'adId': adId}) ?? false;
-  }
-
-  // ============================================================================
-  // MARK: - MREC Ad Methods
-  // ============================================================================
-
-  /// Create an MREC (Medium Rectangle) ad
-  ///
-  /// If [adId] is not provided, one will be automatically generated.
-  /// Returns the adId (either provided or generated) for use with other methods.
-  static Future<String?> createMREC({
-    required String placementName,
-    String? adId,
-    CloudXAdViewListener? listener,
-    AdViewPosition? position,
-  }) async {
-    await _ensureEventStreamInitialized();
-
-    // Auto-generate adId if not provided
-    final id = adId ??
-        'mrec_${placementName}_${DateTime.now().millisecondsSinceEpoch}';
-
-    final success = await _invokeMethod<bool>('createMREC', {
-      'placementName': placementName,
-      'adId': id,
-      if (position != null) 'position': position.value,
-    });
-
-    if (success ?? false) {
-      if (listener != null) {
-        _listeners[id] = listener;
-      }
-      return id;
-    }
-
-    return null;
-  }
-
-  /// Load an MREC ad
-  static Future<bool> loadMREC({required String adId}) async {
-    return await _invokeMethod<bool>('loadAd', {'adId': adId}) ?? false;
-  }
-
-  /// Show an MREC ad
-  static Future<bool> showMREC({required String adId}) async {
-    return await _invokeMethod<bool>('showAd', {'adId': adId}) ?? false;
-  }
-
-  /// Check if MREC ad is ready to show
-  static Future<bool> isMRECReady({required String adId}) async {
-    return await _invokeMethod<bool>('isAdReady', {'adId': adId}) ?? false;
-  }
-
-  /// Start auto-refresh for banner or MREC ad
-  ///
-  /// Enables automatic ad refresh for the specified banner/MREC ad instance.
-  /// The refresh interval is configured server-side in CloudX dashboard.
-  static Future<bool> startAutoRefresh({required String adId}) async {
-    return await _invokeMethod<bool>('startAutoRefresh', {'adId': adId}) ??
-        false;
-  }
-
-  /// Stop auto-refresh for banner or MREC ad
-  ///
-  /// Disables automatic ad refresh for the specified banner/MREC ad instance.
-  /// Critical to call this when destroying ads to prevent background timers.
-  static Future<bool> stopAutoRefresh({required String adId}) async {
-    return await _invokeMethod<bool>('stopAutoRefresh', {'adId': adId}) ??
-        false;
   }
 
   // ============================================================================
