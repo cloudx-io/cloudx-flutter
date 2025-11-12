@@ -318,7 +318,8 @@ static const CGFloat kDefaultBannerHeight = 50.0;
     }
     // Privacy & Compliance Methods
     else if ([call.method isEqualToString:@"setCCPAPrivacyString"]) {
-        [CloudXCore setCCPAPrivacyString:call.arguments[@"ccpaString"]];
+        NSString *ccpaString = [CloudXFlutterSdkPlugin nilIfNull:call.arguments[@"ccpaString"]];
+        [CloudXCore setCCPAPrivacyString:ccpaString];
         result(@YES);
     } else if ([call.method isEqualToString:@"setIsUserConsent"]) {
         [CloudXCore setIsUserConsent:[call.arguments[@"isUserConsent"] boolValue]];

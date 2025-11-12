@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat ~/.pub-cache/hosted/pub.dev/cloudx_flutter-0.16.0/android/build.gradle)",
+      "Bash(git checkout -b bugfix/ios-nsnull-ccpa-handling)",
+      "Bash(git commit -m \"Fix NSNull handling in setCCPAPrivacyString\n\nWhen Dart passes null to setCCPAPrivacyString, it becomes NSNull in Objective-C.\nCloudXCore''s setCCPAPrivacyString expects nil (not NSNull) to clear the value.\n\nRoot cause: NSNull is a singleton object, not nil. The check ''if (ccpaPrivacyString)''\npasses for NSNull, then NSUserDefaults crashes trying to save a non-plist object.\n\nFix: Use nilIfNull helper to convert NSNull → nil before passing to CloudXCore.\n\nCrash message:\n''Attempt to insert non-property list object null for key CLXPrivacyCCPAPrivacy''\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
