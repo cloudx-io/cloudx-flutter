@@ -5,6 +5,20 @@ All notable changes to the CloudX Flutter SDK will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.16.0] - 2025-11-11
+
+### Added
+- Test feature: Enhanced error logging for failed ad requests
+- Test feature: New callback for ad impression tracking with revenue data
+
+### Changed
+- Test change: Improved ad loading performance by optimizing network calls
+- Test change: Updated minimum iOS deployment target to 14.0
+
+### Fixed
+- Test fix: Resolved memory leak in banner ad auto-refresh mechanism
+- Test fix: Fixed crash when rapidly destroying interstitial ads
+
 ## [0.12.0] - 2025-11-11
 
 ### Changed
