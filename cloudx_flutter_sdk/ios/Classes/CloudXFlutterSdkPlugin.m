@@ -460,9 +460,8 @@ static const CGFloat kDefaultBannerHeight = 50.0;
 
         result(@YES);
     } else {
-        result([FlutterError errorWithCode:@"AD_CREATION_FAILED"
-                                  message:@"Failed to create banner ad"
-                                  details:nil]);
+        [self.logger error:@"Failed to create banner ad - native SDK returned nil"];
+        result(@NO);
     }
 }
 
@@ -486,10 +485,9 @@ static const CGFloat kDefaultBannerHeight = 50.0;
         [self storePlacementIdMappingForAdInstance:interstitialAd withAdId:adId adType:@"interstitial"];
         [interstitialAd load];
         result(@YES);
-    } else{
-        result([FlutterError errorWithCode:@"AD_CREATION_FAILED" 
-                                  message:@"Failed to create interstitial ad" 
-                                  details:nil]);
+    } else {
+        [self.logger error:@"Failed to create interstitial ad - native SDK returned nil"];
+        result(@NO);
     }
 }
 
@@ -514,9 +512,8 @@ static const CGFloat kDefaultBannerHeight = 50.0;
         [rewardedAd load];
         result(@YES);
     } else {
-        result([FlutterError errorWithCode:@"AD_CREATION_FAILED" 
-                                  message:@"Failed to create rewarded ad" 
-                                  details:nil]);
+        [self.logger error:@"Failed to create rewarded ad - native SDK returned nil"];
+        result(@NO);
     }
 }
 
@@ -542,9 +539,8 @@ static const CGFloat kDefaultBannerHeight = 50.0;
         [nativeAd load];
         result(@YES);
     } else {
-        result([FlutterError errorWithCode:@"AD_CREATION_FAILED" 
-                                  message:@"Failed to create native ad" 
-                                  details:nil]);
+        [self.logger error:@"Failed to create native ad - native SDK returned nil"];
+        result(@NO);
     }
 }
 
@@ -579,9 +575,8 @@ static const CGFloat kDefaultBannerHeight = 50.0;
 
         result(@YES);
     } else {
-        result([FlutterError errorWithCode:@"AD_CREATION_FAILED"
-                                  message:@"Failed to create MREC ad"
-                                  details:nil]);
+        [self.logger error:@"Failed to create MREC ad - native SDK returned nil"];
+        result(@NO);
     }
 }
 

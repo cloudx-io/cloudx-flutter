@@ -596,7 +596,7 @@ class CloudXFlutterSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware, 
                 result.success(true)
             }
             is CloudXAdView -> {
-                // Banner/MREC/Native ads load automatically when added to view
+                adInstance.load()
                 result.success(true)
             }
             else -> {

@@ -211,17 +211,29 @@ class _MRECScreenState extends BaseAdScreenState<MRECScreen> {
           listener: _createMRECListener('Programmatic MREC'),
         );
 
+        // Check if creation failed (native SDK returned nil)
+        if (_programmaticAdId == null) {
+          DemoAppLogger.sharedInstance.logMessage(
+              '❌ Failed to create programmatic MREC - native SDK returned nil');
+          setAdState(AdState.noAd);
+          setCustomStatus(
+              text: 'Failed to create MREC (SDK returned nil)',
+              color: Colors.red);
+          setState(() {
+            _showMREC = false;
+          });
+          return;
+        }
+
         DemoAppLogger.sharedInstance.logMessage(
             '🎯 Created programmatic MREC at ${_selectedPosition.value}');
 
         // Load the MREC
-        if (_programmaticAdId != null) {
-          await CloudX.loadMREC(adId: _programmaticAdId!);
-          DemoAppLogger.sharedInstance.logMessage('📥 Loading programmatic MREC');
-        }
+        await CloudX.loadMREC(adId: _programmaticAdId!);
+        DemoAppLogger.sharedInstance.logMessage('📥 Loading programmatic MREC');
 
         // Start auto-refresh (enabled by default)
-        if (_isAutoRefreshEnabled && _programmaticAdId != null) {
+        if (_isAutoRefreshEnabled) {
           await CloudX.startAutoRefresh(adId: _programmaticAdId!);
           DemoAppLogger.sharedInstance
               .logMessage('🔄 Auto-refresh started (enabled by default)');

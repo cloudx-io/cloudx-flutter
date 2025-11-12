@@ -209,17 +209,30 @@ class _BannerScreenState extends BaseAdScreenState<BannerScreen> {
           listener: _createBannerListener('Programmatic Banner'),
         );
 
+        // Check if creation failed (native SDK returned nil)
+        if (_programmaticAdId == null) {
+          DemoAppLogger.sharedInstance.logMessage(
+              '❌ Failed to create programmatic banner - native SDK returned nil');
+          setAdState(AdState.noAd);
+          setCustomStatus(
+              text: 'Failed to create banner (SDK returned nil)',
+              color: Colors.red);
+          setState(() {
+            _showBanner = false;
+          });
+          return;
+        }
+
         DemoAppLogger.sharedInstance.logMessage(
             '🎯 Created programmatic banner at ${_selectedPosition.value}');
 
         // Load the banner
-        if (_programmaticAdId != null) {
-          await CloudX.loadBanner(adId: _programmaticAdId!);
-          DemoAppLogger.sharedInstance.logMessage('📥 Loading programmatic banner');
-        }
+        await CloudX.loadBanner(adId: _programmaticAdId!);
+        DemoAppLogger.sharedInstance
+            .logMessage('📥 Loading programmatic banner');
 
         // Start auto-refresh (enabled by default)
-        if (_isAutoRefreshEnabled && _programmaticAdId != null) {
+        if (_isAutoRefreshEnabled) {
           await CloudX.startAutoRefresh(adId: _programmaticAdId!);
           DemoAppLogger.sharedInstance
               .logMessage('🔄 Auto-refresh started (enabled by default)');
