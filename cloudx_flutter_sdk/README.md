@@ -79,8 +79,8 @@ Add adapters to your app's `android/app/build.gradle`:
 ```gradle
 dependencies {
     // CloudX Adapters - add the adapters you want to use
-    implementation 'io.cloudx:adapter-meta:0.6.1'      // Meta Audience Network
-    implementation 'io.cloudx:adapter-cloudx:0.6.1'    // CloudX Network
+    implementation 'io.cloudx:adapter-meta:0.8.0'      // Meta Audience Network
+    implementation 'io.cloudx:adapter-cloudx:0.8.0'    // CloudX Network
     // Add other adapters as needed
 }
 ```
@@ -90,8 +90,8 @@ Or if using Kotlin DSL (`build.gradle.kts`):
 ```kotlin
 dependencies {
     // CloudX Adapters - add the adapters you want to use
-    implementation("io.cloudx:adapter-meta:0.6.1")      // Meta Audience Network
-    implementation("io.cloudx:adapter-cloudx:0.6.1")    // CloudX Network
+    implementation("io.cloudx:adapter-meta:0.8.0")      // Meta Audience Network
+    implementation("io.cloudx:adapter-cloudx:0.8.0")    // CloudX Network
     // Add other adapters as needed
 }
 ```
@@ -706,7 +706,7 @@ flutter run
 ### Android
 - Android API: 21 (Android 5.0) or higher
 - Gradle: 8.0+
-- CloudX Android SDK: 0.6.1
+- CloudX Android SDK: 0.8.0
 
 ## API Reference
 
