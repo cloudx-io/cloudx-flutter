@@ -1,6 +1,6 @@
 name: cloudx_flutter
 description: Complete Flutter SDK wrapper for CloudX Core with privacy compliance (CCPA/COPPA/GPP), targeting APIs, and full ad lifecycle callbacks
-version: 0.17.0
+version: 0.18.0
 homepage: https://github.com/cloudx-io/cloudx-flutter
 repository: https://github.com/cloudx-io/cloudx-flutter
 issue_tracker: https://github.com/cloudx-io/cloudx-flutter/issues
