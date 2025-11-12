@@ -8,6 +8,7 @@ on:
 jobs:
   publish:
     permissions:
+      contents: read # Required for reusable workflow to checkout code
       id-token: write # Required for OIDC authentication to pub.dev
     uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
     with:
