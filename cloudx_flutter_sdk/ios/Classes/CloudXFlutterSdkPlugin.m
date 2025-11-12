@@ -331,17 +331,47 @@ static const CGFloat kDefaultBannerHeight = 50.0;
         [CloudXCore setIsAgeRestrictedUser:[call.arguments[@"isAgeRestrictedUser"] boolValue]];
         result(@YES);
     } else if ([call.method isEqualToString:@"setGPPString"]) {
-        // TODO: CloudXCore does not support GPP yet - no-op for now
+        id gppValue = call.arguments[@"gppString"];
+        NSString *gppString = (gppValue == [NSNull null]) ? nil : gppValue;
+        if (gppString) {
+            [[NSUserDefaults standardUserDefaults] setObject:gppString forKey:@"IABGPP_HDR_GppString"];
+        } else {
+            [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"IABGPP_HDR_GppString"];
+        }
+        [[NSUserDefaults standardUserDefaults] synchronize];
         result(@YES);
     } else if ([call.method isEqualToString:@"getGPPString"]) {
-        // TODO: CloudXCore does not support GPP yet - return nil
-        result(nil);
+        NSString *gppString = [[NSUserDefaults standardUserDefaults] stringForKey:@"IABGPP_HDR_GppString"];
+        result(gppString);
     } else if ([call.method isEqualToString:@"setGPPSid"]) {
-        // TODO: CloudXCore does not support GPP yet - no-op for now
+        id gppSidValue = call.arguments[@"gppSid"];
+        NSArray *gppSid = (gppSidValue == [NSNull null]) ? nil : gppSidValue;
+        if (gppSid && [gppSid isKindOfClass:[NSArray class]]) {
+            // Join array with underscore delimiter (IAB GPP standard)
+            NSMutableArray *stringValues = [NSMutableArray array];
+            for (NSNumber *num in gppSid) {
+                [stringValues addObject:[num stringValue]];
+            }
+            NSString *gppSidString = [stringValues componentsJoinedByString:@"_"];
+            [[NSUserDefaults standardUserDefaults] setObject:gppSidString forKey:@"IABGPP_GppSID"];
+        } else {
+            [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"IABGPP_GppSID"];
+        }
+        [[NSUserDefaults standardUserDefaults] synchronize];
         result(@YES);
     } else if ([call.method isEqualToString:@"getGPPSid"]) {
-        // TODO: CloudXCore does not support GPP yet - return nil
-        result(nil);
+        NSString *gppSidString = [[NSUserDefaults standardUserDefaults] stringForKey:@"IABGPP_GppSID"];
+        if (gppSidString) {
+            // Parse underscore-delimited string back to array of integers
+            NSArray *stringComponents = [gppSidString componentsSeparatedByString:@"_"];
+            NSMutableArray *intArray = [NSMutableArray array];
+            for (NSString *component in stringComponents) {
+                [intArray addObject:@([component integerValue])];
+            }
+            result(intArray);
+        } else {
+            result(nil);
+        }
     }
     // Targeting Methods
     else if ([call.method isEqualToString:@"setUserKeyValue"]) {
