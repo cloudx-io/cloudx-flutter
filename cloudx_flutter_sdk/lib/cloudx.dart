@@ -182,8 +182,8 @@ class CloudX {
 
   /// Set whether user has given consent (GDPR)
   ///
-  /// ⚠️ Warning: GDPR is not yet supported by CloudX servers.
-  /// Please contact CloudX if you need GDPR support. CCPA is fully supported.
+  /// ⚠️ Warning: GDPR is not yet supported by CloudX.
+  /// Use CCPA for privacy compliance in supported regions.
   static Future<void> setIsUserConsent(bool hasConsent) async {
     await _invokeMethod('setIsUserConsent', {'isUserConsent': hasConsent});
   }
@@ -245,7 +245,7 @@ class CloudX {
   ///
   /// User-level key-values are injected into bid requests at server-configured paths.
   /// These values are typically user-specific targeting parameters and will be cleared
-  /// if privacy regulations require removing personal data (COPPA, GDPR).
+  /// if privacy regulations require removing personal data (COPPA).
   static Future<void> setUserKeyValue(String key, String value) async {
     await _invokeMethod('setUserKeyValue', {'key': key, 'value': value});
   }

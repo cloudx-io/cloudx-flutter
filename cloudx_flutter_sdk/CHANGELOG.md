@@ -122,10 +122,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Widget Integration**: `CloudXBannerView` and `CloudXMRECView` widgets for easy integration
 - **Programmatic Ads**: Create, load, show, hide, and destroy methods for all ad types
 - **Auto-Refresh**: Configurable auto-refresh for banner and MREC ads
-- **Privacy Compliance**: Support for CCPA, GPP, GDPR flags, and COPPA
+- **Privacy Compliance**: Support for CCPA, GPP, and COPPA
   - CCPA privacy string support (fully supported in bid requests)
   - GPP (Global Privacy Platform) support with getter/setter methods
-  - GDPR consent flags (not yet supported by CloudX servers)
   - COPPA age-restricted user flags
 - **User Targeting**: First-party data integration
   - User ID management
@@ -148,7 +147,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Known Limitations
 - iOS support is experimental and requires explicit opt-in
-- GDPR consent is not yet supported by CloudX servers
+- GDPR is not supported
 - COPPA flags clear user data but are not yet included in bid requests
 
 ### Documentation

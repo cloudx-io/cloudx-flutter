@@ -10,7 +10,7 @@ A Flutter plugin for the CloudX Mobile Ads platform. Monetize your Flutter apps 
 - **Banner Ads** (320x50) - Widget-based and programmatic positioning
 - **MREC Ads** (300x250) - Medium Rectangle ads with flexible placement
 - **Interstitial Ads** - Full-screen ads for natural transition points
-- **Privacy Compliance** - Built-in support for CCPA, GPP, GDPR, and COPPA
+- **Privacy Compliance** - Built-in support for CCPA, GPP, and COPPA
 - **Auto-Refresh** - Automatic ad refresh with server-side configuration
 - **Revenue Tracking** - Access to eCPM and winning bidder information
 - **User Targeting** - First-party data integration via key-value pairs
@@ -393,14 +393,6 @@ Fully supported in bid requests:
 // Set CCPA privacy string (format: "1YNN")
 // 1 = version, Y/N = opt-out-sale, Y/N = opt-out-sharing, Y/N = LSPA
 await CloudX.setCCPAPrivacyString('1YNN');
-```
-
-### GDPR (General Data Protection Regulation)
-
-⚠️ **Warning:** Not yet supported by CloudX servers. Contact CloudX for GDPR support.
-
-```dart
-await CloudX.setIsUserConsent(true); // true = user consented
 ```
 
 ### COPPA (Children's Online Privacy Protection Act)
