@@ -1,0 +1,47 @@
+name: cloudx_flutter_demo_app
+description: Flutter demo app demonstrating CloudX SDK integration
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+#  cloudx_flutter: ^0.16.0 // latest prod
+  cloudx_flutter: # local
+    path: ../cloudx-flutter/cloudx_flutter_sdk
+
+  # State management
+  provider: ^6.0.0
+
+  # Dependency injection
+  get_it: ^7.6.0
+
+  # Storage
+  shared_preferences: ^2.2.0
+
+  # Utilities
+  intl: ^0.18.0
+  cupertino_icons: ^1.0.2
+
+  # ATT permission for iOS
+  app_tracking_transparency: ^2.0.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+
+  # Testing
+  mockito: ^5.4.0
+  build_runner: ^2.4.0
+
+  # Linting
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true 
