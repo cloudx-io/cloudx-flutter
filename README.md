@@ -15,6 +15,7 @@ Complete documentation including installation, usage examples, API reference, an
 
 - **[`cloudx_flutter_sdk/`](cloudx_flutter_sdk/)** - Flutter plugin SDK package
 - **[`cloudx_flutter_demo_app/`](cloudx_flutter_demo_app/)** - Demo app with examples
+- **[`cloudx-flutter-testing/`](cloudx-flutter-testing/)** - Testing app for wrapper validation
 
 ## License
 
