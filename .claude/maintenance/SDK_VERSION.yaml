@@ -1,0 +1,256 @@
+# CloudX Flutter SDK Version Tracking
+# This file tracks the SDK version and critical API signatures that agents depend on
+
+sdk_version: "0.18.0"
+flutter_sdk_min: "3.0.0"
+dart_sdk_min: "3.0.0"
+agents_last_updated: "2025-11-14"
+verified_against_commit: "" # Set when running sync
+
+# Purpose:
+# - Source of truth for SDK version in this repository
+# - Synced to ../cloudx-sdk-agents/SDK_VERSION.yaml (platforms.flutter section)
+# - Validated by GitHub Actions on every PR
+
+# Critical API Signatures (agents depend on these)
+api_signatures:
+  initialization:
+    class: "CloudX"
+    method: "CloudX.initialize({required String appKey, bool testMode = false})"
+    returns: "Future<bool>"
+    description: "Initializes CloudX SDK. Set testMode to true to enable test ads. Currently only Android is supported."
+
+  banner:
+    factory: "CloudX.createBanner({required String placementName, String? adId, CloudXAdViewListener? listener, AdViewPosition? position})"
+    widget: "CloudXBannerView({required String placementName, Key? key, CloudXAdViewListener? listener, double? width, double? height, CloudXAdViewController? controller})"
+    listener: "CloudXAdViewListener"
+    load_method: "CloudX.loadBanner({required String adId})"
+    show_method: "CloudX.showBanner({required String adId})"
+    hide_method: "CloudX.hideBanner({required String adId})"
+    destroy_method: "CloudX.destroyAd({required String adId})"
+    callbacks:
+      - "onAdLoaded(CloudXAd ad)"
+      - "onAdLoadFailed(String error)"
+      - "onAdDisplayed(CloudXAd ad)"
+      - "onAdDisplayFailed(String error)"
+      - "onAdClicked(CloudXAd ad)"
+      - "onAdExpanded(CloudXAd ad)"
+      - "onAdCollapsed(CloudXAd ad)"
+      - "onAdRevenuePaid(CloudXAd ad)"  # Optional
+
+  interstitial:
+    factory: "CloudX.createInterstitial({required String placementName, String? adId, CloudXInterstitialListener? listener})"
+    listener: "CloudXInterstitialListener"
+    load_method: "CloudX.loadInterstitial({required String adId})"
+    show_method: "CloudX.showInterstitial({required String adId})"
+    ready_check: "CloudX.isInterstitialReady({required String adId})"
+    destroy_method: "CloudX.destroyAd({required String adId})"
+    callbacks:
+      - "onAdLoaded(CloudXAd ad)"
+      - "onAdLoadFailed(String error)"
+      - "onAdDisplayed(CloudXAd ad)"
+      - "onAdDisplayFailed(String error)"
+      - "onAdClicked(CloudXAd ad)"
+      - "onAdHidden(CloudXAd ad)"
+      - "onAdRevenuePaid(CloudXAd ad)"  # Optional
+
+  mrec:
+    factory: "CloudX.createMREC({required String placementName, String? adId, CloudXAdViewListener? listener, AdViewPosition? position})"
+    widget: "CloudXMRECView({required String placementName, Key? key, CloudXAdViewListener? listener, double? width, double? height, CloudXAdViewController? controller})"
+    listener: "CloudXAdViewListener"
+    load_method: "CloudX.loadMREC({required String adId})"
+    show_method: "CloudX.showMREC({required String adId})"
+    ready_check: "CloudX.isMRECReady({required String adId})"
+    destroy_method: "CloudX.destroyAd({required String adId})"
+    callbacks:
+      - "onAdLoaded(CloudXAd ad)"
+      - "onAdLoadFailed(String error)"
+      - "onAdDisplayed(CloudXAd ad)"
+      - "onAdDisplayFailed(String error)"
+      - "onAdClicked(CloudXAd ad)"
+      - "onAdExpanded(CloudXAd ad)"
+      - "onAdCollapsed(CloudXAd ad)"
+      - "onAdRevenuePaid(CloudXAd ad)"  # Optional
+
+  auto_refresh:
+    start_method: "CloudX.startAutoRefresh({required String adId})"
+    stop_method: "CloudX.stopAutoRefresh({required String adId})"
+    description: "Auto-refresh for banner/MREC ads. Interval configured server-side."
+
+  ad_view_controller:
+    class: "CloudXAdViewController"
+    description: "Controller for CloudXBannerView and CloudXMRECView that provides programmatic control over ad view behavior"
+    methods:
+      - "startAutoRefresh()"
+      - "stopAutoRefresh()"
+      - "dispose()"
+    properties:
+      - "bool isAttached" # Whether controller is attached to an ad view
+    usage: "Pass controller to CloudXBannerView or CloudXMRECView constructor. Controller auto-manages attachment/detachment."
+
+  privacy:
+    ccpa: "CloudX.setCCPAPrivacyString(String? ccpaString)"
+    gpp_string: "CloudX.setGPPString(String? gppString)"
+    gpp_sid: "CloudX.setGPPSid(List<int>? sectionIds)"
+    coppa: "CloudX.setIsAgeRestrictedUser(bool isAgeRestricted)"
+    gdpr: "CloudX.setIsUserConsent(bool hasConsent)"
+    description: "CCPA and GPP fully supported. COPPA partial (data clearing only). GDPR not yet supported by servers."
+
+  targeting:
+    user_kv: "CloudX.setUserKeyValue(String key, String value)"
+    app_kv: "CloudX.setAppKeyValue(String key, String value)"
+    clear_kv: "CloudX.clearAllKeyValues()"
+
+  lifecycle:
+    destroy: "CloudX.destroyAd({required String adId})"
+    deinitialize: "CloudX.deinitialize()"
+    description: "destroyAd() MUST be called in dispose() to prevent memory leaks"
+
+  sdk_info:
+    version: "CloudX.getVersion()"
+    platform_check: "CloudX.isPlatformSupported()"
+
+  logging:
+    set_logging: "CloudX.setLoggingEnabled(bool enabled)"
+    set_environment: "CloudX.setEnvironment(String environment)"
+    set_user_id: "CloudX.setUserID(String? userID)"
+
+# NOT YET PUBLIC (internal/experimental, don't document in agents)
+experimental_apis:
+  rewarded:
+    - "_createRewarded" # Private method, not production-ready
+    - "_loadRewarded"
+    - "_showRewarded"
+    - "_isRewardedReady"
+  native:
+    - "_createNative" # Private method, not production-ready
+    - "_loadNative"
+    - "_showNative"
+    - "_isNativeReady"
+
+# Agent files that reference these APIs
+agent_files:
+  cloudx-flutter-integrator:
+    location: "../cloudx-sdk-agents/.claude/agents/flutter/cloudx-flutter-integrator.md"
+    references:
+      - initialization
+      - banner
+      - interstitial
+      - mrec
+      - privacy (CCPA, GPP)
+      - lifecycle
+      - auto_refresh
+
+  cloudx-flutter-auditor:
+    location: "../cloudx-sdk-agents/.claude/agents/flutter/cloudx-flutter-auditor.md"
+    references:
+      - lifecycle (destroyAd validation)
+      - banner (fallback validation)
+      - interstitial (fallback validation)
+      - initialization (testMode flag check)
+
+  cloudx-flutter-build-verifier:
+    location: "../cloudx-sdk-agents/.claude/agents/flutter/cloudx-flutter-build-verifier.md"
+    references:
+      - No direct API references (runs flutter commands)
+
+  cloudx-flutter-privacy-checker:
+    location: "../cloudx-sdk-agents/.claude/agents/flutter/cloudx-flutter-privacy-checker.md"
+    references:
+      - privacy (all methods)
+      - initialization (timing validation)
+
+  integration_guide:
+    location: "../cloudx-sdk-agents/docs/flutter/INTEGRATION_GUIDE.md"
+    references:
+      - All public APIs
+      - Complete code examples
+
+# Deprecation tracking (for future use)
+deprecated_apis: []
+
+# Breaking changes by version (for migration docs)
+breaking_change_patterns: []
+
+# iOS Support Status
+ios_status:
+  status: "not_supported"
+  production_ready: false
+  notes: |
+    iOS support is not yet available.
+    - CloudX.initialize() will return false on iOS
+    - Minimum iOS version when implemented: 14.0
+    - Currently only Android is production-ready
+    - Contact CloudX for iOS support timeline
+
+# Flutter-Specific Patterns (critical for agent docs)
+flutter_patterns:
+  async_await:
+    description: "All CloudX APIs are asynchronous and return Future"
+    example: "await CloudX.initialize(appKey: 'KEY')"
+
+  widget_lifecycle:
+    description: "StatefulWidget dispose() MUST call destroyAd()"
+    example: |
+      @override
+      void dispose() {
+        if (_adId != null) {
+          CloudX.destroyAd(adId: _adId!);
+        }
+        super.dispose();
+      }
+
+  mounted_check:
+    description: "Check mounted before setState after async calls"
+    example: |
+      if (mounted) {
+        setState(() { ... });
+      }
+
+  widget_based_ads:
+    description: "CloudXBannerView and CloudXMRECView auto-manage lifecycle"
+    widgets:
+      - "CloudXBannerView"
+      - "CloudXMRECView"
+
+  programmatic_ads:
+    description: "createBanner/createMREC with position parameter for native overlays"
+    requires_manual_cleanup: true
+
+# Validation Coverage
+validation_coverage:
+  level: "smoke_test"
+  percentage: ~30
+  validated_items:
+    - "CloudX.initialize existence and parameters"
+    - "CloudXBannerView widget existence"
+    - "CloudXMRECView widget existence"
+    - "CloudXAdViewListener callbacks"
+    - "CloudXInterstitialListener callbacks"
+    - "Privacy API method names"
+    - "destroyAd lifecycle method"
+    - "async/await patterns"
+    - "StatefulWidget dispose patterns"
+    - "mounted check patterns"
+
+  not_validated:
+    - "Method signatures (parameter types, return types)"
+    - "All callback signatures"
+    - "Widget parameters and properties"
+    - "Code examples compile against SDK"
+    - "New experimental features"
+    - "Complete API coverage (~70% not checked)"
+
+# Update Checklist (for maintainer agent)
+update_checklist:
+  - "Update sdk_version, agents_last_updated, verified_against_commit"
+  - "Update api_signatures for changed/new APIs"
+  - "Update deprecated_apis list if APIs removed"
+  - "Update experimental_apis if features become public"
+  - "Update agent_files references if agents change"
+  - "Update breaking_change_patterns for breaking changes"
+  - "Update ios_status if iOS support status changes"
+  - "Run ../cloudx-sdk-agents/scripts/flutter/validate_agent_apis.sh"
+  - "Sync to ../cloudx-sdk-agents/SDK_VERSION.yaml (platforms.flutter section)"
+  - "Update agent docs in ../cloudx-sdk-agents/.claude/agents/flutter/"
+  - "Update integration guide in ../cloudx-sdk-agents/docs/flutter/"
