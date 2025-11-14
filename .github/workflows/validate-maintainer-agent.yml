@@ -1,0 +1,128 @@
+name: Validate Maintainer Agent
+
+# Runs validation checks on maintainer agent and SDK version tracking
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'cloudx_flutter_sdk/lib/**'
+      - '.claude/**'
+      - 'scripts/validate_critical_apis.sh'
+      - 'cloudx_flutter_sdk/pubspec.yaml'
+
+  pull_request:
+    branches: [main]
+    paths:
+      - 'cloudx_flutter_sdk/lib/**'
+      - '.claude/**'
+      - 'scripts/validate_critical_apis.sh'
+      - 'cloudx_flutter_sdk/pubspec.yaml'
+
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  validate:
+    name: Validate Maintainer Agent & Version Sync
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check maintainer agent exists
+        run: |
+          echo "🔍 Checking maintainer agent..."
+          if [ ! -f .claude/agents/cloudx-flutter-agent-maintainer.md ]; then
+            echo "❌ ERROR: Maintainer agent not found!"
+            exit 1
+          fi
+          echo "✅ Maintainer agent found"
+
+      - name: Validate SDK_VERSION.yaml sync
+        run: |
+          echo ""
+          echo "🔍 Checking SDK version consistency..."
+          if [ ! -f .claude/maintenance/SDK_VERSION.yaml ]; then
+            echo "❌ ERROR: .claude/maintenance/SDK_VERSION.yaml not found!"
+            exit 1
+          fi
+
+          YAML_VERSION=$(grep "^sdk_version:" .claude/maintenance/SDK_VERSION.yaml | awk '{print $2}' | tr -d '"')
+          PUBSPEC_VERSION=$(grep "^version:" cloudx_flutter_sdk/pubspec.yaml | awk '{print $2}' | tr -d '"')
+
+          echo "SDK_VERSION.yaml: $YAML_VERSION"
+          echo "pubspec.yaml: $PUBSPEC_VERSION"
+          echo ""
+
+          if [ "$YAML_VERSION" != "$PUBSPEC_VERSION" ]; then
+            echo "❌ Version mismatch detected!"
+            echo ""
+            echo "The SDK_VERSION.yaml is out of sync with the actual SDK version."
+            echo ""
+            echo "Action required:"
+            echo "1. Update sdk_version in .claude/maintenance/SDK_VERSION.yaml to: $PUBSPEC_VERSION"
+            echo "2. Run maintainer agent to sync agent repo"
+            echo "3. Update agents_last_updated field"
+            echo ""
+            exit 1
+          fi
+
+          echo "✅ SDK version matches: $YAML_VERSION"
+
+      - name: Validate maintainer agent documentation
+        run: |
+          echo ""
+          echo "🔍 Validating maintainer agent documentation..."
+
+          # Check for required sections
+          if ! grep -q "Cross-Repository Sync Mode" .claude/agents/cloudx-flutter-agent-maintainer.md; then
+            echo "❌ Missing 'Cross-Repository Sync Mode' section"
+            exit 1
+          fi
+
+          if ! grep -q "Environment Variables" .claude/agents/cloudx-flutter-agent-maintainer.md; then
+            echo "❌ Missing 'Environment Variables' section"
+            exit 1
+          fi
+
+          echo "✅ Maintainer agent documentation valid"
+
+      - name: Check for API changes requiring sync
+        run: |
+          echo ""
+          echo "🔍 Checking for API changes..."
+
+          # Only run on PRs
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "ℹ️  Skipping (not a PR)"
+            exit 0
+          fi
+
+          # Check if API files changed
+          git fetch origin ${{ github.base_ref }}
+          if git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -q "cloudx_flutter_sdk/lib/"; then
+            echo "⚠️  API changes detected in this PR"
+            echo ""
+            echo "After merging, run:"
+            echo "Use cloudx-flutter-agent-maintainer to sync agent repo with SDK changes"
+            echo ""
+          else
+            echo "✅ No API changes"
+          fi
+
+      - name: Validation summary
+        if: success()
+        run: |
+          echo ""
+          echo "================================"
+          echo "✅ All validation checks passed!"
+          echo "================================"
+          echo ""
+          echo "What was validated:"
+          echo "- Maintainer agent file exists"
+          echo "- SDK version sync (YAML ↔ pubspec.yaml)"
+          echo "- Maintainer agent documentation structure"
+          echo "- API change detection (PR only)"
+          echo ""

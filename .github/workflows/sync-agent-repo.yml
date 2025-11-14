@@ -1,0 +1,170 @@
+# Sync Agent Repository
+#
+# Detects when SDK API changes are made and notifies developers to sync agent documentation.
+#
+# When it runs:
+#   - Pull requests to main branch
+#   - Push to main branch
+#   - Only when Flutter SDK files or SDK_VERSION.yaml change
+#
+# What it does:
+#   - Detects actual API changes (compares HEAD vs HEAD^)
+#   - Prepares agent repo for syncing (clones to ../cloudx-sdk-agents)
+#   - For PRs: Posts comment reminder to run maintainer agent
+#   - For direct commits to main: Creates GitHub issue assigned to committer
+#
+# What it DOES NOT do:
+#   - Does NOT automatically sync agent docs (manual step required)
+#   - Does NOT modify any files
+#
+# Next steps after this workflow:
+#   1. Run: Use cloudx-flutter-agent-maintainer to sync agent repo
+#   2. Review and commit agent repo changes
+#   3. Close the tracking issue
+#
+
+name: Sync Agent Repository
+
+on:
+  push:
+    branches: [main]
+    paths:
+      # Only run when public API files change
+      - 'cloudx_flutter_sdk/lib/**/*.dart'
+      - '.claude/maintenance/SDK_VERSION.yaml'
+  pull_request:
+    branches: [main]
+    paths:
+      # Only run when public API files change
+      - 'cloudx_flutter_sdk/lib/**/*.dart'
+      - '.claude/maintenance/SDK_VERSION.yaml'
+
+jobs:
+  # Job 1: Check if there are actual API changes
+  check-changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      has_changes: ${{ steps.diff.outputs.has_changes }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check API changes
+        id: diff
+        run: |
+          git diff HEAD^ HEAD -- cloudx_flutter_sdk/lib/ > api_changes.diff
+          if [ -s api_changes.diff ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "📝 API changes detected"
+            cat api_changes.diff
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "✅ No API changes"
+          fi
+
+  # Job 2: Notify developers to sync (only runs if API changes detected)
+  sync:
+    needs: check-changes
+    if: needs.check-changes.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      # Prepare the agent repo for syncing (clones it to ../cloudx-sdk-agents)
+      - name: Clone agent repo
+        run: bash scripts/sync_to_agent_repo.sh
+
+      # For PRs: Add a comment reminder
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '⚠️ **API changes detected**\n\nRun: `Use cloudx-flutter-agent-maintainer to sync agent repo`'
+            })
+
+      # For direct commits to main: Create a tracking issue
+      # This ensures developers are notified even when bypassing PRs
+      - name: Create tracking issue for direct commit
+        if: github.event_name == 'push'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const commit = context.sha.substring(0, 7);
+            const branch = context.ref.replace('refs/heads/', '');
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🔄 Agent Sync Required - ${branch} (${commit})`,
+              body: `### API changes detected in direct commit
+
+              **Branch:** \`${branch}\`
+              **Commit:** \`${commit}\`
+              **Author:** @${context.actor}
+              **Workflow:** [View run](${context.payload.repository.html_url}/actions/runs/${context.runId})
+
+              ### Action Required
+              Run the maintainer agent to sync agent documentation:
+              \`\`\`
+              Use cloudx-flutter-agent-maintainer to sync agent repo with SDK changes
+              \`\`\`
+
+              ### Changed Files
+              API changes were detected in \`cloudx_flutter_sdk/lib/\`
+
+              See [commit ${commit}](${context.payload.head_commit.url}) for details.
+
+              ---
+
+              **Note:** Close this issue after running the maintainer agent and syncing the agent repo.`,
+              labels: ['agent-sync', 'documentation'],
+              assignees: [context.actor]
+            });
+
+      # If sync setup fails, alert appropriately based on event type
+      - name: Alert on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            if (context.eventName === 'pull_request') {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: '🚨 **Agent sync failed**\n\nManual sync required. See logs.'
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `🚨 Agent Sync Failed - ${context.ref.replace('refs/heads/', '')}`,
+                body: `### Sync Setup Failed
+
+                **Commit:** \`${context.sha.substring(0, 7)}\`
+                **Author:** @${context.actor}
+                **Workflow:** [View failed run](${context.payload.repository.html_url}/actions/runs/${context.runId})
+
+                The agent repo sync setup failed. Please check the logs and sync manually.
+
+                ### Manual Sync
+                \`\`\`bash
+                ./scripts/sync_to_agent_repo.sh
+                Use cloudx-flutter-agent-maintainer to sync agent repo
+                \`\`\``,
+                labels: ['agent-sync', 'bug'],
+                assignees: [context.actor]
+              });
+            }
