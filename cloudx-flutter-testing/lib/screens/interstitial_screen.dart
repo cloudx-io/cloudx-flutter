@@ -239,9 +239,11 @@ class _InterstitialScreenState extends State<InterstitialScreen> {
     return CloudXInterstitialListener(
       onAdLoaded: (ad) {
         _addLog('📞 CALLBACK: onAdLoaded');
-        _addLog('📦 Bidder: ${ad.bidder ?? "unknown"}');
+        _addLog('📦 Placement: ${ad.placementName ?? "unknown"}');
+        _addLog('📦 Placement ID: ${ad.placementId ?? "unknown"}');
+        _addLog('📦 Bidder/Network: ${ad.bidder ?? "unknown"}');
+        _addLog('📦 External ID: ${ad.externalPlacementId ?? "N/A"}');
         _addLog('📦 Revenue: \$${ad.revenue ?? 0.0}');
-        _addLog('📦 Bidder: ${ad.bidder ?? "unknown"}');
         _addLog('✅ TEST PASS: Interstitial loaded');
         _addLog('===============================');
         setState(() {
