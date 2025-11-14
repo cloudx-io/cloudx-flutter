@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cloudx_flutter: ^0.17.0
+  cloudx_flutter: ^0.18.0
   cupertino_icons: ^1.0.2
   intl: ^0.18.0
 

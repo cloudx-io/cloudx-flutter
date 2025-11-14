@@ -15,6 +15,8 @@
 *.iml
 .vscode/
 *.code-workspace
+.claude/
+**/.claude/
 
 
 
